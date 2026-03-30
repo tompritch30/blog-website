@@ -1,0 +1,55 @@
+---
+title: "How I actually use Claude Code day-to-day"
+date: "2026-03-30"
+description: "Not the demo. The real workflow — how Claude Code fits into building a production SaaS, where it saves hours, and where it still falls flat."
+tags: ["tooling", "llm", "workflow"]
+---
+
+I've been using Claude Code as my primary development tool for a few months now. This isn't a getting-started guide — there are plenty of those. This is what the workflow actually looks like when you're using it on a real codebase.
+
+## The basic loop
+
+The thing that makes Claude Code different from a chat interface is that it has *agency* over your files. You're not copy-pasting code back and forth — you describe what you want, and it reads the relevant files, makes the changes, and runs the tests.
+
+The loop I've settled into:
+
+1. Open a task in my head
+2. Drop context with a quick description: *"I'm adding X feature to Y module, here's how the current flow works..."*
+3. Let it read the relevant files and propose an approach
+4. Review the diff, push back on anything that's not right
+5. Run the build gate, fix what breaks
+
+Step 3 is where the time saving is real. On a codebase you know well, reading the relevant files and forming a plan takes maybe 10 minutes. Claude Code does it in seconds.
+
+## Where it actually saves time
+
+**Boilerplate and scaffolding.** New API endpoints, new database migrations, new React components that follow your established patterns — these take 20% of the thought they used to. It reads your existing code and matches the style.
+
+**Cross-file refactors.** Renaming a function that's called in 40 places, changing a type signature, moving a module — the kind of work that's tedious and error-prone by hand. Claude Code is very good at this.
+
+**Writing tests.** I hate writing tests for code I just wrote. Describing the expected behaviour and having it write the test suite is a genuine quality-of-life improvement.
+
+## Where it still falls flat
+
+**Long-running sessions drift.** After a couple of hours in the same session, the context fills up and the quality degrades. It starts hallucinating function names that don't exist, forgetting constraints you established earlier. I've learnt to start fresh sessions for new tasks rather than cramming everything into one.
+
+**It's optimistic about complexity.** Ask it to build something genuinely novel and it'll produce something that looks right but has subtle logic errors. The more domain-specific the problem, the more carefully you need to review the output. I treat it like code review, not like shipping.
+
+**Database migrations need human eyes.** It'll generate a correct-looking Alembic migration, but if it touches existing data or makes assumptions about state, I always read it line by line. The blast radius of a wrong migration in production is too high.
+
+## The CLAUDE.md file
+
+The biggest unlock was writing a `CLAUDE.md` file at the root of the project. This is a file Claude Code reads at the start of every session — your permanent context. It contains:
+
+- How the project is structured
+- What the quality gates are (lint, tests, build)
+- Conventions to follow (e.g. "never mock the database in tests")
+- Common pitfalls that have burned us before
+
+Without this, every session starts from scratch. With it, Claude Code behaves like someone who's been working on the codebase for months. It's worth spending an hour writing a good one.
+
+## The honest summary
+
+Claude Code has made me faster at the parts of software development that are more mechanical than creative — scaffolding, refactors, tests, wiring things together. The parts that require real design thinking — what to build, how to structure a system, what the right trade-off is — those are still on me.
+
+That's probably the right division.
