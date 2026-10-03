@@ -6,8 +6,8 @@ Thomas Pritchard's personal site: Next.js 16 (App Router) + Tailwind v4 + MDX, d
 
 1. Never push, deploy or publish: no `git push`, no `gh repo create/edit/delete` or other GitHub writes, no `vercel`, no `npm publish`. Thomas does these by hand. The guard hook and the pre-push hook enforce this.
 2. Never read, print or commit secrets: no credential files, tokens or `.env` files with real values. Only `.env.example`, with empty values.
-3. No personal data in the repo or its history: no home address, phone number, personal email, or anything about employers or clients. Posts use public facts or synthetic numbers.
-4. Never invent facts about Thomas. Bio text he has not written stays a marked placeholder.
+3. No personal data in the repo or its history: no home address, phone number or personal email (commits use the GitHub noreply address), and nothing confidential about employers or clients. Posts use public facts or synthetic numbers.
+4. Never invent facts about Thomas. The tagline and About page use only facts he has given (ADR 0002); anything else stays out.
 
 ## Next.js 16 is newer than your training data
 
