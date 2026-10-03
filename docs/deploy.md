@@ -4,19 +4,18 @@ Thomas runs these steps by hand. Agents working on this repo never push or deplo
 
 ## 1. Get the branch onto GitHub
 
-The repo's `origin` is `github.com/tompritch30/blog-website`. The local pre-push hook always refuses, so push with `--no-verify`:
+The private repo `tompritch30/blog-website` holds the original commit, which carries a personal email address and text that must not go public (ADR 0002). Keep it private under a new name and publish the clean `release-prep` branch as a new public repo with the original name. The local pre-push hook always refuses, so push with `--no-verify`:
 
 ```bash
-git switch main
-git merge --ff-only release-prep
-git push --no-verify origin main
+cd ~/dev/blog-website
+git switch release-prep
+scripts/ci.sh
+gh repo rename blog-website-private-old --repo tompritch30/blog-website --yes
+gh repo create tompritch30/blog-website --public --description "Thomas Pritchard's personal site"
+git push --no-verify origin release-prep:main
 ```
 
-Vercel can deploy a private repo, so making the repo public is a separate choice:
-
-```bash
-gh repo edit tompritch30/blog-website --visibility public --accept-visibility-change-consequences
-```
+`origin` keeps pointing at `github.com/tompritch30/blog-website`, which is now the new public repo. After the push, `git branch -f main release-prep` makes the local `main` match if you want it to.
 
 ## 2. Create the Vercel project
 
@@ -35,14 +34,9 @@ Every push to `main` then deploys to production, and every other branch gets a p
 2. Add the `www` variant and redirect it to the bare domain (or the other way round).
 3. Set `NEXT_PUBLIC_SITE_URL` to `https://<your-domain>` for **Production** in **Settings → Environment Variables**, then redeploy so canonical URLs, the sitemap, the feed and share images use it.
 
-## 4. Replacing tompritch30.github.io
+## 4. The old GitHub Pages site
 
-The old site lives in the `tompritch30/tompritch30.github.io` repo. Once the new site is live, the options are:
-
-- turn the old site into a redirect: replace its `index.html` with a page that has `<link rel="canonical" href="https://<new-url>/">` and `<meta http-equiv="refresh" content="0; url=https://<new-url>/">`;
-- or archive the repo and unpublish GitHub Pages under its **Settings → Pages**.
-
-GitHub Pages cannot send a real 301, so the redirect page is the closest option. Either way, nothing here changes the old site; that is a separate step.
+Already handled: the old `tompritch30.github.io` repo is renamed `old-test-site`, so it no longer serves that address.
 
 ## 5. Analytics (optional, later)
 

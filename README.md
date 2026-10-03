@@ -59,7 +59,7 @@ Markdown, GitHub tables and code blocks, and React components.
 
 ## Deploying
 
-Vercel's Next.js defaults work as they are. The step-by-step guide, including a custom domain and retiring the old GitHub Pages site, is in [docs/deploy.md](docs/deploy.md). In short: import the GitHub repo at vercel.com and deploy.
+Vercel's Next.js defaults work as they are. The step-by-step guide, including the first push and a custom domain, is in [docs/deploy.md](docs/deploy.md). In short: import the GitHub repo at vercel.com and deploy.
 
 ## How it works
 
