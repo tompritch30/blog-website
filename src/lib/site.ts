@@ -13,8 +13,8 @@ export function siteUrl(env: Env = process.env): string {
 
 export const site = {
   name: "Thomas Pritchard",
-  tagline: "Software engineer. Writing about applied AI and the tools around it.",
-  description: "Thomas Pritchard's personal site: notes on software engineering, applied AI and developer tools.",
+  tagline: "Founding Forward Deployed Engineer at Palindrome. I build LLM systems for legal and finance clients.",
+  description: "Thomas Pritchard's personal site: notes on building LLM systems, what they cost and how to make them work.",
   github: "https://github.com/tompritch30",
   locale: "en_GB",
   url: siteUrl(),

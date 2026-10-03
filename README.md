@@ -22,7 +22,7 @@ npm run build
 npm start
 ```
 
-Open http://localhost:3000. For writing, use `npm run dev` instead of build and start: it reloads on save and shows draft posts.
+Open http://localhost:3000. For writing, use `npm run dev` instead of build and start: it serves http://localhost:3005, reloads on save and shows draft posts.
 
 `npm ci` also installs this repo's git hooks through lefthook: lint, type check and tests before each commit, and a Conventional Commits check on the message.
 
@@ -51,7 +51,7 @@ Markdown, GitHub tables and code blocks, and React components.
 | Setting | Where | Default | Purpose |
 |---|---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | environment variable | Vercel's production domain, else `http://localhost:3000` | Origin for canonical URLs, the sitemap, the RSS feed and share images. Set it once there is a custom domain. |
-| Name, tagline, GitHub link | `src/lib/site.ts` | Thomas Pritchard | Shown in the header, home page, footer, metadata and share images. |
+| Name, tagline, GitHub link | `src/lib/site.ts` | Thomas Pritchard, his role at Palindrome | Shown in the header, home page, footer, metadata and share images. |
 | Colours | `src/app/globals.css` | Warm off-white and near-black, with a dark mode | A test checks every text colour meets WCAG AA contrast. |
 | Node version | `.nvmrc`, `package.json` `engines` | 22 | Vercel builds with the `engines` version. |
 
@@ -81,7 +81,7 @@ src/content/posts/*.mdx --> src/lib/posts.ts --> pages under src/app/ --> static
 ## Status and limitations
 
 - A personal site with one author. It is not a template, though the code is free to reuse under the licence below.
-- The About page bio, the tagline, the icon and the share images are placeholders.
+- The icon and the share images are simple generated placeholders.
 - No comments, analytics, tag pages or pagination yet. All posts are listed on the home page.
 - Search filters the post list in the browser by title, description and tags; it does not search post bodies.
 
