@@ -1,0 +1,31 @@
+# Origin and licence of every design asset on the site. One entry per asset.
+# Fonts are added by the design-system slice.
+
+easter_egg:
+  decision: docs/adr/0004-easter-egg-prior-art.md
+  code:
+    - path: src/lib/invaders/engine.ts
+      origin: written for this site, 3 Oct 2026
+      licence: the repo's own LICENSE
+      note: no code copied from any candidate in ADR 0004; the march rule (sideways, drop and reverse at an edge) is the arcade convention
+    - path: src/lib/invaders/trigger.ts
+      origin: written for this site, 3 Oct 2026
+      licence: the repo's own LICENSE
+    - path: src/components/invaders/Game.tsx
+      origin: written for this site, 3 Oct 2026
+      licence: the repo's own LICENSE
+  art:
+    - name: alien trigger
+      path: src/components/invaders/AlienTrigger.tsx
+      kind: 11 x 9 pixel grid in code, drawn as inline SVG in currentColor
+      origin: original, drawn by the builder 3 Oct 2026; a round head with one antenna and four short legs, not based on any arcade sprite
+      licence: the repo's own LICENSE
+    - name: player ship
+      path: src/components/invaders/sprites.ts
+      kind: 13 x 8 pixel grid in code, drawn on canvas in the page's text colour
+      origin: original, drawn by the builder 3 Oct 2026; a winged dart, not the arcade laser base
+      licence: the repo's own LICENSE
+    - name: invaders
+      origin: the current page's own headings and post titles, drawn as text in the page's own font and colours
+      licence: n/a (site content)
+  sound: none

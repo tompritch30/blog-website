@@ -109,3 +109,17 @@ Green:
 ```
 
 Decisions: touching edges do not collide; shots use a swept box, so a fast bullet cannot skip a thin heading; a new shot appears where it is fired and moves from the next step; bombs come from a seeded xorshift pick, so a seeded game replays exactly; three lives; the formation keeps the page positions of headings only when two or more sit in the top 55% of the screen with room to march, otherwise it packs them in rows. `design/CONTROLS.json` does not exist on this base yet: when slice 3 lands, the lead lists the alien button (job: start the game) and the game dialog's buttons (close, play again, play anyway).
+
+Sprites (`src/components/invaders/sprites.test.ts`), red against empty stubs then green:
+
+```
+   × pixel grids > are rectangular and use only # and .
+   × pixel grids > the alien looks aside on hover: only the eye row changes
+   × pixel grids > cells lists each filled pixel as column and row
+   × pixel grids > gridPath draws one unit square per filled pixel
+      Tests  4 failed (4)
+ ✓ src/components/invaders/sprites.test.ts (4 tests) 14ms
+      Tests  4 passed (4)
+```
+
+Browser run (Playwright, cached Chromium, `next start` on 3107), first pass 32 of 41: Escape left empty `style=""` attributes behind, Tab left the native modal for the browser's own controls, and the march took minutes on a 1440 screen. Fixed by saving and restoring style attributes byte for byte, trapping Tab across the dialog's buttons, and pacing the march to the screen (about five seconds per crossing, about twelve drops to the ship). Second pass 42 of 42.

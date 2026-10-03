@@ -12,3 +12,5 @@ Words used in code, tests and plans. Use these names; add a line when a new term
 - **Feed**: the RSS 2.0 document at `/feed.xml`.
 - **Colour token**: a CSS custom property in `globals.css` (`--text`, `--secondary`, `--muted`, ...). Text tokens must meet WCAG AA on every background token.
 - **Guard**: `.claude/hooks/guard.py`, the PreToolUse hook that stops agents pushing, deploying, publishing or reading secrets.
+- **Invaders game**: the hidden game in `src/components/invaders/Game.tsx`; the current page's headings and post titles become the invaders. Its rules live in the pure engine, `src/lib/invaders/engine.ts`.
+- **Alien trigger**: the small pixel-alien button (`AlienTrigger.tsx`) that starts the invaders game; the Konami code is a second way in.
