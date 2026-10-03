@@ -7,6 +7,7 @@ import { WRITING_PATH } from "@/lib/paths";
 
 const PAGES = [
   { href: WRITING_PATH, label: "Writing" },
+  { href: "/cv", label: "CV" },
   { href: "/about", label: "About" },
 ];
 
