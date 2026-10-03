@@ -4,7 +4,7 @@
 // whose one job is to start the game. The game itself loads only when it is pressed.
 import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
 import { createTrigger } from "@/lib/invaders/trigger";
-import { ALIEN, ALIEN_LOOK, gridPath } from "./sprites";
+import { ALIEN, ALIEN_LOOK, gridPath } from "./alien";
 
 type GameComponent = ComponentType<{ onClose: () => void }>;
 

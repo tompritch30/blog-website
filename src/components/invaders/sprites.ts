@@ -1,29 +1,7 @@
 // Original pixel art for the hidden game, drawn for this site (design/MANIFEST.yaml).
 // "#" is a filled pixel, "." is empty.
 
-// A round-headed alien with a bent antenna and four short legs. Its eyes are the gaps in row 4.
-export const ALIEN = [
-  "......#....",
-  ".....#.....",
-  "...#####...",
-  "..#######..",
-  ".##.##.###.",
-  ".#########.",
-  "..#######..",
-  "..#.#.#.#..",
-];
-
-// The same alien glancing to the side: the hover and focus hint.
-export const ALIEN_LOOK = [
-  "......#....",
-  ".....#.....",
-  "...#####...",
-  "..#######..",
-  ".###.##.##.",
-  ".#########.",
-  "..#######..",
-  "..#.#.#.#..",
-];
+export { ALIEN, ALIEN_LOOK, cells, gridPath } from "./alien";
 
 // The player's ship: a winged dart.
 export const SHIP = [
@@ -37,18 +15,93 @@ export const SHIP = [
   "##...###...##",
 ];
 
-/** Filled pixels as [column, row]. */
-export function cells(grid: string[]): [number, number][] {
-  const out: [number, number][] = [];
-  grid.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++) if (row[x] === "#") out.push([x, y]);
-  });
-  return out;
-}
+// Invader type 3, the top row: a beetle with its shell marked "VO" (the ForestVO paper) in
+// our own 3 x 5 pixel letters. Frame 1 has its arms up and antennae in; frame 2 the reverse.
+const BEETLE_A = [
+  "..#.......#..",
+  "...#.....#...",
+  ".###########.",
+  "###.#.#...###",
+  ".##.#.#.#.##.",
+  ".##.#.#.#.##.",
+  ".##.#.#.#.##.",
+  ".###.##...##.",
+  ".###########.",
+  "..#.#...#.#..",
+  ".#.........#.",
+];
+const BEETLE_B = [
+  ".#.........#.",
+  "..#.......#..",
+  ".###########.",
+  ".##.#.#...##.",
+  ".##.#.#.#.##.",
+  ".##.#.#.#.##.",
+  "###.#.#.#.###",
+  ".###.##...##.",
+  ".###########.",
+  "..#.#...#.#..",
+  "...#.....#...",
+];
 
-/** An SVG path of unit squares, for a viewBox of the grid's size. */
-export function gridPath(grid: string[]): string {
-  return cells(grid)
-    .map(([x, y]) => `M${x} ${y}h1v1h-1z`)
-    .join("");
-}
+// Invader type 2, the middle rows: a domed drifter with one antenna and a fringed skirt,
+// marked "IC" (Imperial College) in the same pixel letters. The skirt and antenna sway.
+const DRIFTER_A = [
+  "......#......",
+  ".....###.....",
+  "...#######...",
+  "..#########..",
+  ".###.#...###.",
+  ".###.#.#####.",
+  ".###.#.#####.",
+  ".###.#.#####.",
+  ".###.#...###.",
+  "#############",
+  "#..#..#..#..#",
+];
+const DRIFTER_B = [
+  ".......#.....",
+  ".....###.....",
+  "...#######...",
+  "..#########..",
+  ".###.#...###.",
+  ".###.#.#####.",
+  ".###.#.#####.",
+  ".###.#.#####.",
+  ".###.#...###.",
+  "#############",
+  ".#..#.#.#..#.",
+];
+
+// Type 1 (the bottom rows) is the Palindrome mark, an image sprite (public/logos/palindrome.svg).
+export const CREATURES: Record<2 | 3, [string[], string[]]> = {
+  2: [DRIFTER_A, DRIFTER_B],
+  3: [BEETLE_A, BEETLE_B],
+};
+
+// A shield: a stepped dome with a doorway, eroded cell by cell in play.
+export const SHIELD = [
+  "......########......",
+  "....############....",
+  "..################..",
+  ".##################.",
+  "####################",
+  "####################",
+  "####################",
+  "####################",
+  "####################",
+  "#######......#######",
+  "######........######",
+  "######........######",
+];
+
+// The mystery ship: a golden airship with tail fins and a gondola, nose to the left.
+export const MYSTERY = [
+  "....##########....",
+  "..##############.#",
+  ".#################",
+  ".#################",
+  "..##############.#",
+  "....##########....",
+  ".......####.......",
+];
