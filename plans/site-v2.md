@@ -70,3 +70,42 @@ Raw output of: `scripts/ci.sh` (lint, tsc, tests, guard tests, build) plus `npm 
 12. Owner, reversible: (a) the blind judge picks, the owner can overrule from the shots; (b) em dashes in the existing post become commas, colons or full stops, and "biggest unlock" becomes plain wording; both listed for the owner.
 
 Owner course corrections the same day (via the lead): the easter egg's main trigger is a small pixel alien a curious visitor can find and click (hover and focus hint), Konami is a bonus, typed "invade" is dropped; before writing the engine, search for MIT, CC0 or BSD Space Invaders-style JS or TS implementations, adopt one if clean (vendored with licence, original art) or reject each in one line, and record the decision in an ADR. Owner anti-slop list added to the lint and to SYSTEM.md; the judge scores against it. All helper agents run on Opus 5.5.
+
+### 2026-10-03 easter egg build evidence (slice 8, worktree branch `site-v2-egg`)
+
+Prior art: seven Space Invaders repos read (six MIT, one with no licence); none adopted, own engine written (ADR 0004). Assets recorded in `design/MANIFEST.yaml`.
+
+Red, with stub modules exporting the seams (`npx vitest run src/lib/invaders`), 27 of 35 failing:
+
+```
+   × createTrigger (Konami code) > starts once on the full sequence
+   × createTrigger (Konami code) > still starts when the visitor presses up one time too many first
+   × createTrigger (Konami code) > does not let typing in a field break a sequence typed on the page
+   × collides (axis-aligned boxes; edges that only touch do not count) > is true with a one pixel overlap
+   × the invader march > drops and reverses instead of crossing the right edge
+   × the invader march > drops and reverses at the left edge, moving the whole formation together
+   × bullets > leave the ship's centre top, then move up at bullet speed
+   × bullets > expire once fully above the field
+   × hits and score > a hit removes the invader and the bullet and scores 10, even when the bullet moves further than the invader is tall
+   × hits and score > keeps the best score: a higher stored best stays, a new best replaces it
+   × waves > clearing a wave starts the next one with the same invaders, a faster march and no bullets
+   × waves > each wave marches 1.25 times faster than the last
+   × game over > ends when an invader reaches the ship's row
+   × bombs > a bomb on the ship costs a life and clears the bombs; the last life ends the game
+   × buildFormation > packs headings into rows from the top left when their page boxes do not fit
+   (12 more)
+⎯⎯⎯⎯⎯⎯ Failed Tests 27 ⎯⎯⎯⎯⎯⎯⎯
+```
+
+The 8 that passed against the stubs are the "nothing happens" cases (touching edges, broken sequence, keys in fields, modifier keys, finished game unchanged, kept formation); they gained meaning once the positive cases went green.
+
+Green:
+
+```
+ ✓ src/lib/invaders/trigger.test.ts (9 tests) 16ms
+ ✓ src/lib/invaders/engine.test.ts (26 tests) 36ms
+ Test Files  2 passed (2)
+      Tests  35 passed (35)
+```
+
+Decisions: touching edges do not collide; shots use a swept box, so a fast bullet cannot skip a thin heading; a new shot appears where it is fired and moves from the next step; bombs come from a seeded xorshift pick, so a seeded game replays exactly; three lives; the formation keeps the page positions of headings only when two or more sit in the top 55% of the screen with room to march, otherwise it packs them in rows. `design/CONTROLS.json` does not exist on this base yet: when slice 3 lands, the lead lists the alien button (job: start the game) and the game dialog's buttons (close, play again, play anyway).
