@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "D=\"${CLAUDE_PROJECT_DIR:-.}\"; D=$(printf '%s' \"$D\" | tr '\\' '/'); for p in python3 python; do if \"$p\" -c '' >/dev/null 2>&1; then exec \"$p\" \"$D/.claude/hooks/guard.py\"; fi; done; echo 'repo guard: no python found, failing closed' >&2; exit 2",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

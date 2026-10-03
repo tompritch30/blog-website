@@ -11,7 +11,7 @@ Goal: the repo is ready for Thomas to make it public and deploy it on Vercel as 
 
 ## Findings so far (baseline on `release-prep` at 9e9a517)
 
-- Sole author tompritch30; no LICENSE; scaffold is create-next-app (Next 16.2.1); no third-party template.
+- Sole author tompritch30; no LICENSE; scaffold is create-next-app (Next 16.2.1, now 16.3.8 after 3d9d379); no third-party template.
 - History sweep: no secrets; no phone, address or personal email in files. The commit author email is a personal address (git metadata).
 - `npm run lint` fails (2 unescaped apostrophes in about page); `tsc --noEmit` and `npm run build` pass.
 - Node: system Node is 18; Next 16 needs >= 20.9. No `engines` or `.nvmrc`.
@@ -53,3 +53,22 @@ Raw output of `npm run lint`, `npx tsc --noEmit`, `npm test`, `npm run build`, `
 5. Vitest adds a dev dependency; the alternative is Node's built-in runner, which cannot resolve the `@/` alias without a loader. Default: Vitest.
 6. Should drafts be previewable in `next dev`? Default yes.
 7. Does the guard need to block anything Vercel-specific beyond `vercel` CLI deploys (e.g. `vercel env pull` writes `.env.local` with real values)? Default: block `vercel env pull` too.
+
+## Log
+
+### 2026-10-03 grill (fresh read-only griller, one round)
+
+Deviation noted: commit 3d9d379 (Next 16.2.1 -> 16.3.8 for a critical advisory, Vitest, lefthook, engines, .nvmrc) landed before the grill. Kept: it is a security patch; baseline build re-run green on 16.3.8.
+
+1. Fresh-clone proof follows the README word for word, including `npm test`: accept. README quickstart = select Node 22, `npm ci`, `npm test`, `npm run build && npm start` (and `npm run dev` for writing).
+2. Secret, slop and personal-data sweeps re-run after the last commit, over the full history: accept.
+3. Order deviation (above): accept, recorded.
+4. RELEASE-NOTES-FOR-OWNER.md lists the exact publish commands, including how the owner gets past the pre-push refusal: accept.
+5. Guard, settings, pre-push and setup-dev first; guard protects its own files; ci.sh checks the push refusal: accept (guard written and tested before any src change).
+6. Skill bodies pointed at Hazel files: already rewritten by the copy step (grill-plan, implement, code-review); griller.md adapted the same way: accept.
+7. `formatDate` moves to `src/lib/dates.ts` (client-safe, no `fs`), formats in UTC; the re-export from posts.ts goes: accept.
+8. Posts functions take optional `{ dir, includeDrafts }`; invalid fixtures in their own folder; an unquoted YAML date is rejected with the file name: accept.
+9. Contrast proved by a Vitest test that reads the colour tokens from globals.css and asserts >= 4.5:1 in both themes; 375px and keyboard checks by screenshot: accept.
+10. One shared base metadata object; post `openGraph` spreads it; RSS `alternates.types`; curl a built post for og:image, og:type, og:site_name and canonical: accept.
+11. `scripts/prompt-cache-maths.mjs` (plain Node) produces every number in the draft post; its output goes in this log: accept.
+12. Owner items stay parked with defaults (licence, tagline, existing post, author email). Lefthook installing hooks into a stranger's clone on `npm ci`: keep, say so in the README.

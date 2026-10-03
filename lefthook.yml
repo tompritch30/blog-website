@@ -1,0 +1,24 @@
+# Git hooks. scripts/setup-dev.sh installs them (lefthook is a dev dependency).
+# pre-push is deliberately not here: scripts/hooks/pre-push always refuses (installed by setup-dev.sh).
+pre-commit:
+  parallel: true
+  jobs:
+    - name: eslint
+      glob: "*.{ts,tsx,js,mjs}"
+      run: npx eslint {staged_files}
+    - name: typecheck
+      glob: "*.{ts,tsx}"
+      run: npm run typecheck
+    - name: unit tests
+      glob: "*.{ts,tsx,mdx,css}"
+      run: npm test
+    - name: guard hook tests
+      glob: ".claude/hooks/*.py"
+      run: python3 .claude/hooks/test_guard.py
+
+commit-msg:
+  jobs:
+    - name: conventional commit
+      run: scripts/check-commit-msg.sh {1}
+
+colors: false

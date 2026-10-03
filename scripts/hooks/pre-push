@@ -1,0 +1,6 @@
+#!/bin/sh
+# Owner rule: agents never push. Installed by scripts/setup-dev.sh as .git/hooks/pre-push.
+# A plain script, not a lefthook job: lefthook skips pre-push jobs when it sees no pushed files.
+# The owner pushes by hand with: git push --no-verify
+echo "push disabled: owner rule, the owner pushes by hand (git push --no-verify)" >&2
+exit 1
