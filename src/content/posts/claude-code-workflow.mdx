@@ -5,11 +5,11 @@ description: "Not the demo. The real workflow: where Claude Code saves hours on 
 tags: ["tooling", "llm", "workflow"]
 ---
 
-I've been using Claude Code as my primary development tool for a few months now. This isn't a getting-started guide — there are plenty of those. This is what the workflow actually looks like when you're using it on a real codebase.
+I've been using Claude Code as my primary development tool for a few months now. This isn't a getting-started guide. There are plenty of those. This is what the workflow actually looks like when you're using it on a real codebase.
 
 ## The basic loop
 
-The thing that makes Claude Code different from a chat interface is that it has *agency* over your files. You're not copy-pasting code back and forth — you describe what you want, and it reads the relevant files, makes the changes, and runs the tests.
+The thing that makes Claude Code different from a chat interface is that it has *agency* over your files. You're not copy-pasting code back and forth: you describe what you want, and it reads the relevant files, makes the changes, and runs the tests.
 
 The loop I've settled into:
 
@@ -23,9 +23,9 @@ Step 3 is where the time saving is real. On a codebase you know well, reading th
 
 ## Where it actually saves time
 
-**Boilerplate and scaffolding.** New API endpoints, new database migrations, new React components that follow your established patterns — these take 20% of the thought they used to. It reads your existing code and matches the style.
+**Boilerplate and scaffolding.** New API endpoints, new database migrations, new React components that follow your established patterns. These take 20% of the thought they used to. It reads your existing code and matches the style.
 
-**Cross-file refactors.** Renaming a function that's called in 40 places, changing a type signature, moving a module — the kind of work that's tedious and error-prone by hand. Claude Code is very good at this.
+**Cross-file refactors.** Renaming a function that's called in 40 places, changing a type signature, moving a module: the kind of work that's tedious and error-prone by hand. Claude Code is very good at this.
 
 **Writing tests.** I hate writing tests for code I just wrote. Describing the expected behaviour and having it write the test suite is a genuine quality-of-life improvement.
 
@@ -39,7 +39,7 @@ Step 3 is where the time saving is real. On a codebase you know well, reading th
 
 ## The CLAUDE.md file
 
-The biggest unlock was writing a `CLAUDE.md` file at the root of the project. This is a file Claude Code reads at the start of every session — your permanent context. It contains:
+What helped most was writing a `CLAUDE.md` file at the root of the project. This is a file Claude Code reads at the start of every session: your permanent context. It contains:
 
 - How the project is structured
 - What the quality gates are (lint, tests, build)
@@ -50,6 +50,6 @@ Without this, every session starts from scratch. With it, Claude Code behaves li
 
 ## The honest summary
 
-Claude Code has made me faster at the parts of software development that are more mechanical than creative — scaffolding, refactors, tests, wiring things together. The parts that require real design thinking — what to build, how to structure a system, what the right trade-off is — those are still on me.
+Claude Code has made me faster at the parts of software development that are more mechanical than creative: scaffolding, refactors, tests, wiring things together. The parts that require real design thinking: what to build, how to structure a system, what the right trade-off is. Those are still on me.
 
 That's probably the right division.
