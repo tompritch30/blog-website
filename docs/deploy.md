@@ -7,12 +7,7 @@ Thomas runs these steps by hand. Agents working on this repo never push or deplo
 The private repo `tompritch30/blog-website` holds the original commit, which carries a personal email address and text that must not go public (ADR 0002). Keep it private under a new name and publish the clean `release-prep` branch as a new public repo with the original name. The local pre-push hook always refuses, so push with `--no-verify`:
 
 ```bash
-cd ~/dev/blog-website
-git switch release-prep
-scripts/ci.sh
-gh repo rename blog-website-private-old --repo tompritch30/blog-website --yes
-gh repo create tompritch30/blog-website --public --description "Thomas Pritchard's personal site"
-git push --no-verify origin release-prep:main
+cd ~/dev/blog-website && git switch release-prep && scripts/ci.sh   && gh repo rename blog-website-private-old --repo tompritch30/blog-website --yes   && gh repo create tompritch30/blog-website --public --description "Thomas Pritchard's personal site"   && git push --no-verify origin release-prep:main
 ```
 
 `origin` keeps pointing at `github.com/tompritch30/blog-website`, which is now the new public repo. After the push, `git branch -f main release-prep` makes the local `main` match if you want it to.
