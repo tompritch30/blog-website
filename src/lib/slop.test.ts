@@ -195,6 +195,12 @@ describe("lintHtml (built pages)", () => {
     const counts = Object.fromEntries([...new Set(hits.map((h) => h.rule))].map((r) => [r, hits.filter((h) => h.rule === r).length]));
     expect(counts).toEqual({ "em-dash": 6, marketing: 1, "icon-kit": 1 });
   });
+
+  it("passes the same post page rebuilt after the slice 4 fixes, payload scripts and code included", () => {
+    const real = JSON.parse(fs.readFileSync(path.join(ROOT, "design/slop-allow.json"), "utf-8")) as Allow;
+    const rel = "built-regression/claude-code-workflow-after-slice-4.html";
+    expect(lintHtml(`${FIX}/${rel}`, read(rel), { allow: real, built: true })).toEqual([]);
+  });
 });
 
 describe("controls budget", () => {
@@ -290,6 +296,13 @@ describe("lint-slop CLI", { timeout: 30_000 }, () => {
     const dir = `${FIX}/built-clean`;
     const out = run("--built", dir, "--controls", `${dir}/CONTROLS.json`);
     expect(out.stdout).toMatch(/^pass +\S+\/writing\/a-post\.html/m);
+    expect(out.status).toBe(0);
+  });
+
+  it("--built skips Next's own static 500 page, which global-error.tsx cannot replace, and says so", () => {
+    const dir = `${FIX}/built-clean`;
+    const out = run("--built", dir, "--controls", `${dir}/CONTROLS.json`);
+    expect(out.stdout).toMatch(/^skip +\S+\/server\/app\/_global-error\.html +Next's built-in static 500 page/m);
     expect(out.status).toBe(0);
   });
 

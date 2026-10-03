@@ -1,4 +1,9 @@
-@import "tailwindcss";
+/* Classes come from src/ only (not plans or docs), and never from the slop lint's own rules, tests or
+   planted fixtures, which name every banned class on purpose. */
+@import "tailwindcss" source("..");
+@source not "../lib/slop.ts";
+@source not "../lib/slop.test.ts";
+@source not "../lib/__fixtures__/slop";
 @plugin "@tailwindcss/typography";
 
 /* Colour tokens: every text colour meets WCAG AA (4.5:1) on --bg and --surface-soft in both

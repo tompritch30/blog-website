@@ -106,13 +106,22 @@ if (built !== null) {
   const pages = walk(htmlRoot, /\.html$/);
   const styles = fs.existsSync(path.join(built, "static")) ? walk(path.join(built, "static"), /\.css$/) : [];
   const hits: Hit[] = [];
+  const skipped: string[] = [];
   for (const f of pages) {
     const html = fs.readFileSync(f, "utf-8");
+    // Next 16 always prerenders its own static 500 page (next/dist/client/components/builtin/app-error.js)
+    // as _global-error.html; src/app/global-error.tsx handles runtime errors but cannot replace it.
+    // Skipped only while it carries Next's marker, so a page of ours at that path would be linted.
+    if (path.basename(f) === "_global-error.html" && html.includes('id="__next_error__"')) {
+      skipped.push(f);
+      console.log(`skip  ${f}  Next's built-in static 500 page (not replaceable by src/app/global-error.tsx)`);
+      continue;
+    }
     const route = routeOf(htmlRoot, f, manifest);
     hits.push(...lintHtml(f, html, { allow, built: true }), ...lintControls(f, html, entriesFor(budget, route), route));
   }
   for (const f of styles) hits.push(...lintCss(f, fs.readFileSync(f, "utf-8"), { allow, built: true }));
-  process.exit(report([...pages, ...styles], hits));
+  process.exit(report([...pages.filter((p) => !skipped.includes(p)), ...styles], hits));
 }
 
 const files = targets.length
