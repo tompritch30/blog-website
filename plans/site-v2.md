@@ -123,3 +123,15 @@ Sprites (`src/components/invaders/sprites.test.ts`), red against empty stubs the
 ```
 
 Browser run (Playwright, cached Chromium, `next start` on 3107), first pass 32 of 41: Escape left empty `style=""` attributes behind, Tab left the native modal for the browser's own controls, and the march took minutes on a 1440 screen. Fixed by saving and restoring style attributes byte for byte, trapping Tab across the dialog's buttons, and pacing the march to the screen (about five seconds per crossing, about twelve drops to the ship). Second pass 42 of 42.
+
+Owner change (3 Oct, via the lead): the invaders are no longer the page's headings, which read flat, but word blocks naming the tech he has shipped and his work, from an editable list in `src/components/invaders/words.ts`. The "headings stay where they sit" mode is gone (the page's headings stand in only if the list is emptied). Sprites carry `kind: "word" | "image"` and an optional `src`, a typed hook for a later row of small monochrome logos; none is fetched. The dialog is named "A game: shoot down the things I build with" and its help line starts with the same words. The word blocks are filled with the page background so the dimmed page does not show through.
+
+Red for the engine part (`npx vitest run src/lib/invaders`), 3 failing:
+
+```
+   × invader sprites > carry their kind and image source through play and into the next wave
+   × packFormation > keeps rows within a width limit, so the formation has room to march
+   × packFormation > centres the block in the field and each row in the block when asked
+```
+
+Green: `Test Files  2 passed (2)`, `Tests  38 passed (38)`. Browser run on the new build: 50 of 50, including the dialog's name and help text, and the page's headings left untouched while playing.

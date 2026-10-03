@@ -14,10 +14,13 @@ easter_egg:
     - path: src/components/invaders/Game.tsx
       origin: written for this site, 3 Oct 2026
       licence: the repo's own LICENSE
+    - path: src/components/invaders/words.ts
+      origin: written for this site, 3 Oct 2026
+      licence: the repo's own LICENSE
   art:
     - name: alien trigger
-      path: src/components/invaders/AlienTrigger.tsx
-      kind: 11 x 9 pixel grid in code, drawn as inline SVG in currentColor
+      path: src/components/invaders/sprites.ts (drawn by AlienTrigger.tsx)
+      kind: 11 x 8 pixel grid in code, drawn as inline SVG in currentColor
       origin: original, drawn by the builder 3 Oct 2026; a round head with one antenna and four short legs, not based on any arcade sprite
       licence: the repo's own LICENSE
     - name: player ship
@@ -26,6 +29,8 @@ easter_egg:
       origin: original, drawn by the builder 3 Oct 2026; a winged dart, not the arcade laser base
       licence: the repo's own LICENSE
     - name: invaders
-      origin: the current page's own headings and post titles, drawn as text in the page's own font and colours
+      path: src/components/invaders/words.ts
+      origin: a word list of the tech Thomas has shipped and his work (owner, 3 Oct 2026), drawn as word blocks in the page's own font and colours
       licence: n/a (site content)
+      note: image sprites (small monochrome organisation logos) are a typed hook only; none is added or fetched yet, and each one added needs its own entry here with source and licence
   sound: none
