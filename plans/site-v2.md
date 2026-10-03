@@ -135,3 +135,59 @@ Red for the engine part (`npx vitest run src/lib/invaders`), 3 failing:
 ```
 
 Green: `Test Files  2 passed (2)`, `Tests  38 passed (38)`. Browser run on the new build: 50 of 50, including the dialog's name and help text, and the page's headings left untouched while playing.
+
+Owner round 2 (3 Oct, via the lead): play like the real game. Three invader types per row band (top row the VO beetle, two rows of the IC drifter, two rows of the Palindrome mark); original pixel creatures with two frames each; the Palindrome mark copied byte for byte from the lead's monochrome SVG (sha256 007da003...73bc) and drawn in the page's ink; no Fletchers, Stark or Imperial logo used or redrawn. A heartbeat march (slowest 0.8s with all 55, fastest 0.05s with one left, linear, 0.9x per wave for four waves, each of those waves starting 12px lower); bombs from the lowest invader of a column, a third of them aimed at the ship's column; four eroding shields; a golden mystery ship every 18s whose hits open the paper, /cv and GitHub in rotation. `words.ts` removed. Wave-1 bombs every 1.8s (1.2s killed a still ship in 14 game seconds, before the first mystery pass).
+
+Popup check: `window.open(url, "_blank", "noopener,noreferrer")` returns null even when the tab opens, so a blocked popup cannot be told apart. `openTarget` opens without the features and sets `opener = null` on the new tab; null still means blocked, and then the game pauses with a focused link ("Open the paper", "Open my CV", "Open my GitHub") and a Resume button. That panel is proven by unit tests (`openTarget` with a fake open), not in the browser: a mystery hit cannot be staged there without a test hook in the page.
+
+Red (`npx vitest run src/lib/invaders`, the round 1 engine plus stubs for the new names), 26 of 50 failing:
+
+```
+ ✓ src/lib/invaders/trigger.test.ts (9 tests) 71ms
+   × mystery ship link targets > are the paper, the CV and GitHub, each with a sentence-case link text 69ms
+   × mystery ship link targets > rotate: the nth hit opens target n, wrapping round 1ms
+   × openTarget > opens the link in a new tab, cuts the new tab's link back to this page, and reports success 2ms
+   ✓ openTarget > reports a blocked popup when the browser returns null 7ms
+   ✓ collides (axis-aligned boxes; edges that only touch do not count) > is false when boxes share only an edge or a corner 19ms
+   ✓ collides (axis-aligned boxes; edges that only touch do not count) > is true with a one pixel overlap, or when one box contains the other 1ms
+   ✓ collides (axis-aligned boxes; edges that only touch do not count) > is false when apart 1ms
+   × invaderGrid (the formation) > lays out rows x columns, each sprite centred in its cell 111ms
+   × invaderGrid (the formation) > has three types: the top row type 3, the next two type 2, the bottom two type 1 5ms
+   × createGame > places the ship centred above the bottom edge and starts at wave 1 23ms
+   × the march tempo (the heartbeat) > is slowest with the full formation and fastest with one invader left 13ms
+   × the march tempo (the heartbeat) > only ever gets faster as invaders die 6ms
+   × the march tempo (the heartbeat) > is a little faster each wave, up to a cap 7ms
+   × the march tempo (the heartbeat) > starts later waves a little lower, up to a cap 18ms
+   × the invader march > moves one step per tick, not before, and flips the animation frame 61ms
+   × the invader march > drops and reverses instead of crossing the right edge 14ms
+   ✓ the invader march > drops and reverses at the left edge, moving the whole formation together 1ms
+   × the invader march > ticks faster as invaders die 3ms
+   ✓ the ship > moves left and right at ship speed and stays on the field 10ms
+   ✓ the ship > follows a touch target without overshooting it 1ms
+   ✓ bullets > leave the ship's centre top, then move up at bullet speed 6ms
+   ✓ bullets > respect the fire cooldown while fire is held 1ms
+   ✓ bullets > expire once fully above the field 11ms
+   ✓ hits and score > a hit removes the invader and the bullet, even when the bullet moves further than the invader is tall 1ms
+   × hits and score > scores 10, 20 and 30 for types 1, 2 and 3 3ms
+   ✓ hits and score > keeps the best score: a higher stored best stays, a new best replaces it 1ms
+   × waves > clearing a wave starts the next one with the same invaders, a little lower, shields restored and no bullets 15ms
+   ✓ game over > ends when an invader reaches the ship's row 1ms
+   ✓ game over > does not end while invaders are above the ship's row 0ms
+   ✓ game over > a finished game no longer changes 0ms
+   × bombs > drop from the lowest invader of a column, from its bottom centre, on the bomb timer 40ms
+   × bombs > a bomb on the ship costs a life and clears the bombs; the last life ends the game 13ms
+   × shields > placeShields spaces them evenly across the field 2ms
+   × shields > a bullet from below clears the cell it hits and a small crater above it, and stops 15ms
+   × shields > a bomb from above clears the cell it hits and a crater below it, and stops 7ms
+   × shields > a cleared column lets the next bullet through 1ms
+   × shields > invaders that reach a shield eat the cells they touch 14ms
+   × the mystery ship > crosses the top at intervals, first from the left, and is gone once off the field 2ms
+   × the mystery ship > no hit, no event 12ms
+   × the mystery ship > a hit scores, removes it and reports the next link target in rotation 38ms
+   × the mystery ship > events last one step 1ms
+⎯⎯⎯⎯⎯⎯ Failed Tests 26 ⎯⎯⎯⎯⎯⎯⎯
+ Test Files  2 failed | 1 passed (3)
+      Tests  26 failed | 24 passed (50)
+```
+
+Green: `Test Files  3 passed (3)`, `Tests  50 passed (50)`. Sprites: red 2 of 6 (`are rectangular`, `each pixel creature has two frames`) against empty stubs, then 6 of 6. Browser run: 60 of 60, including the Palindrome mark fetched only after the trigger and the golden ship seen crossing in both themes.

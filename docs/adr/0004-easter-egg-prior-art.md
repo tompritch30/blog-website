@@ -2,7 +2,7 @@
 
 Status: accepted, 3 Oct 2026.
 
-The site hides a small Space Invaders-style game. The invaders are word blocks naming the things Thomas builds with (`src/components/invaders/words.ts`); the first version used the page's own headings, which the owner found flat (3 Oct). The owner asked for an existing MIT, CC0 or BSD game to be adopted if one is clean, before writing our own.
+The site hides a small Space Invaders-style game that plays like the arcade original: three invader types (two original pixel creatures and the Palindrome mark), a heartbeat that quickens as they die, eroding shields and a golden mystery ship whose hits open the paper, the CV or GitHub. Earlier versions used the page's headings, then word blocks; the owner found both flat (3 Oct). The owner asked for an existing MIT, CC0 or BSD game to be adopted if one is clean, before writing our own.
 
 ## Candidates (GitHub search, read 3 Oct 2026)
 
@@ -18,6 +18,6 @@ The site hides a small Space Invaders-style game. The invaders are word blocks n
 
 ## Decision
 
-Write our own: `src/lib/invaders/engine.ts` (pure, tested with worked examples) and `src/components/invaders/Game.tsx` (canvas). The needs that ruled out adoption are specific to this site: invaders are word blocks of any width (with a typed hook for small image sprites later), the engine must be a pure function the tests can drive, and the game must load only on demand with no dependencies. No code was copied from any candidate. All pixel art (the alien trigger and the ship) is drawn from grids in our own code; see `design/MANIFEST.yaml`.
+Write our own: `src/lib/invaders/engine.ts` (pure, tested with worked examples) and `src/components/invaders/Game.tsx` (canvas). The needs that ruled out adoption are specific to this site: the invaders mix pixel sprites with an image sprite (the Palindrome mark), the engine must be a pure function the tests can drive, and the game must load only on demand with no dependencies. No code was copied from any candidate. All pixel art (the alien trigger, the ship, both creatures, the shields and the mystery ship) is drawn from grids in our own code. The only outside asset is the Palindrome mark, used pending the employer's confirmation; Fletchers, Stark and Imperial logos are not used or redrawn because their terms forbid it. See `design/MANIFEST.yaml`.
 
 Why: vendoring a candidate would have meant keeping its licence and attribution for code we then replaced line by line.
