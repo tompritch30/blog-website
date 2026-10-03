@@ -1,9 +1,7 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
-
-const postsDir = path.join(process.cwd(), "src/content/posts");
 
 export type PostMeta = {
   slug: string;
@@ -11,47 +9,66 @@ export type PostMeta = {
   date: string;
   description: string;
   tags: string[];
+  draft: boolean;
   readingTime: string;
 };
 
-export function getAllPosts(): PostMeta[] {
-  return fs
-    .readdirSync(postsDir)
-    .filter((f) => f.endsWith(".mdx"))
-    .map((filename) => {
-      const slug = filename.replace(".mdx", "");
-      const raw = fs.readFileSync(path.join(postsDir, filename), "utf-8");
-      const { data, content } = matter(raw);
-      return {
-        slug,
-        title: data.title,
-        date: data.date,
-        description: data.description,
-        tags: data.tags ?? [],
-        readingTime: readingTime(content).text,
-      };
-    })
-    .sort((a, b) => (a.date < b.date ? 1 : -1));
-}
+export type Post = { meta: PostMeta; content: string };
 
-export function getPost(slug: string) {
-  const raw = fs.readFileSync(
-    path.join(postsDir, `${slug}.mdx`),
-    "utf-8"
-  );
-  const { data, content } = matter(raw);
+type Options = {
+  dir?: string;
+  // Drafts are visible in `next dev` so they can be previewed, and nowhere else.
+  includeDrafts?: boolean;
+};
+
+const DEFAULT_DIR = path.join(process.cwd(), "src/content/posts");
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+function resolve(options: Options): Required<Options> {
   return {
-    meta: {
-      slug,
-      title: data.title,
-      date: data.date,
-      description: data.description,
-      tags: data.tags ?? [],
-      readingTime: readingTime(content).text,
-    },
-    content,
+    dir: options.dir ?? DEFAULT_DIR,
+    includeDrafts: options.includeDrafts ?? process.env.NODE_ENV === "development",
   };
 }
 
-// Re-export from utils so server components can import from one place
-export { formatDate } from "./utils";
+function invalid(file: string, problem: string): never {
+  throw new Error(`${file}: ${problem}`);
+}
+
+function parseFrontmatter(data: Record<string, unknown>, file: string): Omit<PostMeta, "slug" | "readingTime"> {
+  const { title, date, description, tags = [], draft = false } = data;
+  if (typeof title !== "string" || !title.trim()) invalid(file, "frontmatter needs a non-empty title");
+  if (date instanceof Date) invalid(file, 'frontmatter date must be quoted, e.g. date: "2026-03-30"');
+  if (typeof date !== "string" || !ISO_DATE.test(date)) invalid(file, "frontmatter date must be YYYY-MM-DD");
+  if (typeof description !== "string") invalid(file, "frontmatter needs a description");
+  if (!Array.isArray(tags) || !tags.every((t): t is string => typeof t === "string")) {
+    invalid(file, "frontmatter tags must be a list of strings");
+  }
+  if (typeof draft !== "boolean") invalid(file, "frontmatter draft must be true or false");
+  return { title, date, description, tags, draft };
+}
+
+function readPost(dir: string, slug: string): Post {
+  const file = path.join(dir, `${slug}.mdx`);
+  const { data, content } = matter(fs.readFileSync(file, "utf-8"));
+  const meta = { slug, ...parseFrontmatter(data, file), readingTime: readingTime(content).text };
+  return { meta, content };
+}
+
+export function getAllPosts(options: Options = {}): PostMeta[] {
+  const { dir, includeDrafts } = resolve(options);
+  return fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".mdx"))
+    .map((f) => readPost(dir, f.slice(0, -".mdx".length)).meta)
+    .filter((meta) => includeDrafts || !meta.draft)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export function getPost(slug: string, options: Options = {}): Post | null {
+  const { dir, includeDrafts } = resolve(options);
+  if (!SLUG.test(slug) || !fs.existsSync(path.join(dir, `${slug}.mdx`))) return null;
+  const post = readPost(dir, slug);
+  return includeDrafts || !post.meta.draft ? post : null;
+}

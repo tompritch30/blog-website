@@ -4,9 +4,12 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
-import { getAllPosts, getPost, formatDate } from "@/lib/posts";
+import { getAllPosts, getPost } from "@/lib/posts";
+import { formatDate } from "@/lib/dates";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+
+export const dynamicParams = false;
 
 type Params = Promise<{ slug: string }>;
 
@@ -20,26 +23,19 @@ export async function generateMetadata({
   params: Params;
 }): Promise<Metadata> {
   const { slug } = await params;
-  try {
-    const { meta } = getPost(slug);
-    return {
-      title: meta.title,
-      description: meta.description,
-    };
-  } catch {
-    return {};
-  }
+  const post = getPost(slug);
+  if (!post) return {};
+  return {
+    title: post.meta.title,
+    description: post.meta.description,
+  };
 }
 
 export default async function PostPage({ params }: { params: Params }) {
   const { slug } = await params;
 
-  let post;
-  try {
-    post = getPost(slug);
-  } catch {
-    notFound();
-  }
+  const post = getPost(slug);
+  if (!post) notFound();
 
   const { meta, content } = post;
 
