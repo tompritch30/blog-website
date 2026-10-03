@@ -253,7 +253,8 @@ describe("controls budget", () => {
   });
 });
 
-describe("lint-slop CLI", () => {
+// Each test starts a Node process; under the parallel pre-commit hook that can take several seconds.
+describe("lint-slop CLI", { timeout: 30_000 }, () => {
   const run = (...args: string[]) =>
     spawnSync(process.execPath, ["scripts/lint-slop.mts", ...args], { cwd: ROOT, encoding: "utf-8" });
 
