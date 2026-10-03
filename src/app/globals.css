@@ -8,7 +8,7 @@
   --text: #0f0f0e;
   --secondary: #6b6b69;
   --divider: #e5e5e3;
-  --surface: #ffffff;
+  --surface: #fdfdfb;
   --surface-soft: #f4f4f2;
   color-scheme: light;
 }
@@ -26,7 +26,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-inter);
+  /* A neutral system stack until the design direction picks the faces (plan slice 5). */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-geist-mono);
   --color-bg: var(--bg);
   --color-fg: var(--text);
@@ -45,7 +46,7 @@ body {
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

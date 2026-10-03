@@ -18,7 +18,7 @@ export default function Icon() {
           color: "#fafaf8",
           fontSize: 16,
           fontWeight: 700,
-          borderRadius: 6,
+          borderRadius: 4,
         }}
       >
         TP
