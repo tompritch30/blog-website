@@ -1,6 +1,22 @@
 # Origin and licence of every design asset on the site. One entry per asset.
 # Fonts are added by the design-system slice.
 
+fonts:
+  # The kb variant (branch site-v2-kb). All three are fetched by next/font/google at build time and
+  # self-hosted with the site; the browser makes no request to Google.
+  - name: Newsreader
+    use: headings, the name, case-study figures and the one italic line
+    source: Google Fonts via next/font/google (variable, wght and opsz axes)
+    licence: SIL Open Font License 1.1
+  - name: IBM Plex Sans
+    use: reading text, navigation, meta lines
+    source: Google Fonts via next/font/google (400, 500, 600; normal and italic)
+    licence: SIL Open Font License 1.1
+  - name: IBM Plex Mono
+    use: code in posts
+    source: Google Fonts via next/font/google (400, 500)
+    licence: SIL Open Font License 1.1
+
 easter_egg:
   decision: docs/adr/0004-easter-egg-prior-art.md
   code:

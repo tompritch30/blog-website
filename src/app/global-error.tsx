@@ -4,10 +4,10 @@
 // It renders its own document instead of the root layout, so it carries its own small stylesheet.
 const css = `
 body { margin: 0; padding: 3rem 1rem; font-family: ui-sans-serif, system-ui, sans-serif; line-height: 1.6;
-  background: #fafaf8; color: #0f0f0e; }
+  background: #f3f4f0; color: #1a1e1c; }
 main { max-width: 42rem; margin: 0 auto; }
 a { color: inherit; }
-@media (prefers-color-scheme: dark) { body { background: #0a0a09; color: #f0f0ee; } }
+@media (prefers-color-scheme: dark) { body { background: #131614; color: #e3e6e1; } }
 `;
 
 export default function GlobalError() {
