@@ -46,6 +46,18 @@ Markdown, GitHub tables and code blocks, and React components.
 - `draft: true` shows the post in `npm run dev` only. Production builds, the sitemap and the feed leave it out. Delete the line to publish. The MDX file is still in the repo, so anyone can read a draft on GitHub if the repo is public.
 - The About page is `src/content/about.mdx`.
 
+## Checking pages
+
+`npm run check:pages` drives a headless Chromium over a running site (it starts nothing itself):
+
+```bash
+npm run build && npm start -p 3119
+npm run check:pages -- http://localhost:3119   # default base URL: http://localhost:3005
+npm run shots -- http://localhost:3119         # the same checks, plus screenshots in design/shots/
+```
+
+Every page (home, CV, writing, each post, About and a missing page) is opened at 375 and 1440 pixels wide in the light and dark themes. The check runs axe (WCAG 2.2 AA) and fails on any serious, critical or colour-contrast violation; checks the rendered page's links and buttons against `design/CONTROLS.json` with the same code as `npm run lint:slop -- --built`; and prints `/cv` to A4 and Letter PDFs while the system theme is dark, failing on more than two pages, a printed nav or footer, or text that is not dark on light. `--shots` saves `<page>-<width>-<theme>.png` full-page screenshots, palette-reduced to under 300KB; `--out <dir>` puts them elsewhere. Nothing is downloaded: it uses a Chromium that Playwright has already cached.
+
 ## Configuration
 
 | Setting | Where | Default | Purpose |
@@ -54,6 +66,7 @@ Markdown, GitHub tables and code blocks, and React components.
 | Name, tagline, GitHub link | `src/lib/site.ts` | Thomas Pritchard, his role at Palindrome | Shown in the header, home page, footer, metadata and share images. |
 | Colours | `src/app/globals.css` | Warm off-white and near-black, with a dark mode | A test checks every text colour meets WCAG AA contrast. |
 | Node version | `.nvmrc`, `package.json` `engines` | 22 | Vercel builds with the `engines` version. |
+| `CHECK_PAGES_CHROMIUM` | environment variable | the Chromium build `playwright-core` expects, else the newest headless shell or Chromium in `PLAYWRIGHT_BROWSERS_PATH` (default `~/.cache/ms-playwright`) | Path to the Chromium or Chrome binary `npm run check:pages` and `npm run shots` drive. Set it when no Playwright browser is cached (`npx playwright-core install chromium-headless-shell` downloads one). |
 
 `.env.example` lists the environment variables.
 

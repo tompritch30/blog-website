@@ -12,7 +12,9 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint:slop": "node scripts/lint-slop.mts"
+    "lint:slop": "node scripts/lint-slop.mts",
+    "check:pages": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-pages.mts",
+    "shots": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-pages.mts --shots"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",
@@ -32,9 +34,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axe-core": "4.13.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "lefthook": "2.1.16",
+    "playwright-core": "1.62.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "3.2.7"

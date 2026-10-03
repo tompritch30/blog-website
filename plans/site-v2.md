@@ -258,3 +258,48 @@ pass  .next/static/chunks/2zw4dkmxvpkx8.css
 slop: 0 hits in 0 of 7 files
 ci: all gates green
 ```
+
+### 2026-10-03 build evidence: slice 9 tooling (check-pages)
+
+Prior art, one line each:
+
+- `playwright-core` 1.62.1, pinned: adopt. Its Chromium build (revision 1234, headless shell) is already in `~/.cache/ms-playwright` (another local project uses the same version), so nothing is downloaded; 1.53 (revision 1179) was also cached but is older.
+- `axe-core` 4.13.0: adopt, injected with `page.addScriptTag`. `@axe-core/playwright` rejected: a third package for the ten lines that inject and run axe.
+- `sharp` (already installed with Next 16): adopt for palette-reduced PNGs. uv-run Pillow rejected: a second toolchain.
+- Pa11y and Lighthouse CI: rejected, each brings its own browser download.
+- PDF page count: pdf-lib and pdf.js rejected; Chromium writes one `/Type /Page` object per page, counted in `pdfPageCount` (checked against the real CV PDF: `/Count 3`, three page objects).
+
+`src/lib/check-pages.ts` holds the parts that need no browser (route list and patterns, screenshot names, which axe violations block, WCAG contrast and dark-on-light, PDF page count, choosing a cached Chromium); `scripts/check-pages.mts` drives the browser and reuses `findControls`, `entriesFor` and `lintControls` from `src/lib/slop.ts`, so the rendered check and `lint:slop -- --built` count controls the same way. Browser: `CHECK_PAGES_CHROMIUM`, else playwright-core's own cached build, else the newest cached headless shell or Chromium (tried with `PLAYWRIGHT_BROWSERS_PATH` pointing at only revision 1179: it launched Chromium 138.0.7204.23 from there).
+
+Red, `npx vitest run src/lib/check-pages.test.ts` against stubs:
+
+```
+   × pageRoutes > lists every page with the route pattern CONTROLS.json keys it by and a screenshot name 129ms
+   × shotFile > names a screenshot <route>-<width>-<theme>.png 7ms
+   × blocking > keeps serious and critical violations and every colour-contrast one, whatever its impact 3ms
+   × colour checks > reads rgb() and rgba() as Chromium serialises computed colours 14ms
+   × colour checks > knows the contrast of black on white and of the light theme's grey on white 4ms
+   × colour checks > calls text dark on light only when it is darker than the paper and meets 4.5:1 3ms
+   × pdfPageCount > counts page objects, not the page tree 29ms
+   × pickChromium > prefers the newest cached headless shell 2ms
+   × pickChromium > falls back to an older shell's layout, then to full Chromium, when newer folders are incomplete 40ms
+   ✓ pickChromium > returns null when nothing usable is cached 9ms
+```
+
+Green: all 10 pass. The first real run counted the visually hidden skip link as printed text (its padding widens the sr-only box past 1px); the print check now treats `clip-path: inset(50%)` and a zero `clip` rect as hidden.
+
+Run against the skeleton (`npm run build && npm start -p 3119`, then `npm run shots -- http://localhost:3119 --out <mktemp -d>`; screenshots not committed), exit 1:
+
+```
+check-pages: http://localhost:3119 with Chromium 151.0.7922.34 from playwright-core's own build in the cache
+controls: pass on all 6 routes at 375 and at 1440 (/, /cv, /writing, /writing/claude-code-workflow, /about, /check-pages-missing-page as /_not-found)
+axe: 0 violations, 0 blocking on all 6 routes x 375, 1440 x light, dark (24 runs)
+FAIL  print /cv A4: 3 pages (41 KB)
+FAIL  print /cv Letter: 3 pages (41 KB)
+FAIL  print /cv: nav or footer printed: <nav> "Thomas Pritchard Writing CV About GitHub"; <footer> "© 2026 Thomas Pritchard RSS feed"
+FAIL  print /cv: 2 text colours on white paper, 2 not dark on light: rgb(240, 240, 238) ("Thomas Pritchard"); rgb(138, 138, 136) ("Writing")
+shots: 24 files, 7 KB (writing-375-light) to 152 KB (writing-claude-code-workflow-1440-dark), all at 256 colours, none over 300KB
+check-pages: 6 pages x 2 widths x 2 themes, 4 problems
+```
+
+The print failures are the skeleton's: it has no print stylesheet yet (slice 7a). The check runs in about two minutes with screenshots.
