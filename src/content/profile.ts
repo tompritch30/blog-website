@@ -23,7 +23,8 @@ export const headlines: string[] = [
   "A week of report writing, now an hour. I build production AI for finance and law.",
 ];
 
-export const headline: string = headlines[0];
+// The blind judge ranked headline 3 first (design/evidence/judge/README.md).
+export const headline: string = headlines[2];
 
 // Where he has worked and studied, for a quiet row of marks. Only Palindrome's own logo is used
 // (see design/MANIFEST.yaml); the others' terms forbid reuse without consent, so they are set as
