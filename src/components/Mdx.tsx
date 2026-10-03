@@ -2,13 +2,26 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
+import Chart from "@/components/mdx/Chart";
+import Figure from "@/components/mdx/Figure";
+import Pre from "@/components/mdx/Pre";
+import Quote from "@/components/mdx/Quote";
+import Table from "@/components/mdx/Table";
+
+// What a post can use besides Markdown: <Figure>, <Chart>, <Quote>; code blocks and tables render
+// through Pre and Table as keyboard-scrollable regions.
+const components = { Chart, Figure, Quote, pre: Pre, table: Table };
 
 export default function Mdx({ source }: { source: string }) {
   return (
     <div className="prose prose-zinc max-w-none">
       <MDXRemote
         source={source}
-        options={{ mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [rehypeHighlight, rehypeSlug] } }}
+        components={components}
+        // Posts are files in this repo, written by the site's owner, so the components may take arrays
+        // and objects as props (a chart's data). blockDangerousJS stays on: no eval, Function, process
+        // or require inside a post.
+        options={{ blockJS: false, mdxOptions: { remarkPlugins: [remarkGfm], rehypePlugins: [rehypeHighlight, rehypeSlug] } }}
       />
     </div>
   );
