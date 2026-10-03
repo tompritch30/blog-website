@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Container from "@/components/Container";
+import ExternalLink from "@/components/ExternalLink";
 import { cv, links } from "@/content/profile";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
 import { site } from "@/lib/site";
@@ -22,7 +23,8 @@ export default function CvPage() {
     <Container className="py-12 sm:py-16">
       <h1 className="text-xl font-semibold tracking-tight text-fg">CV</h1>
       <p className="mt-2 text-fg">
-        {site.name}. Code on <a href={links.github}>GitHub</a>, profile on <a href={links.linkedin}>LinkedIn</a>.
+        {site.name}. Code on <ExternalLink href={links.github}>GitHub</ExternalLink>, profile on{" "}
+        <ExternalLink href={links.linkedin}>LinkedIn</ExternalLink>.
       </p>
 
       <section aria-labelledby="experience">
@@ -68,7 +70,7 @@ export default function CvPage() {
           Publication
         </h2>
         <p className="leading-relaxed text-fg">
-          <a href={publication.url}>{publication.title}</a>. {publication.venue}, {publication.year}. {publication.note}
+          <ExternalLink href={publication.url}>{publication.title}</ExternalLink>. {publication.venue}, {publication.year}. {publication.note}
         </p>
       </section>
 

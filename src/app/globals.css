@@ -289,7 +289,7 @@ body {
 
 @media (min-width: 48rem) {
   .hero {
-    padding-block: var(--space-2xl) var(--space-xl);
+    padding-block: var(--space-xl) var(--space-xl);
     margin-inline-start: calc(var(--col-date) + var(--col-gap));
   }
 }
@@ -608,6 +608,11 @@ body {
   padding-block-start: var(--space-2xs);
   color: var(--secondary);
   text-wrap: pretty;
+}
+
+/* The colophon's double rule closes the last entry, so no single rule sits above it. */
+.ledger > section:last-child li:last-child {
+  border-bottom: 0;
 }
 
 /* ---------- footer ---------- */
