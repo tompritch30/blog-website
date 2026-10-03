@@ -524,3 +524,70 @@ The draft caching post now quotes Anthropic's launch post next to its opening li
 #### For the owner: copy changed in slice 7
 
 - `src/content/posts/claude-code-workflow.mdx` description (the judge failed it as a hook): "Not the demo. The real workflow: where Claude Code saves hours on a real codebase, and where it still falls flat." -> "Where Claude Code saves hours on a real codebase, and where it still falls flat."
+
+### 2026-10-03 the kb variant (branch `site-v2-kb`, for side-by-side comparison with the ledger)
+
+Owner brief (3 Oct): follow the layout reference's page structure, section order, density, navigation and typographic feel with Thomas's own content; no text, images, code or assets taken from it; owner rules on top. The reference was loaded with Playwright (cached Chromium) at 1440x900 and 375x812, home, writing list and one post, full page; screenshots stayed in the builder's temporary folder. It has no dark theme of its own beyond a toggle; its content width is about 1016px; headings are a serif at 72/42/22px over a 17px sans.
+
+Prior art: fonts from Google Fonts through next/font (adopt: Newsreader for headings and figures, IBM Plex Sans for text, IBM Plex Mono for code; the reference's own pairing is on the moodboard's generated list and its sans is banned by the lint). No layout library: the reference's structure is a few CSS grids.
+
+Red, `npx vitest run src/lib/career.test.ts` against stubs (the one new piece of logic: case studies under their roles, degrees grouped by institution):
+
+```
+   × careerEntries > puts each case study under the role it was done in, in the order given, newest role first 8ms
+   × careerEntries > gives each role an id for its heading, from the company name 1ms
+   × careerEntries > refuses a case study whose workplace is not one of the roles, so a typo cannot hide it 2ms
+   × educationGroups > groups degrees by institution, keeping the first-seen order of both 1ms
+   × educationGroups > spans the years from the earliest degree to the latest 0ms
+   × educationGroups > shows a single year when there is one degree 0ms
+      Tests  6 failed (6)
+```
+
+Green: `Tests  6 passed (6)`.
+
+Translations, reference pattern -> what the kb variant does:
+
+1. Uppercase letter-spaced eyebrow above the h1 (role and employer) -> no label; its job is done by the first intro sentence, set as the lead under the headline.
+2. "Hello, I'm" greeting as the h1 -> the judged headline from `profile.ts` (`headline`).
+3. Coloured keywords in the hero paragraph -> plain text; colour stays on links.
+4. Italic serif motto line -> kept as a slot, filled with his own line from `about.mdx` (`motto`).
+5. Pill buttons (one filled, two outlined, with icons) -> a row of underlined text links: LinkedIn, GitHub (both new tab), CV.
+6. Round photo with a soft drop shadow -> square portrait in a 1px hairline mount, no shadow, no radius.
+7. Greyed logo strip ("built and studied at") -> removed; each mark sits beside its role in the Work timeline (Palindrome's logo in ink, wordmarks for the others in the heading face).
+8. Sticky in-page section bar with a filled pill on the active item -> a row of plain anchor links between two hairlines, sticky from 48rem, no active state (no scroll script).
+9. Uppercase eyebrow plus slogan h2 on each section -> one plain sentence-case h2 per section (About, Work, Outside work, Education and research, Skills, Writing).
+10. Grey subtitle under section headings -> dropped (owner rule: no grey filler).
+11. About's globe of cities -> the ForestVO trajectory plot on a light plate with its credit, beside the About text.
+12. Outline pill links under About -> one text link to the long version (/about).
+13. Career cards with rounded borders, logo tiles on a vertical line, accent dates -> no cards: a mark column, a 1px vertical hairline with a small ink square at each role, dates right in grey tabular figures, hairlines between case studies.
+14. Emoji bullets, bold keywords, chips inside career cards -> case studies (title, problem, what I built, result only where no number) with the one figure set large on the right; the Stark role keeps its CV bullet.
+15. "Giving back" two-column grid of rounded cards with tinted icons -> "Outside work" as a two-column list between hairlines, no icons.
+16. Education cards (crest tile, name, subject in accent, bullets) -> two-column rows: institution in the heading face with its years, degrees and notes on the right; the paper as its own row.
+17. Toolkit chip clouds, flag and logo tiles, uppercase group labels -> Skills as two-column rows, group name in the heading face, items as one comma-separated line.
+18. Centred newsletter box with an icon and a filled subscribe pill -> the Writing section: recent posts between hairlines and an "All writing" link; RSS stays in the footer.
+19. Writing page: uppercase eyebrow, slogan h1, grey lede, subscribe box, topic pills, "Read" links -> h1 "Writing", his line as the lead in ink, posts with date, reading time and tags as plain words, the title as the only link.
+20. Post page: "originally published" box and "By" line -> left out (the name stays once per page); back link, meta line, title, hairline and a centred reading column kept.
+21. Footer with the name, a motto and round icon buttons -> no name; the colophon line (faces and revision date), the RSS link, and the pixel alien (28x28) on the right.
+22. Theme toggle in the nav -> left out; both themes follow the system setting (a toggle would be a control whose job the system already does).
+23. Content revealed on scroll -> everything renders on load; motion is colour on hover only.
+
+Slop allowlist (for the owner): acronym `IBM` (the font's name in the colophon); proper nouns `Forward Deployed Engineer`, `Data Scientist`, `Asset Analyst` (his job titles, set as h3 in the timeline as the reference does) and `IEEE Robotics and Automation Letters` (a journal name, set as h3).
+
+Cherry-picked from `site-v2`: `0dc3e04 feat(arcade)` (clean), and the script half of `e975bb7 fix(proof)` (the focus check raced the game's next-frame focus return on this branch; its plan lines stay on `site-v2`).
+
+Gates: `scripts/ci.sh` (tail) and `npm run shots` against `npm start -p 3122` (screenshots not committed):
+
+```
+slop: 0 hits in 0 of 70 files
+      Tests  201 passed (201)
+slop: 0 hits in 0 of 7 files
+ci: all gates green
+pass  game / 1440 with the game open (reduced motion: no-preference): Escape closes it and focus is back on the alien
+pass  game / 1440 with the game open (reduced motion: reduce): Escape closes it and focus is back on the alien
+pass  print /cv A4: 2 pages (110 KB)
+pass  print /cv Letter: 2 pages (110 KB)
+pass  print /cv: no nav or footer on the page
+pass  print /cv: 1 text colour on white paper, all dark on light
+check-pages: 6 pages x 2 widths x 2 themes, 0 problems
+axe: 24 of 24 runs with 0 violations; controls: 14 passes; shots: 24 files
+```
