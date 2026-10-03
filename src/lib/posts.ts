@@ -21,8 +21,8 @@ type Options = {
   includeDrafts?: boolean;
 };
 
-// Every page that reads posts is prerendered at build time, so the server bundle never
-// needs the content folder; turbopackIgnore stops the dynamic `dir` tracing the whole repo.
+// `dir` is a variable, so Turbopack would trace the whole project into the server output;
+// the turbopackIgnore comments below stop that. Every page that reads posts is prerendered.
 const DEFAULT_DIR = path.join(process.cwd(), "src/content/posts");
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -53,6 +53,7 @@ function parseFrontmatter(data: Record<string, unknown>, file: string): Omit<Pos
 
 function readPost(dir: string, slug: string): Post {
   const file = path.join(dir, `${slug}.mdx`);
+  if (!SLUG.test(slug)) invalid(file, "file name must be lowercase words joined by hyphens, e.g. my-post.mdx");
   const { data, content } = matter(fs.readFileSync(/*turbopackIgnore: true*/ file, "utf-8"));
   const meta = { slug, ...parseFrontmatter(data, file), readingTime: readingTime(content).text };
   return { meta, content };

@@ -35,6 +35,12 @@ describe("getAllPosts", () => {
       /bare-date\.mdx.*date/,
     );
   });
+
+  it("names a file whose name is not a valid slug", () => {
+    expect(() => getAllPosts({ dir: path.join(fixtures, "bad-slug"), includeDrafts: true })).toThrow(
+      /My Post\.mdx.*lowercase/,
+    );
+  });
 });
 
 describe("getPost", () => {
