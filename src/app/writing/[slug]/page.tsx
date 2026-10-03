@@ -37,31 +37,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+// A post in one centred reading column, as in the reference: a way back to the list, the date and
+// reading time, the title, a hairline, then the text.
 export default async function PostPage({ params }: Props) {
   const post = getPost((await params).slug);
   if (!post) notFound();
   const { meta, content } = post;
 
   return (
-    <Container className="py-12 sm:py-16">
-      <Link href={WRITING_PATH} className="mb-10 inline-block text-sm text-secondary hover:text-fg">
-        All writing
-      </Link>
-      <article>
-        <header className="mb-10">
-          <p className="mb-3 flex flex-wrap items-center gap-x-2 text-sm text-secondary">
-            <time dateTime={meta.date}>{formatDate(meta.date)}</time>
-            <span aria-hidden="true">·</span>
-            <span>{meta.readingTime}</span>
-            {meta.tags.length > 0 && (
-              <>
-                <span aria-hidden="true">·</span>
-                <span>{meta.tags.join(", ")}</span>
-              </>
-            )}
+    <Container>
+      <article className="article">
+        <Link href={WRITING_PATH} className="back">
+          <span aria-hidden="true">{"← "}</span>All writing
+        </Link>
+        <div className="article-head">
+          <p className="post-meta">
+            <time dateTime={meta.date}>{formatDate(meta.date)}</time> · {meta.readingTime}
+            {meta.tags.length > 0 ? ` · ${meta.tags.join(", ")}` : null}
           </p>
-          <h1 className="mb-4 text-2xl font-semibold leading-snug tracking-tight text-fg">{meta.title}</h1>
-        </header>
+          <h1 className="article-title">{meta.title}</h1>
+        </div>
         <Mdx source={content} />
       </article>
     </Container>

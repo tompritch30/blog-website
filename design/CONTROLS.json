@@ -13,10 +13,19 @@
   "routes": {
     "/": {
       "controls": [
-        { "kind": "link", "href": "/cv", "job": "open the full web CV from the end of the work and study record" },
-        { "kind": "link", "href": "https://www.linkedin.com/in/thomas-pritchard-01a/", "job": "see his LinkedIn profile (new tab)" },
-        { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "job": "read the ForestVO paper the plot comes from (new tab)" },
-        { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post from the recent writing list" }
+        { "kind": "link", "href": "#about", "job": "jump to the About section (the bar under the hero)" },
+        { "kind": "link", "href": "#work", "job": "jump to the Work timeline (the bar under the hero)" },
+        { "kind": "link", "href": "#outside", "job": "jump to the Outside work section (the bar under the hero)" },
+        { "kind": "link", "href": "#education", "job": "jump to the Education and research section (the bar under the hero)" },
+        { "kind": "link", "href": "#skills", "job": "jump to the Skills section (the bar under the hero)" },
+        { "kind": "link", "href": "#writing", "job": "jump to the recent writing (the bar under the hero)" },
+        { "kind": "link", "href": "https://www.linkedin.com/in/thomas-pritchard-01a/", "job": "see his LinkedIn profile from the hero (new tab)" },
+        { "kind": "link", "href": "https://github.com/tompritch30", "job": "see his code on GitHub from the hero (new tab)" },
+        { "kind": "link", "href": "/cv", "count": 2, "job": "open the web CV: from the hero, and from the end of the Work timeline" },
+        { "kind": "link", "href": "/about", "job": "read the long version of the About section" },
+        { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "count": 2, "job": "read the ForestVO paper (new tab): from the About text and from Education and research" },
+        { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post from the recent writing list" },
+        { "kind": "link", "href": "/writing", "job": "see all posts from the end of the recent writing list" }
       ]
     },
     "/writing": {

@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import ExternalLink from "@/components/ExternalLink";
+import PostList from "@/components/PostList";
 import EvalGateDiagram from "@/components/home/EvalGateDiagram";
-import OrgMark, { organisation } from "@/components/home/OrgMark";
-import { caseStudies, cv, headline, intro, links, paperFigure } from "@/content/profile";
-import { formatShortDate, yearSpan } from "@/lib/dates";
+import OrgMark from "@/components/home/OrgMark";
+import { caseStudies, cv, headline, intro, links, motto, paperFigure, portrait, type CaseStudy } from "@/content/profile";
+import { careerEntries, educationGroups } from "@/lib/career";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
-import { postPath } from "@/lib/paths";
+import { WRITING_PATH } from "@/lib/paths";
 import { getAllPosts } from "@/lib/posts";
 
 export const metadata: Metadata = {
@@ -15,178 +16,243 @@ export const metadata: Metadata = {
   openGraph: { ...baseOpenGraph, type: "website", url: "/" },
 };
 
-// The ledger: dates down the left column, particulars in the middle, the figure on the right.
+// The kb layout, in the reference's order: a two-column hero (who he is, then his photo), a bar of
+// in-page links, About with a figure beside it, Work as a timeline of roles with their case studies,
+// Outside work, Education and research, Skills, and Writing.
 
-// An intro sentence that names an employer gets that role's years in the date column.
-function introYears(sentence: string): string {
-  const role = cv.roles.find((r) => sentence.includes(r.company));
-  return role ? yearSpan(role.dates) : "";
+const SECTIONS = [
+  { id: "about", label: "About" },
+  { id: "work", label: "Work" },
+  { id: "outside", label: "Outside work" },
+  { id: "education", label: "Education" },
+  { id: "skills", label: "Skills" },
+  { id: "writing", label: "Writing" },
+];
+
+function Study({ study }: { study: CaseStudy }) {
+  return (
+    <li className="study" aria-labelledby={`case-${study.slug}`}>
+      <h4 id={`case-${study.slug}`} className="study-title">
+        {study.title}
+      </h4>
+      {study.figure ? (
+        <p className="figure">
+          <span className="figure-value">{study.figure.value}</span>
+          <span className="figure-label">{study.figure.label}</span>
+        </p>
+      ) : null}
+      <div className="study-body">
+        <p>
+          <span className="runin">Problem.</span> {study.problem}
+        </p>
+        <p>
+          <span className="runin">What I built.</span> {study.built}
+        </p>
+        {/* Where a number stands beside the account, it already says the result. */}
+        {study.figure ? null : (
+          <p>
+            <span className="runin">Result.</span> {study.result}
+          </p>
+        )}
+      </div>
+      {study.slug === "release-evals" ? <EvalGateDiagram /> : null}
+    </li>
+  );
 }
-
-type RecordLine = { years: string; org: string; what: string; note: string };
-
-// Work and study in date order, newest first, each beside its organisation's mark.
-function recordLines(): RecordLine[] {
-  const work = cv.roles.map((r) => ({
-    years: yearSpan(r.dates),
-    org: r.company,
-    what: r.title,
-    note: r.descriptor,
-    start: Number(r.dates.match(/\d{4}/)?.[0] ?? 0),
-  }));
-  const study = cv.education.map((e) => ({
-    years: e.year,
-    org: e.institution,
-    what: e.credential,
-    note: e.note ?? "",
-    start: Number(e.year),
-  }));
-  return [...work, ...study].sort((a, b) => b.start - a.start).map(({ years, org, what, note }) => ({ years, org, what, note }));
-}
-
-const where = (name: string) => organisation(name).short;
 
 export default function Home() {
   const posts = getAllPosts().slice(0, 3);
   const paper = cv.publication;
 
   return (
-    <div className="page">
-      {/* The headline stands above the ruled page; the margin rule starts with the first dated line. */}
-      <h1 className="hero headline">{headline}</h1>
-      <div className="ledger">
-        <div className="intro">
-          {intro.map((sentence) => (
-            <div key={sentence} className="row">
-              <p className="date">{introYears(sentence)}</p>
-              <p className="c-main">{sentence}</p>
-            </div>
-          ))}
+    <>
+      <section className="page hero" aria-labelledby="headline">
+        <div>
+          <h1 id="headline" className="display">
+            {headline}
+          </h1>
+          <p className="lead">
+            {intro[0]} {intro[1]}
+          </p>
+          <p className="motto">{motto}</p>
+          <p className="link-row">
+            <ExternalLink href={links.linkedin}>LinkedIn</ExternalLink>
+            <ExternalLink href={links.github}>GitHub</ExternalLink>
+            <Link href="/cv" className="link">
+              CV
+            </Link>
+          </p>
         </div>
-
-        <section className="section" aria-labelledby="record">
-          <div className="row section-head">
-            <h2 id="record" className="c-wide section-title">
-              Work and study
-            </h2>
+        <div className="hero-portrait">
+          <div className="portrait">
+            <Image src={portrait.src} width={portrait.width} height={portrait.height} alt={portrait.alt} priority sizes="(min-width: 48rem) 15rem, 8rem" />
           </div>
-          <ol>
-            {recordLines().map((line) => (
-              <li key={`${line.org}-${line.what}`} className="row entry entry-tight">
-                <p className="date">{line.years}</p>
-                <div className="c-main record">
-                  <OrgMark name={line.org} />
-                  <p>
-                    <span className="role">{line.what}</span>
-                    {line.note ? <span className="role-note">{line.note}</span> : null}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <div className="row">
-            <p className="c-main more">
-              <Link href="/cv" className="link">
-                Full CV
+        </div>
+      </section>
+
+      <nav className="section-bar" aria-label="On this page">
+        <ul className="page">
+          {SECTIONS.map((s) => (
+            <li key={s.id}>
+              <a href={`#${s.id}`}>{s.label}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <section id="about" className="page section" aria-labelledby="about-title">
+        <h2 id="about-title" className="section-title">
+          About
+        </h2>
+        <div className="about">
+          <div className="about-text">
+            <p>{intro[2]}</p>
+            <p>
+              I started in biology. I studied Biological Sciences at Imperial College London and graduated in 2021 with a First, having made the
+              Dean&rsquo;s List in my first and second years.
+            </p>
+            <p>
+              I then moved into computing and went back to Imperial for an MSc in Computer Science, which I finished with a Distinction in 2024. I&rsquo;m
+              co-first author of <ExternalLink href={paper.url}>ForestVO</ExternalLink>, published in IEEE Robotics and Automation Letters in 2025. Visual
+              odometry works out how a camera moves from the images it records. Our method keeps baseline accuracy while using 25% of the keypoints.
+            </p>
+            <p className="link-row">
+              <Link href="/about" className="link">
+                The longer version
               </Link>
-              <ExternalLink href={links.linkedin}>LinkedIn</ExternalLink>
             </p>
           </div>
-        </section>
-
-        <section className="section" aria-labelledby="work">
-          <div className="row section-head">
-            <h2 id="work" className="c-wide section-title">
-              Selected work
-            </h2>
-          </div>
-          {caseStudies.map((study) => (
-            <article key={study.slug} className="row case" aria-labelledby={`case-${study.slug}`}>
-              <p className="date">
-                {study.when}
-                <span className="date-where">{where(study.where)}</span>
-              </p>
-              <h3 id={`case-${study.slug}`} className="case-title">
-                {study.title}
-              </h3>
-              {study.figure ? (
-                <p className="figure">
-                  <span className="figure-value">{study.figure.value}</span>
-                  <span className="figure-label">{study.figure.label}</span>
-                </p>
-              ) : null}
-              <div className="case-body">
-                <p>
-                  <span className="runin">Problem.</span> {study.problem}
-                </p>
-                <p>
-                  <span className="runin">What I built.</span> {study.built}
-                </p>
-                <p>
-                  <span className="runin">Result.</span> {study.result}
-                </p>
-              </div>
-              {study.slug === "release-evals" ? <EvalGateDiagram /> : null}
-            </article>
-          ))}
-        </section>
-
-        <section className="section" aria-labelledby="research">
-          <div className="row section-head">
-            <h2 id="research" className="c-wide section-title">
-              Research
-            </h2>
-          </div>
-          <div className="row paper">
-            <p className="date">{paper.year}</p>
-            <div className="c-main record">
-              <OrgMark name="IEEE Robotics and Automation Letters" />
-              <p>
-                <ExternalLink href={paper.url}>{paper.title}</ExternalLink>
-                <span className="role-note">{paper.note}</span>
-              </p>
+          <figure>
+            <div className="plate">
+              <Image src={paperFigure.src} width={paperFigure.width} height={paperFigure.height} alt={paperFigure.alt} sizes="(min-width: 64rem) 20rem, 100vw" />
             </div>
-          </div>
-          <figure className="row paper-figure">
-            <div className="c-main plate">
-              <Image
-                src={paperFigure.src}
-                width={paperFigure.width}
-                height={paperFigure.height}
-                alt={paperFigure.alt}
-                loading="eager"
-                sizes="(min-width: 64rem) 30rem, calc(100vw - 6rem)"
-              />
-            </div>
-            <figcaption className="c-main credit">{paperFigure.credit}</figcaption>
+            <figcaption className="caption">
+              The camera path ForestVO estimated, against the ground truth, in metres. {paperFigure.credit}
+            </figcaption>
           </figure>
-        </section>
+        </div>
+      </section>
 
-        <section className="section" aria-labelledby="writing">
-          <div className="row section-head">
-            <h2 id="writing" className="c-wide section-title">
-              Writing
-            </h2>
-          </div>
-          <ol>
-            {posts.map((post) => (
-              <li key={post.slug} className="row entry">
-                <p className="date">
-                  <time dateTime={post.date}>{formatShortDate(post.date)}</time>
-                </p>
-                <div className="c-main">
-                  <p className="post-title">
-                    <Link href={postPath(post.slug)} className="link">
-                      {post.title}
-                    </Link>
-                  </p>
-                  <p className="post-description">{post.description}</p>
+      <section id="work" className="page section" aria-labelledby="work-title">
+        <h2 id="work-title" className="section-title">
+          Work
+        </h2>
+        <ol className="timeline">
+          {careerEntries(cv.roles, caseStudies).map(({ id, role, studies }) => (
+            <li key={id} className="tl-entry">
+              <div className="tl-mark">
+                <OrgMark name={role.company} />
+              </div>
+              <div>
+                <div className="role-head">
+                  <h3 id={id} className="role-title">
+                    {role.title}
+                  </h3>
+                  <p className="dates">{role.dates}</p>
                 </div>
+                <p className="role-where">{role.descriptor}</p>
+                {studies.length > 0 ? (
+                  <ol className="studies">
+                    {studies.map((study) => (
+                      <Study key={study.slug} study={study} />
+                    ))}
+                  </ol>
+                ) : (
+                  <ul className="bullets">
+                    {role.bullets.map((b) => (
+                      <li key={b}>{b}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+        <p className="after-list">
+          <Link href="/cv" className="link">
+            Every role and result in the CV
+          </Link>
+        </p>
+      </section>
+
+      <section id="outside" className="page section" aria-labelledby="outside-title">
+        <h2 id="outside-title" className="section-title">
+          Outside work
+        </h2>
+        <ul className="pairs">
+          {cv.elsewhere.map((item) => {
+            const [head, ...rest] = item.split(", ");
+            return (
+              <li key={item}>
+                <span className="pair-head">{head}</span>
+                {rest.length > 0 ? <span className="note">{rest.join(", ")}</span> : null}
               </li>
-            ))}
-          </ol>
-        </section>
-      </div>
-    </div>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section id="education" className="page section" aria-labelledby="education-title">
+        <h2 id="education-title" className="section-title">
+          Education and research
+        </h2>
+        <div className="rows">
+          {educationGroups(cv.education).map((group) => (
+            <div key={group.institution}>
+              <div>
+                <h3 className="row-title">{group.institution}</h3>
+                <p className="row-sub dates">{group.years}</p>
+              </div>
+              <ul className="row-items">
+                {group.degrees.map((d) => (
+                  <li key={d.credential}>
+                    <strong>{d.credential}</strong>, {d.year}
+                    {d.note ? <span className="note">{d.note}</span> : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <div>
+            <div>
+              <h3 className="row-title">{paper.venue}</h3>
+              <p className="row-sub dates">{paper.year}</p>
+            </div>
+            <p className="row-items">
+              <span>
+                <ExternalLink href={paper.url}>{paper.title}</ExternalLink>
+                <span className="note">{paper.note}</span>
+              </span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="skills" className="page section" aria-labelledby="skills-title">
+        <h2 id="skills-title" className="section-title">
+          Skills
+        </h2>
+        <dl className="rows">
+          {cv.skills.map((group) => (
+            <div key={group.label}>
+              <dt className="row-title">{group.label}</dt>
+              <dd>{group.items.join(", ")}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <section id="writing" className="page section" aria-labelledby="writing-title">
+        <h2 id="writing-title" className="section-title">
+          Writing
+        </h2>
+        <PostList posts={posts} heading="h3" />
+        <p className="after-list">
+          <Link href={WRITING_PATH} className="link">
+            All writing
+          </Link>
+        </p>
+      </section>
+    </>
   );
 }
