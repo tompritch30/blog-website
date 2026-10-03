@@ -520,3 +520,7 @@ AssertionError: expected undefined to be 'quote' // Object.is equality
 Green: `Test Files  2 passed (2)`, `Tests  70 passed (70)`.
 
 The draft caching post now quotes Anthropic's launch post next to its opening line (https://x.com/AnthropicAI/status/1823751314444021899, 14 August 2024). Text taken from X's public oEmbed endpoint (`publish.twitter.com/oembed`, logged out) and compared paragraph by paragraph with the post by a script: equal. The emoji and the em dash are kept as written. The only omission is the trailing `t.co` short link at the end of the post, which points back to Anthropic's announcement; the caption links the original instead. The post stays `draft: true`.
+
+#### For the owner: copy changed in slice 7
+
+- `src/content/posts/claude-code-workflow.mdx` description (the judge failed it as a hook): "Not the demo. The real workflow: where Claude Code saves hours on a real codebase, and where it still falls flat." -> "Where Claude Code saves hours on a real codebase, and where it still falls flat."
