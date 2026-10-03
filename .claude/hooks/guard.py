@@ -13,21 +13,26 @@ import json
 import re
 import sys
 
-I = re.IGNORECASE
-
 GIT_PREFIX = (
     r"\bgit(?:\s+(?:-[cC]\s+\S+|--(?:git-dir|work-tree|namespace|exec-path|config-env)\s+\S+|"
     r"--[\w-]+(?:=\S+)?|-\w+))*\s+"
 )
 GIT_PUSH = re.compile(GIT_PREFIX + r"(push|send-email)\b")
+# -n is --no-verify only for git commit; for cherry-pick, revert and merge it means something else.
 GIT_NO_VERIFY = re.compile(
-    GIT_PREFIX + r"(commit|merge|rebase|cherry-pick|am|revert)\b[^|;&]*\s(--no-verify\b|-n\b)"
+    GIT_PREFIX + r"(commit\b[^|;&]*\s(--no-verify\b|-(?!-)[a-zA-Z]*n[a-zA-Z]*\b)|"
+    r"(merge|rebase|cherry-pick|am|revert)\b[^|;&]*\s--no-verify\b)"
+)
+SKIP_HOOKS = re.compile(r"\bLEFTHOOK(_EXCLUDE|_SKIP)?=|\blefthook\s+uninstall\b")
+# Commit messages and search patterns may mention blocked commands without running them.
+QUOTED_TEXT = re.compile(
+    r"""((?:\s-m|\s--message|--grep)(?:=|\s*)|\b(?:e?grep|rg)\b(?:\s+-[\w-]+(?:=\S+)?)*\s+)("(?:[^"\\]|\\.)*"|'[^']*')"""
 )
 GIT_CONF = re.compile(
     GIT_PREFIX + r"(remote\s+(add|set-url|rename)\b|config\b(?![^|;&]*\s--(get|list|get-regexp)\b)"
     r"[^|;&]*(alias\.|pushurl|insteadof|hookspath|remote\.\S*\.url))|"
     r"\bgit\b[^|;&]*\s-c\s+\S*(alias\.|pushurl|insteadof|hookspath)|GIT_CONFIG_(PARAMETERS|COUNT)",
-    I,
+    re.IGNORECASE,
 )
 GH_WRITE = re.compile(
     r"\bgh\s+(?:-\S+\s+)*[\w-]+\s+(create|edit|delete|rename|merge|close|reopen|comment|review|fork|sync|"
@@ -35,33 +40,35 @@ GH_WRITE = re.compile(
     r"\bgh\s+(secret|variable|ssh-key|gpg-key|browse)\b|\bgh\s+auth\s+(token|refresh|login|setup-git)\b"
 )
 GH_API_WRITE = re.compile(r"\bgh\s+api\b[^|;&]*(\s(-X|--method)[\s=]*['\"]?(?!(?i:GET|HEAD)\b)[A-Za-z]|\s(-f|-F|--field|--raw-field|--input)[\s=])")
-VERCEL = re.compile(r"(^|[\s;&|(])(npx\s+|pnpm\s+dlx\s+|bunx\s+)?vercel(\s|$)(?!\s*(--version|-v|help|whoami)\b)", I)
+VERCEL = re.compile(r"(^|[\s;&|(])(npx\s+|pnpm\s+dlx\s+|bunx\s+)?vercel(\s|$)(?!\s*(--version|-v|help|whoami)\b)", re.IGNORECASE)
 PUBLISH = re.compile(r"\b(npm|pnpm|yarn|bun)\s+publish\b")
 CREDENTIAL_PATHS = re.compile(
     r"(\.credentials|\.ssh[/\\]|\.aws[/\\]|gh[/\\]hosts\.yml|\.netrc|\.git-credentials|\.npmrc|\.pypirc|"
     r"\.docker[/\\]config\.json|\bid_(rsa|ed25519|ecdsa)\b|com\.vercel\.cli|vercel[/\\]auth\.json|"
     r"Login Data|cookies\.sqlite|logins\.json|\.gnupg[/\\]|keychain)",
-    I,
+    re.IGNORECASE,
 )
 CREDENTIAL_CMDS = re.compile(
     r"\bgit\s+credential\b|\bcmdkey\b|\bsecret-tool\b|\bsecurity\s+find-|"
     r"(printenv|echo)\s+\$?\{?\w*(TOKEN|SECRET|API_?KEY|PASSWORD)",
-    I,
+    re.IGNORECASE,
 )
 ENV_FILE = re.compile(r"(^|[/\\])\.env(\.[\w.-]+)?$")
 ENV_EXAMPLE = re.compile(r"(^|[/\\])\.env\.example$")
 SHELL_ENV_WRITE = re.compile(r"(>>?|\btee\b(\s+-a)?)\s*['\"]?\S*\.env(\.(?!example\b)[\w.-]+)?['\"]?(\s|$)")
 SHELL_ENV_READ = re.compile(
-    r"\b(cat|less|more|head|tail|bat|Get-Content|source)\s+[^|;&]*\.env(\.(?!example\b)[\w.-]+)?(\s|$)", I
+    r"\b(cat|less|more|head|tail|bat|grep|rg|awk|sed|cut|strings|xxd|od|cp|mv|Get-Content|source)\s+"
+    r"[^|;&]*\.env(\.(?!example\b)[\w.-]+)?(\s|$)",
+    re.IGNORECASE,
 )
-PLACEHOLDER = re.compile(r"^(|<[^>]*>|your[-_ ].*|changeme|example.*|https?://localhost\S*|xxx+)$", I)
+PLACEHOLDER = re.compile(r"^(|<[^>]*>|your[-_ ].*|changeme|example.*|https?://localhost\S*|xxx+)$", re.IGNORECASE)
 
 PROTECTED = r"(\.claude[/\\](hooks\b|settings[\w.]*\.json)|\.git[/\\](hooks|config)\b|scripts[/\\]hooks\b|lefthook\.yml)"
-PROTECTED_RX = re.compile(PROTECTED, I)
+PROTECTED_RX = re.compile(PROTECTED, re.IGNORECASE)
 PROTECTED_WRITE = re.compile(
     r"(sed\s+-i|\btee\b|\brm\b|\bmv\b|\bcp\b|\binstall\b|chmod|truncate|\bln\b|Set-Content|Add-Content|Out-File|"
     r"Remove-Item|Move-Item|Copy-Item|>)[^|;&]*" + PROTECTED,
-    I,
+    re.IGNORECASE,
 )
 GUARDRAIL_FILES = "guardrail files (.claude/hooks, .claude/settings*, .git/hooks, scripts/hooks, lefthook.yml) are owner-only"
 
@@ -69,6 +76,7 @@ SHELL_RULES: list[tuple[re.Pattern[str], str]] = [
     (PROTECTED_WRITE, GUARDRAIL_FILES),
     (GIT_PUSH, "no git push: the owner pushes by hand"),
     (GIT_NO_VERIFY, "git hooks are mandatory: no --no-verify / -n"),
+    (SKIP_HOOKS, "git hooks are mandatory: no LEFTHOOK=0 or lefthook uninstall"),
     (GIT_CONF, "no changing git remotes, push URLs, aliases or hook paths"),
     (GH_WRITE, "no GitHub writes (repo create/edit/delete, PRs, secrets, auth tokens)"),
     (GH_API_WRITE, "no GitHub writes through gh api"),
@@ -85,8 +93,9 @@ def block(reason: str) -> None:
 
 
 def check_shell(cmd: str) -> None:
+    runnable = QUOTED_TEXT.sub(r"\1''", cmd)
     for rx, why in SHELL_RULES:
-        if rx.search(cmd):
+        if rx.search(runnable):
             block(why)
     if CREDENTIAL_PATHS.search(cmd) or CREDENTIAL_CMDS.search(cmd):
         block("no reading credentials, tokens or browser profiles")
