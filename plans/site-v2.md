@@ -185,3 +185,76 @@ Red, the new tests against the 3a code:
 ```
 
 Two of the red runs taught the code something: a short muted line between two headings was flagged both as the first heading's filler subtitle and as an eyebrow for the second (it now counts as the first heading's subtitle only), and a control inside `<pre>` lost its name because control names used the visible-text walk (they now use all text). Green: `Tests  53 passed (53)`.
+
+### 2026-10-03 build evidence: slice 4 (routes skeleton) and CI wiring
+
+Feed golden test moved to `/writing/` first. Red:
+
+```
+   × renderRss > renders an RSS 2.0 channel with one item per post, escaping XML 27ms
+   ✓ renderRss > renders an empty channel when there are no posts 2ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 1 passed (2)
+- <link>https://casey.example/writing/tea-vs-coffee</link>
++ <link>https://casey.example/blog/tea-vs-coffee</link>
+- <guid isPermaLink="true">https://casey.example/writing/tea-vs-coffee</guid>
++ <guid isPermaLink="true">https://casey.example/blog/tea-vs-coffee</guid>
+```
+
+Green after `feed.ts` used `postPath` (`src/lib/paths.ts`): 2 passed. Routes: `/writing` and `/writing/[slug]` (moved with `git mv`, `dynamicParams = false` kept), permanent redirects `/blog` and `/blog/:slug` in `next.config.ts`, `/` and `/cv` from `src/content/profile.ts` (headings, paragraphs, lists and description lists; no table, nothing there is tabular), `/about` unchanged, `not-found.tsx`. lucide-react and the post search box removed, Inter replaced by a system stack (Geist Mono kept for code), `--surface` `#ffffff` to `#fdfdfb` under the same name (contrast test green), favicon radius 6px to 4px.
+
+Post edits in `src/content/posts/claude-code-workflow.mdx` (grill item 12b; punctuation only, plus the one wording change), for the owner:
+
+- "This isn't a getting-started guide — there are plenty of those." -> "This isn't a getting-started guide. There are plenty of those."
+- "code back and forth — you describe what you want" -> "code back and forth: you describe what you want"
+- "follow your established patterns — these take 20% of the thought" -> "follow your established patterns. These take 20% of the thought"
+- "moving a module — the kind of work" -> "moving a module: the kind of work"
+- "The biggest unlock was writing a "CLAUDE.md" file" -> "What helped most was writing a "CLAUDE.md" file"
+- "at the start of every session — your permanent context." -> "at the start of every session: your permanent context."
+- "more mechanical than creative — scaffolding, refactors" -> "more mechanical than creative: scaffolding, refactors"
+- "real design thinking — what to build, how to structure a system, what the right trade-off is — those are still on me." -> "real design thinking: what to build, how to structure a system, what the right trade-off is. Those are still on me."
+
+First `--built` run on the real build found two problems that were not the site's, both now fixed with a test first:
+
+1. Next 16.3.8 always prerenders its own static 500 page as `_global-error.html` (`next/dist/client/components/builtin/app-error.js`, wired in `next/dist/build/route-discovery.js`): Roboto and Helvetica in the stack, `#fff`, a 6px button. `src/app/global-error.tsx` handles runtime errors but cannot replace that page, so the premise in the brief does not hold. The CLI skips that file only while it carries Next's `id="__next_error__"` marker and prints a `skip` line. Red:
+
+```
+   ✓ lintHtml (built pages) > lints visible text only: not head, scripts, hidden, pre, code, template, noscript or comments 43ms
+   ✓ lintHtml (built pages) > finds eyebrows, filler subtitles, class, icon and inline-style tells in markup 7ms
+   ✓ lintHtml (built pages) > passes a clean page whose slop sits only in head, scripts, hidden and code 2ms
+   ✓ lintHtml (built pages) > finds only the real tells on the post page as built on 3 Oct 2026 46ms
+   ✓ lint-slop CLI > --built fails each planted control page and the planted CSS  4101ms
+   × lint-slop CLI > --built passes a clean build, vendored CSS selectors included 6253ms
+   × lint-slop CLI > --built skips Next's own static 500 page, which global-error.tsx cannot replace, and says so 2031ms
+   ✓ lint-slop CLI > --built with no build output exits 2 and says so  5263ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  2 failed | 6 passed | 46 skipped (54)
+```
+
+2. Tailwind v4 scans every file, so the planted fixtures and the rule source (which name every banned class) put gradients, backdrop blur, `uppercase` and `rounded-xl` utilities into the built CSS. `globals.css` now uses `@import "tailwindcss" source("..")` (src only) with `@source not` for `slop.ts`, `slop.test.ts` and `__fixtures__/slop`.
+
+`design/CONTROLS.json` lists every control per route with its job. The real build then passes `--built` (0 hits), so `npm run lint:slop -- --built` joins `scripts/ci.sh` after the build now (earlier than the grill's slice 6), and the source lint joins ci.sh and the lefthook pre-commit. `scripts/ci.sh`:
+
+```
+== node v22.23.3
+== git hooks: pre-push refuses
+== lint
+== slop lint (source)
+slop: 0 hits in 0 of 42 files
+== typecheck
+== unit tests
+      Tests  84 passed (84)
+== guard hook tests
+== build
+== slop lint (built pages, CSS and controls budget)
+skip  .next/server/app/_global-error.html  Next's built-in static 500 page (not replaceable by src/app/global-error.tsx)
+pass  .next/server/app/_not-found.html
+pass  .next/server/app/about.html
+pass  .next/server/app/cv.html
+pass  .next/server/app/index.html
+pass  .next/server/app/writing/claude-code-workflow.html
+pass  .next/server/app/writing.html
+pass  .next/static/chunks/2zw4dkmxvpkx8.css
+slop: 0 hits in 0 of 7 files
+ci: all gates green
+```

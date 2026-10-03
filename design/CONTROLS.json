@@ -1,0 +1,47 @@
+{
+  "$comment": "Controls budget (plans/site-v2.md, slice 3b): every interactive element on each built page and its job. Keyed by route pattern (srcRoute in .next/prerender-manifest.json). 'layout' entries apply to every page rendered inside the root layout; a route with \"layout\": false renders its own document. Entry: {kind, href or name, count (default 1, or \"many\"), job}. Kinds: link, button, input, select, textarea, summary, iframe, role-button, focusable, plus the classes \"prose links\" (any link inside .prose) and \"scroll regions\" (tabindex=0 on a scrolling pre, table or region). Checked by npm run lint:slop -- --built.",
+  "layout": [
+    { "kind": "link", "href": "#main", "job": "skip past the navigation to the page content (keyboard and screen reader users)" },
+    { "kind": "link", "href": "/", "job": "go to the home page (the name in the nav)" },
+    { "kind": "link", "href": "/writing", "job": "open the list of posts" },
+    { "kind": "link", "href": "/cv", "job": "open the web CV" },
+    { "kind": "link", "href": "/about", "job": "open the About page" },
+    { "kind": "link", "href": "https://github.com/tompritch30", "job": "see his code on GitHub" },
+    { "kind": "link", "href": "/feed.xml", "job": "follow new posts by RSS" }
+  ],
+  "routes": {
+    "/": {
+      "controls": [{ "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post from the recent writing list" }]
+    },
+    "/writing": {
+      "controls": [{ "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post" }]
+    },
+    "/writing/[slug]": {
+      "controls": [
+        { "kind": "link", "href": "/writing", "job": "go back to the list of posts" },
+        { "kind": "prose links", "job": "follow a source or page the post cites" },
+        { "kind": "scroll regions", "job": "scroll a wide code block or table by keyboard" }
+      ]
+    },
+    "/cv": {
+      "controls": [
+        { "kind": "link", "href": "https://github.com/tompritch30", "job": "see his code on GitHub (from the CV header)" },
+        { "kind": "link", "href": "https://www.linkedin.com/in/thomas-pritchard-01a/", "job": "see his LinkedIn profile" },
+        { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "job": "read the ForestVO paper" }
+      ]
+    },
+    "/about": {
+      "controls": [{ "kind": "prose links", "job": "follow the paper, GitHub and LinkedIn links in the About text" }]
+    },
+    "/_not-found": {
+      "controls": [
+        { "kind": "link", "href": "/", "job": "leave a missing page for the home page" },
+        { "kind": "link", "href": "/writing", "job": "leave a missing page for the list of posts" }
+      ]
+    },
+    "/_global-error": {
+      "layout": false,
+      "controls": [{ "kind": "link", "href": "/", "job": "reload the site from the home page after an error" }]
+    }
+  }
+}

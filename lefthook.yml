@@ -9,6 +9,9 @@ pre-commit:
     - name: typecheck
       glob: "*.{ts,tsx}"
       run: npm run typecheck
+    - name: slop lint
+      glob: "*.{ts,tsx,mts,mdx,css,json}"
+      run: npm run lint:slop
     - name: unit tests
       glob: "*.{ts,tsx,mdx,css}"
       run: npm test

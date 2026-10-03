@@ -17,6 +17,9 @@ scripts/check-push-refusal.sh
 step "lint"
 npm run lint
 
+step "slop lint (source)"
+npm run lint:slop
+
 step "typecheck"
 npm run typecheck
 
@@ -28,6 +31,9 @@ python3 .claude/hooks/test_guard.py
 
 step "build"
 npm run build
+
+step "slop lint (built pages, CSS and controls budget)"
+npm run lint:slop -- --built
 
 echo
 echo "ci: all gates green"

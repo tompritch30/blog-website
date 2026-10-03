@@ -14,4 +14,6 @@ Words used in code, tests and plans. Use these names; add a line when a new term
 - **Share image**: the Open Graph image generated at build time (`opengraph-image.tsx`); one for the site, one per post.
 - **Feed**: the RSS 2.0 document at `/feed.xml`.
 - **Colour token**: a CSS custom property in `globals.css` (`--text`, `--secondary`, `--muted`, ...). Text tokens must meet WCAG AA on every background token.
+- **Slop lint**: `npm run lint:slop` (`src/lib/slop.ts`, `scripts/lint-slop.mts`): rules for the tells of generated design and copy (em dashes, marketing words, letter-spaced caps, big radii, filler subtitles, money figures in content, default fonts, pure black and white, and more). Exemptions, each with a reason, in `design/slop-allow.json`. `--built` lints the production build's pages and CSS.
+- **Controls budget**: `design/CONTROLS.json`, every link, button and focusable element each built page may have, with its job, keyed by route pattern. `lint:slop -- --built` fails a control that is not listed.
 - **Guard**: `.claude/hooks/guard.py`, the PreToolUse hook that stops agents pushing, deploying, publishing or reading secrets.
