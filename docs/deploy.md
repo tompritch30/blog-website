@@ -23,7 +23,7 @@ gh repo edit tompritch30/blog-website --visibility public --accept-visibility-ch
 1. Sign in at [vercel.com](https://vercel.com) with GitHub.
 2. **Add New → Project**, then import `tompritch30/blog-website`. If it is not listed, use **Adjust GitHub App Permissions** to give Vercel access to that one repo.
 3. Framework preset: **Next.js** (detected). Leave the build command (`next build`) and output settings as they are.
-4. Under **Settings → Build and Deployment → Node.js Version**, choose **22.x**. `package.json` also asks for Node 20.9 or later.
+4. Node version: `package.json` sets `"engines": { "node": "22.x" }`, and Vercel uses that over the dashboard setting. To change it, edit `engines` (and `.nvmrc`), not the dashboard.
 5. Environment variables: none needed for the first deploy. Canonical URLs, the sitemap and the feed use Vercel's production domain (`VERCEL_PROJECT_PRODUCTION_URL`) until you set `NEXT_PUBLIC_SITE_URL`.
 6. **Deploy**. Then open `/`, `/about`, `/feed.xml` and `/sitemap.xml` on the production URL.
 

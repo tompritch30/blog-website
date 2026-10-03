@@ -72,3 +72,24 @@ Deviation noted: commit 3d9d379 (Next 16.2.1 -> 16.3.8 for a critical advisory, 
 10. One shared base metadata object; post `openGraph` spreads it; RSS `alternates.types`; curl a built post for og:image, og:type, og:site_name and canonical: accept.
 11. `scripts/prompt-cache-maths.mjs` (plain Node) produces every number in the draft post; its output goes in this log: accept.
 12. Owner items stay parked with defaults (licence, tagline, existing post, author email). Lefthook installing hooks into a stranger's clone on `npm ci`: keep, say so in the README.
+
+Plan changes: the ADR is `docs/adr/0001-drafts-only-in-dev.md`; the posts fixtures live in `src/lib/__fixtures__/`; SETUP.md became `docs/deploy.md`; `engines.node` is `22.x` (Vercel follows `engines` over its dashboard).
+
+### 2026-10-03 build evidence
+
+- Red before green, posts slice (8 failing of 9; the date bug was real):
+  `AssertionError: expected '29 March 2026' to be '30 March 2026'` and `Tests  8 failed | 1 passed (9)`.
+- Red before green, contrast: old tokens `Tests  6 failed | 16 passed (22)` (muted text 1.6:1 light, 2.2:1 dark).
+- Red before green, RSS: `Error: Cannot find module './feed'` then golden test green.
+- Guard: mutation check (push and Vercel rules removed) `53/62 ok, exit 1`; review cases `75/85 ok` red, then `85/85 ok`.
+- Slug validation: `1 failed | 9 passed (10)` red, then green.
+- `site.ts` and its test were written together, not red first.
+- Maths script output (feeds every number in the draft post): break-even 21.7% / 52.6% / 20.8% / 51.3%; example A $160.00 vs $52.55 a day, 67.2% saving, ceiling 67.5%; example B $0.40 / $0.50 / $0.116; bill saving at 95% hits 16.8% / 42.1% / 67.4% / 80.0%.
+- Screenshots (375px dark and light, sticky nav after scroll, skip link and search focus by keyboard, desktop About with aria-current) checked in the browser pane; the README screenshot is `docs/screenshot.jpg`.
+- npm audit --omit=dev: clean after Next 16.3.8.
+
+### 2026-10-03 fresh-context code review (separate agent, did not write the code)
+
+Accepted and fixed: LEFTHOOK=0 / lefthook uninstall bypass and guard false positives on quoted text and `-n` (fix(agents)); `nvm use` fails without Node 22 installed, now `nvm install`; Vercel follows `engines`, now `22.x`; post files with non-slug names were listed but 404ed (fix(posts), red first); tracing comment corrected; `tr` warning in the hook command; `.env` reads via grep/cp; `I = re.IGNORECASE` inlined; `--muted` collapsed into `--secondary`; post link names shortened; Nav no longer imports server config; unused maths output removed; drafts readable on GitHub noted in README, ADR and owner notes; ADR filename in this plan.
+Rejected: CLAUDE.md's "Windows host, repo inside WSL" line stays (agents on this machine need it; it is not personal data).
+Parked for the owner: the OpenAI write-premium and Gemini figures in the draft post must be checked against the linked docs before publishing.
