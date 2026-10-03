@@ -1,30 +1,28 @@
-import { getAllPosts } from "@/lib/posts";
+import type { Metadata } from "next";
+import Container from "@/components/Container";
 import PostList from "@/components/PostList";
+import { getAllPosts } from "@/lib/posts";
+import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
+import { site } from "@/lib/site";
+
+export const metadata: Metadata = {
+  alternates: { ...baseAlternates, canonical: "/" },
+  openGraph: { ...baseOpenGraph, type: "website", url: "/" },
+};
 
 export default function Home() {
-  const posts = getAllPosts();
-
   return (
-    <div className="max-w-2xl mx-auto px-1 sm:px-2 py-14 sm:py-20">
-      {/* Bio */}
-      <div className="mb-12">
-        <p
-          className="text-xl font-semibold tracking-tight mb-1"
-          style={{ color: "var(--text)" }}
-        >
-          {/* TODO: your name */}
-          Tom
-        </p>
-        <p className="text-sm leading-relaxed" style={{ color: "var(--secondary)" }}>
-          {/*
-           * TODO: one or two lines about what you build / care about.
-           */}
-          Building tools that automate tedious things. Writing about the decisions behind them.
-        </p>
-      </div>
-
-      {/* Posts */}
-      <PostList posts={posts} />
-    </div>
+    <Container className="py-14 sm:py-20">
+      <header className="mb-12">
+        <h1 className="mb-1 text-xl font-semibold tracking-tight text-fg">{site.name}</h1>
+        <p className="text-sm leading-relaxed text-secondary">{site.tagline}</p>
+      </header>
+      <section aria-labelledby="posts-heading">
+        <h2 id="posts-heading" className="sr-only">
+          Posts
+        </h2>
+        <PostList posts={getAllPosts()} />
+      </section>
+    </Container>
   );
 }

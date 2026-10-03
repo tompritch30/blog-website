@@ -1,38 +1,48 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-@theme inline {
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* Colour tokens: every text colour meets WCAG AA (4.5:1) on --bg and --surface-soft in both
+   themes; src/app/contrast.test.ts checks it. */
 :root {
-  --bg: #FAFAF8;
-  --text: #0F0F0E;
-  --secondary: #6B6B69;
-  --muted: #C8C8C6;
-  --divider: #E5E5E3;
-  --surface: #FFFFFF;
-  --surface-soft: #F4F4F2;
+  --bg: #fafaf8;
+  --text: #0f0f0e;
+  --secondary: #6b6b69;
+  --muted: #6e6e6c;
+  --divider: #e5e5e3;
+  --surface: #ffffff;
+  --surface-soft: #f4f4f2;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0A0A09;
-    --text: #F0F0EE;
-    --secondary: #8A8A88;
-    --muted: #4A4A48;
+    --bg: #0a0a09;
+    --text: #f0f0ee;
+    --secondary: #8a8a88;
+    --muted: #858583;
     --divider: #242422;
     --surface: #141413;
-    --surface-soft: #1A1A18;
+    --surface-soft: #1a1a18;
     color-scheme: dark;
   }
 }
 
-html {
-  /* prevent horizontal scroll on all viewports */
-  overflow-x: hidden;
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-fg: var(--text);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-divider: var(--divider);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-soft);
+}
+
+/* clip, not hidden: hidden turns body into a scroll container and breaks the sticky nav */
+html,
+body {
+  overflow-x: clip;
 }
 
 body {
@@ -40,52 +50,57 @@ body {
   color: var(--text);
   font-family: var(--font-inter), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
 }
 
-/* Search input — inherits system color-scheme so it renders correctly in dark */
-input[type="text"],
-input[type="search"] {
-  background: var(--surface-soft);
-  color: var(--text);
-  border: 1px solid var(--divider);
+:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
 }
 
-input[type="text"]::placeholder,
-input[type="search"]::placeholder {
-  color: var(--muted);
-}
-
-/* Dark mode prose overrides */
-@media (prefers-color-scheme: dark) {
-  .prose {
-    --tw-prose-body: var(--text);
-    --tw-prose-headings: var(--text);
-    --tw-prose-lead: var(--secondary);
-    --tw-prose-links: var(--text);
-    --tw-prose-bold: var(--text);
-    --tw-prose-counters: var(--secondary);
-    --tw-prose-bullets: var(--muted);
-    --tw-prose-hr: var(--divider);
-    --tw-prose-quotes: var(--text);
-    --tw-prose-quote-borders: var(--divider);
-    --tw-prose-captions: var(--secondary);
-    --tw-prose-code: var(--text);
-    --tw-prose-pre-code: var(--text);
-    --tw-prose-pre-bg: var(--surface);
-    --tw-prose-th-borders: var(--divider);
-    --tw-prose-td-borders: var(--divider);
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 
-pre {
-  border: 1px solid var(--divider) !important;
-  border-radius: 4px !important;
+.prose {
+  --tw-prose-body: var(--text);
+  --tw-prose-headings: var(--text);
+  --tw-prose-lead: var(--secondary);
+  --tw-prose-links: var(--text);
+  --tw-prose-bold: var(--text);
+  --tw-prose-counters: var(--secondary);
+  --tw-prose-bullets: var(--secondary);
+  --tw-prose-hr: var(--divider);
+  --tw-prose-quotes: var(--text);
+  --tw-prose-quote-borders: var(--divider);
+  --tw-prose-captions: var(--secondary);
+  --tw-prose-code: var(--text);
+  --tw-prose-pre-code: var(--text);
+  --tw-prose-pre-bg: var(--surface);
+  --tw-prose-th-borders: var(--divider);
+  --tw-prose-td-borders: var(--divider);
 }
 
-code:not(pre code) {
-  background: var(--surface-soft) !important;
-  padding: 0.15em 0.35em !important;
-  border-radius: 3px !important;
-  font-size: 0.875em !important;
+.prose pre {
+  border: 1px solid var(--divider);
+  border-radius: 4px;
+}
+
+.prose :not(pre) > code {
+  background: var(--surface-soft);
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
+  font-size: 0.875em;
+}
+
+.prose :not(pre) > code::before,
+.prose :not(pre) > code::after {
+  content: none;
+}
+
+/* Wide tables scroll inside the article instead of widening the page on phones */
+.prose table {
+  display: block;
+  overflow-x: auto;
 }

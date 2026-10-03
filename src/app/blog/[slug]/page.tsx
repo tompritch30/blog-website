@@ -1,102 +1,73 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { MDXRemote } from "next-mdx-remote/rsc";
-import remarkGfm from "remark-gfm";
-import rehypeHighlight from "rehype-highlight";
-import rehypeSlug from "rehype-slug";
-import { getAllPosts, getPost } from "@/lib/posts";
-import { formatDate } from "@/lib/dates";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import Container from "@/components/Container";
+import Mdx from "@/components/Mdx";
+import { formatDate } from "@/lib/dates";
+import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
+import { getAllPosts, getPost } from "@/lib/posts";
 
+// Only slugs from generateStaticParams exist; anything else, drafts included, is a 404.
 export const dynamicParams = false;
 
-type Params = Promise<{ slug: string }>;
+type Props = { params: Promise<{ slug: string }> };
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return getAllPosts().map((p) => ({ slug: p.slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Params;
-}): Promise<Metadata> {
-  const { slug } = await params;
-  const post = getPost(slug);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const post = getPost((await params).slug);
   if (!post) return {};
+  const { slug, title, description, date, tags } = post.meta;
   return {
-    title: post.meta.title,
-    description: post.meta.description,
+    title,
+    description,
+    alternates: { ...baseAlternates, canonical: `/blog/${slug}` },
+    openGraph: {
+      ...baseOpenGraph,
+      type: "article",
+      url: `/blog/${slug}`,
+      title,
+      description,
+      publishedTime: date,
+      tags,
+    },
   };
 }
 
-export default async function PostPage({ params }: { params: Params }) {
-  const { slug } = await params;
-
-  const post = getPost(slug);
+export default async function PostPage({ params }: Props) {
+  const post = getPost((await params).slug);
   if (!post) notFound();
-
   const { meta, content } = post;
 
   return (
-    <div className="max-w-2xl mx-auto px-1 sm:px-2 py-12 sm:py-16">
-      {/* Back link */}
-      <Link
-        href="/"
-        className="inline-flex items-center gap-1.5 text-sm mb-10 transition-opacity hover:opacity-60"
-        style={{ color: "var(--secondary)" }}
-      >
-        <ArrowLeft size={14} />
+    <Container className="py-12 sm:py-16">
+      <Link href="/" className="mb-10 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-fg">
+        <ArrowLeft size={14} aria-hidden="true" />
         All posts
       </Link>
-
-      {/* Header */}
-      <header className="mb-10">
-        <div
-          className="flex items-center gap-2 text-xs mb-3"
-          style={{ color: "var(--secondary)" }}
-        >
-          <time dateTime={meta.date}>{formatDate(meta.date)}</time>
-          <span>·</span>
-          <span>{meta.readingTime}</span>
-        </div>
-        <h1
-          className="text-2xl font-semibold tracking-tight leading-snug mb-4"
-          style={{ color: "var(--text)" }}
-        >
-          {meta.title}
-        </h1>
-        {meta.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {meta.tags.map((tag: string) => (
-              <span
-                key={tag}
-                className="text-xs px-2 py-0.5 rounded-sm"
-                style={{
-                  background: "var(--surface-soft)",
-                  color: "var(--secondary)",
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-      </header>
-
-      {/* Body */}
-      <article className="prose prose-zinc max-w-none">
-        <MDXRemote
-          source={content}
-          options={{
-            mdxOptions: {
-              remarkPlugins: [remarkGfm],
-              rehypePlugins: [rehypeHighlight, rehypeSlug],
-            },
-          }}
-        />
+      <article>
+        <header className="mb-10">
+          <p className="mb-3 flex items-center gap-2 text-xs text-secondary">
+            <time dateTime={meta.date}>{formatDate(meta.date)}</time>
+            <span aria-hidden="true">·</span>
+            <span>{meta.readingTime}</span>
+          </p>
+          <h1 className="mb-4 text-2xl font-semibold leading-snug tracking-tight text-fg">{meta.title}</h1>
+          {meta.tags.length > 0 && (
+            <ul aria-label="Tags" className="flex flex-wrap gap-1.5">
+              {meta.tags.map((tag) => (
+                <li key={tag} className="rounded-sm bg-surface-soft px-2 py-0.5 text-xs text-secondary">
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          )}
+        </header>
+        <Mdx source={content} />
       </article>
-    </div>
+    </Container>
   );
 }

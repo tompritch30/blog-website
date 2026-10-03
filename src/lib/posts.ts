@@ -21,6 +21,8 @@ type Options = {
   includeDrafts?: boolean;
 };
 
+// Every page that reads posts is prerendered at build time, so the server bundle never
+// needs the content folder; turbopackIgnore stops the dynamic `dir` tracing the whole repo.
 const DEFAULT_DIR = path.join(process.cwd(), "src/content/posts");
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -51,7 +53,7 @@ function parseFrontmatter(data: Record<string, unknown>, file: string): Omit<Pos
 
 function readPost(dir: string, slug: string): Post {
   const file = path.join(dir, `${slug}.mdx`);
-  const { data, content } = matter(fs.readFileSync(file, "utf-8"));
+  const { data, content } = matter(fs.readFileSync(/*turbopackIgnore: true*/ file, "utf-8"));
   const meta = { slug, ...parseFrontmatter(data, file), readingTime: readingTime(content).text };
   return { meta, content };
 }
@@ -59,7 +61,7 @@ function readPost(dir: string, slug: string): Post {
 export function getAllPosts(options: Options = {}): PostMeta[] {
   const { dir, includeDrafts } = resolve(options);
   return fs
-    .readdirSync(dir)
+    .readdirSync(/*turbopackIgnore: true*/ dir)
     .filter((f) => f.endsWith(".mdx"))
     .map((f) => readPost(dir, f.slice(0, -".mdx".length)).meta)
     .filter((meta) => includeDrafts || !meta.draft)
@@ -68,7 +70,7 @@ export function getAllPosts(options: Options = {}): PostMeta[] {
 
 export function getPost(slug: string, options: Options = {}): Post | null {
   const { dir, includeDrafts } = resolve(options);
-  if (!SLUG.test(slug) || !fs.existsSync(path.join(dir, `${slug}.mdx`))) return null;
+  if (!SLUG.test(slug) || !fs.existsSync(/*turbopackIgnore: true*/ path.join(dir, `${slug}.mdx`))) return null;
   const post = readPost(dir, slug);
   return includeDrafts || !post.meta.draft ? post : null;
 }

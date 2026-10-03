@@ -1,16 +1,17 @@
+import Container from "@/components/Container";
+import { site } from "@/lib/site";
+
 export default function Footer() {
   return (
-    <footer
-      className="mt-auto py-10"
-      style={{ borderTop: "1px solid var(--divider)" }}
-    >
-      <div
-        className="max-w-2xl mx-auto px-1 sm:px-2 flex items-center justify-between text-xs"
-        style={{ color: "var(--muted)" }}
-      >
-        <span>© {new Date().getFullYear()} Tom</span>{/* TODO: your name */}
-        <span>Built with Next.js + MDX</span>
-      </div>
+    <footer className="mt-auto border-t border-divider py-10">
+      <Container className="flex items-center justify-between text-xs text-muted">
+        <span>
+          © {new Date().getFullYear()} {site.name}
+        </span>
+        <a href="/feed.xml" className="hover:text-fg">
+          RSS feed
+        </a>
+      </Container>
     </footer>
   );
 }
