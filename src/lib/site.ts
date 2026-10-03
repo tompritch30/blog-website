@@ -2,7 +2,7 @@ type Env = Record<string, string | undefined>;
 
 // The public origin used for canonical URLs, the sitemap, the feed and OG tags.
 // NEXT_PUBLIC_SITE_URL wins (set it once a custom domain exists); on Vercel the
-// production domain is the fallback; locally it is the dev server.
+// production domain is the fallback; otherwise http://localhost:3000, where `npm start` serves.
 export function siteUrl(env: Env = process.env): string {
   const explicit = env.NEXT_PUBLIC_SITE_URL?.trim();
   if (explicit) return new URL(explicit).origin;
@@ -13,7 +13,7 @@ export function siteUrl(env: Env = process.env): string {
 
 export const site = {
   name: "Thomas Pritchard",
-  tagline: "Founding Forward Deployed Engineer at Palindrome. I build LLM systems for legal and finance clients.",
+  tagline: "Founding Forward Deployed Engineer at Palindrome. I build LLM systems for clients.",
   description: "Thomas Pritchard's personal site: notes on building LLM systems, what they cost and how to make them work.",
   github: "https://github.com/tompritch30",
   locale: "en_GB",
