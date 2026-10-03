@@ -634,7 +634,10 @@ function lintScript(file: string, src: string, allow: Allow): Hit[] {
       const level = /^h([1-6])$/.exec(tagName(c));
       if (!level || Number(level[1]) > 3) return;
       const prev = sig[i - 1];
-      if (prev && (ts.isJsxElement(prev) || ts.isJsxSelfClosingElement(prev))) {
+      const before = sig[i - 2];
+      // A line sitting between two headings belongs to the first one (a subtitle), not the second.
+      const subtitle = !!before && (ts.isJsxElement(before) || ts.isJsxSelfClosingElement(before)) && /^h[1-6]$/.test(tagName(before));
+      if (prev && !subtitle && (ts.isJsxElement(prev) || ts.isJsxSelfClosingElement(prev))) {
         const lit = literalText(prev);
         if (lit && isEyebrowLabel(tagName(prev), lit.text, lit.hasLink)) {
           out.push(hit(file, lineOf(prev.getStart()), "eyebrow", "short label directly above a heading", lit.text));
@@ -772,6 +775,245 @@ function lintMdx(file: string, src: string, allow: Allow): Hit[] {
   return [...out, ...classAggregateHits(file, tokens)];
 }
 
+// ---------- HTML (built pages) ----------
+// A small tokenizer is enough: the pages are React's own well-formed output.
+
+type El = { tag: string; attrs: Record<string, string>; start: number; children: HtmlNode[]; parent: El | null };
+type TextNode = { text: string; start: number };
+type HtmlNode = El | TextNode;
+export type HtmlOptions = { allow?: Allow; built?: boolean };
+
+const VOID_TAGS = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
+const RAW_TAGS = new Set(["script", "style", "textarea", "title"]);
+// Not visible text: the head, code, scripts, styles and anything hidden (grill log item 4).
+const INVISIBLE_TAGS = new Set(["head", "script", "style", "template", "noscript", "pre", "code", "svg", "textarea", "title"]);
+const HTML_TEXT_ATTRS = ["alt", "title", "placeholder", "aria-label"];
+
+const isEl = (n: HtmlNode): n is El => "tag" in n;
+
+function parseAttrs(src: string): Record<string, string> {
+  const attrs: Record<string, string> = {};
+  for (const m of src.matchAll(/([^\s"'>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g)) {
+    attrs[m[1].toLowerCase()] = decodeEntities(m[2] ?? m[3] ?? m[4] ?? "");
+  }
+  return attrs;
+}
+
+export function parseHtml(html: string): El {
+  const root: El = { tag: "#root", attrs: {}, start: 0, children: [], parent: null };
+  const lower = html.toLowerCase();
+  const re = /<!--[\s\S]*?-->|<![^>]*>|<\/([a-zA-Z][\w:-]*)\s*>|<([a-zA-Z][\w:-]*)((?:\s+[^\s"'>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*)\s*(\/?)>/g;
+  let cur = root;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html))) {
+    if (m.index > last) cur.children.push({ text: html.slice(last, m.index), start: last });
+    last = re.lastIndex;
+    if (m[0].startsWith("<!")) continue;
+    if (m[1]) {
+      const tag = m[1].toLowerCase();
+      let open: El | null = cur;
+      while (open && open.tag !== tag) open = open.parent;
+      if (open?.parent) cur = open.parent;
+      continue;
+    }
+    const tag = m[2].toLowerCase();
+    const el: El = { tag, attrs: parseAttrs(m[3]), start: m.index, children: [], parent: cur };
+    cur.children.push(el);
+    if (m[4] === "/" || VOID_TAGS.has(tag)) continue;
+    if (RAW_TAGS.has(tag)) {
+      const close = lower.indexOf(`</${tag}`, last);
+      const end = close < 0 ? html.length : close;
+      el.children.push({ text: html.slice(last, end), start: last });
+      const gt = html.indexOf(">", end);
+      last = re.lastIndex = gt < 0 ? html.length : gt + 1;
+      continue;
+    }
+    cur = el;
+  }
+  if (last < html.length) cur.children.push({ text: html.slice(last), start: last });
+  return root;
+}
+
+const invisible = (el: El) => INVISIBLE_TAGS.has(el.tag) || "hidden" in el.attrs;
+
+/** Visible text of an element, leaving out code, citations and hidden parts. */
+function textOf(el: El): Literal {
+  const acc: Literal = { text: "", hasLink: false, hasTime: false };
+  const walk = (n: El) => {
+    for (const c of n.children) {
+      if (!isEl(c)) acc.text += c.text;
+      else {
+        if (c.tag === "a") acc.hasLink = true;
+        if (c.tag === "time") acc.hasTime = true;
+        if (!invisible(c) && c.tag !== "cite") walk(c);
+      }
+    }
+  };
+  walk(el);
+  acc.text = decodeEntities(acc.text).replace(/\s+/g, " ").trim();
+  return acc;
+}
+
+/** Text, heading, class, style and structure rules over a built page's visible content. */
+export function lintHtml(file: string, html: string, opts: HtmlOptions = {}): Hit[] {
+  const allow = opts.allow ?? NO_ALLOW;
+  const built = opts.built ?? false;
+  const lineOf = lineFinder(html);
+  const out: Hit[] = [];
+  const tokens: ClassToken[] = [];
+
+  const siblings = (el: El) => {
+    const sig = el.children.filter((c) => isEl(c) || c.text.trim());
+    sig.forEach((c, i) => {
+      if (!isEl(c)) return;
+      const level = /^h([1-3])$/.exec(c.tag);
+      if (!level) return;
+      const prev = sig[i - 1];
+      const before = sig[i - 2];
+      // A line sitting between two headings belongs to the first one (a subtitle), not the second.
+      const subtitle = !!before && isEl(before) && /^h[1-6]$/.test(before.tag);
+      if (prev && !subtitle && isEl(prev)) {
+        const lit = textOf(prev);
+        if (isEyebrowLabel(prev.tag, lit.text, lit.hasLink)) out.push(hit(file, lineOf(prev.start), "eyebrow", "short label directly above a heading", lit.text));
+      }
+      const next = sig[i + 1];
+      if (level[1] !== "1" && next && isEl(next)) {
+        const lit = textOf(next);
+        if (isFillerSubtitle(next.attrs.class ?? "", lit.text, lit.hasLink, lit.hasTime)) {
+          out.push(hit(file, lineOf(next.start), "filler-subtitle", "muted filler line under a heading", lit.text));
+        }
+      }
+    });
+  };
+
+  const walk = (el: El, visible: boolean, inHead: boolean) => {
+    for (const c of el.children) {
+      if (!isEl(c)) {
+        if (visible && c.text.trim()) out.push(...lintText(file, c.text, lineOf(c.start), { allow }));
+        continue;
+      }
+      const head = inHead || c.tag === "head";
+      if (c.tag === "style") {
+        const css = c.children[0];
+        if (css && !isEl(css)) out.push(...lintCss(file, css.text, { allow, built, line: lineOf(css.start) }));
+      }
+      if (!head && c.tag !== "template") {
+        const line = lineOf(c.start);
+        if (c.attrs.class) {
+          out.push(...lintClasses(file, c.attrs.class, line, allow, built));
+          for (const token of c.attrs.class.split(/\s+/).filter(Boolean)) tokens.push({ token, line });
+        }
+        if (c.attrs.style) out.push(...lintCss(file, `x{${c.attrs.style}}`, { allow, built, line }).filter((h) => h.rule !== "motion-no-reduce"));
+        if (/testimonial/i.test(c.attrs.id ?? "")) out.push(hit(file, line, "testimonial", "testimonial markup", c.attrs.id));
+        const shown = visible && !invisible(c);
+        if (shown) {
+          for (const a of HTML_TEXT_ATTRS) if (c.attrs[a]) out.push(...lintText(file, c.attrs[a], line, { allow, where: a }));
+          if (/^h[1-6]$/.test(c.tag)) out.push(...headingHits(file, textOf(c).text, line, allow));
+        }
+      }
+      walk(c, visible && !invisible(c), head);
+    }
+    if (visible) siblings(el);
+  };
+  walk(parseHtml(html), true, false);
+  return sortHits([...out, ...classAggregateHits(file, tokens)]);
+}
+
+// ---------- controls budget ----------
+
+export type Control = { kind: string; name: string; href?: string; line: number; inProse: boolean; scroll: boolean };
+export type ControlEntry = { kind: string; href?: string; name?: string; count?: number | "many"; job?: string };
+export type RouteBudget = { layout?: boolean; controls: ControlEntry[] };
+export type ControlsBudget = { layout?: ControlEntry[]; routes: Record<string, RouteBudget> };
+
+const SCROLL_TAGS = new Set(["pre", "table", "div", "section"]);
+
+/** All text under an element, code included: the name of a control. */
+function allText(el: El): string {
+  const parts: string[] = [];
+  const walk = (n: El) => {
+    for (const c of n.children) {
+      if (!isEl(c)) parts.push(c.text);
+      else if (c.tag !== "script" && c.tag !== "style") walk(c);
+    }
+  };
+  walk(el);
+  return decodeEntities(parts.join(" ")).replace(/\s+/g, " ").trim();
+}
+
+/** Every interactive element on a page: a[href], button, input, select, textarea, summary, iframe, role=button, tabindex=0. */
+export function findControls(html: string): Control[] {
+  const lineOf = lineFinder(html);
+  const out: Control[] = [];
+  const walk = (el: El, inProse: boolean) => {
+    for (const c of el.children) {
+      if (!isEl(c) || ["head", "script", "style", "template", "noscript"].includes(c.tag)) continue;
+      const prose = inProse || (c.attrs.class ?? "").split(/\s+/).includes("prose");
+      const name = (c.attrs["aria-label"] || allText(c) || c.attrs.title || c.attrs.value || "").trim();
+      const base = { name, line: lineOf(c.start), inProse: prose, scroll: false };
+      const tag = c.tag;
+      if (tag === "a" && "href" in c.attrs) out.push({ ...base, kind: "link", href: c.attrs.href });
+      else if (tag === "input" && (c.attrs.type ?? "").toLowerCase() !== "hidden") out.push({ ...base, kind: "input" });
+      else if (["button", "select", "textarea", "summary", "iframe"].includes(tag)) out.push({ ...base, kind: tag });
+      else if (c.attrs.role === "button" && tag !== "a") out.push({ ...base, kind: "role-button" });
+      else if (c.attrs.tabindex === "0") out.push({ ...base, kind: "focusable", scroll: SCROLL_TAGS.has(tag) || c.attrs.role === "region" });
+      walk(c, prose);
+    }
+  };
+  walk(parseHtml(html), false);
+  return out;
+}
+
+/** The budget entries for a route (the shared layout's plus its own), or null when it has none. */
+export function entriesFor(budget: ControlsBudget, route: string): ControlEntry[] | null {
+  const r = budget.routes[route];
+  if (!r) return null;
+  return [...(r.layout === false ? [] : (budget.layout ?? [])), ...r.controls];
+}
+
+function hrefMatches(pattern: string, href: string): boolean {
+  return pattern.endsWith("*") ? href.startsWith(pattern.slice(0, -1)) : pattern === href;
+}
+
+/** Controls on one built page against its budget entries (null: the route has no budget). */
+export function lintControls(file: string, html: string, entries: ControlEntry[] | null, route: string): Hit[] {
+  const out: Hit[] = [];
+  const lineOf = lineFinder(html);
+  const root = parseHtml(html);
+  const walkAnchors = (el: El) => {
+    for (const c of el.children) {
+      if (!isEl(c)) continue;
+      if (c.tag === "a" && !("href" in c.attrs)) out.push(hit(file, lineOf(c.start), "a-no-href", "<a> without href: a link that goes nowhere", textOf(c).text));
+      if (c.tag === "a" && c.attrs.role === "button") out.push(hit(file, lineOf(c.start), "role-button-link", 'role="button" on a link: links are links', textOf(c).text));
+      walkAnchors(c);
+    }
+  };
+  walkAnchors(root);
+  const left = new Map<ControlEntry, number>((entries ?? []).map((e) => [e, e.count === "many" ? Infinity : (e.count ?? 1)]));
+  const firstLine = new Map<ControlEntry, number>();
+  for (const c of findControls(html)) {
+    const specific = (entries ?? []).find(
+      (e) => (left.get(e) ?? 0) > 0 && e.kind === c.kind && (e.href ? c.href !== undefined && hrefMatches(e.href, c.href) : !!e.name && e.name.toLowerCase() === c.name.toLowerCase()),
+    );
+    const cls = (entries ?? []).find((e) => (e.kind === "prose links" && c.kind === "link" && c.inProse) || (e.kind === "scroll regions" && c.kind === "focusable" && c.scroll));
+    const entry = specific ?? cls;
+    if (!entry) {
+      const why = entries ? `not in CONTROLS.json for ${route}` : `route ${route} has no entry in CONTROLS.json`;
+      out.push(hit(file, c.line, "control-unlisted", `${c.kind} "${c.href ?? c.name}" ${why}`, c.name));
+      continue;
+    }
+    left.set(entry, (left.get(entry) ?? 0) - 1);
+    if (!firstLine.has(entry)) firstLine.set(entry, c.line);
+  }
+  for (const e of entries ?? []) {
+    if (!e.job?.trim()) {
+      out.push(hit(file, firstLine.get(e) ?? 1, "control-no-job", `CONTROLS.json entry ${e.kind} "${e.href ?? e.name ?? ""}" for ${route} has no job`));
+    }
+  }
+  return out;
+}
+
 // ---------- entry point ----------
 
 /** Content files (src/content) also get the money rule over their whole text, code included. */
@@ -783,6 +1025,7 @@ export function lintFile(file: string, src: string, allow: Allow = NO_ALLOW): Hi
   if (["ts", "tsx", "mts", "cts", "js", "jsx", "mjs"].includes(ext)) hits = lintScript(file, src, allow);
   else if (ext === "mdx" || ext === "md") hits = lintMdx(file, src, allow);
   else if (ext === "css") hits = lintCss(file, src, { allow });
+  else if (ext === "html") hits = lintHtml(file, src, { allow });
   if (isContent(file)) hits.push(...moneyHits(file, src, 1, allow));
   return sortHits(hits);
 }

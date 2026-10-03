@@ -2,7 +2,19 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { type Allow, type Hit, lintClasses, lintCss, lintFile, lintText, titleCaseWords } from "./slop";
+import {
+  type Allow,
+  type ControlEntry,
+  type Hit,
+  findControls,
+  lintClasses,
+  lintControls,
+  lintCss,
+  lintFile,
+  lintHtml,
+  lintText,
+  titleCaseWords,
+} from "./slop";
 
 const ROOT = path.join(__dirname, "../..");
 const FIX = "src/lib/__fixtures__/slop";
@@ -149,6 +161,98 @@ describe("lintCss", () => {
   });
 });
 
+describe("lintHtml (built pages)", () => {
+  it("lints visible text only: not head, scripts, hidden, pre, code, template, noscript or comments", () => {
+    expect(pairs(lintFixture("planted.html"))).toEqual([["title-case", 8], ["em-dash", 9]]);
+  });
+
+  it("finds eyebrows, filler subtitles, class, icon and inline-style tells in markup", () => {
+    expect(pairs(lintFixture("structure.html"))).toEqual(
+      sorted([
+        ["eyebrow", 5],
+        ["filler-subtitle", 7],
+        ["letter-spacing", 10],
+        ["radius", 10],
+        ["uppercase", 10],
+        ["icon-kit", 11],
+        ["pure-bw", 12],
+        ["radius", 12],
+      ]),
+    );
+  });
+
+  it("passes a clean page whose slop sits only in head, scripts, hidden and code", () => {
+    expect(lintFixture("clean/clean.html")).toEqual([]);
+  });
+
+  it("finds only the real tells on the post page as built on 3 Oct 2026", () => {
+    // Counted by hand from src/content/posts/claude-code-workflow.mdx at that date: six text runs
+    // with em dashes, one "unlock", and the lucide arrow icon on the back link. Code, scripts and
+    // the hidden div must add nothing.
+    const real = JSON.parse(fs.readFileSync(path.join(ROOT, "design/slop-allow.json"), "utf-8")) as Allow;
+    const file = `${FIX}/built-regression/claude-code-workflow.html`;
+    const hits = lintHtml(file, read("built-regression/claude-code-workflow.html"), { allow: real, built: true });
+    const counts = Object.fromEntries([...new Set(hits.map((h) => h.rule))].map((r) => [r, hits.filter((h) => h.rule === r).length]));
+    expect(counts).toEqual({ "em-dash": 6, marketing: 1, "icon-kit": 1 });
+  });
+});
+
+describe("controls budget", () => {
+  const page = [
+    '<body><a href="#main">Skip to content</a><nav><a href="/">Home</a><a href="/writing">Writing</a></nav>',
+    '<main><div class="prose"><p><a href="https://example.com">a</a> and <a href="/b">b</a></p></div>',
+    '<button type="button">Menu</button><input type="hidden" name="x"/><pre tabindex="0"><code>x</code></pre></main></body>',
+  ].join("\n");
+  const layout: ControlEntry[] = [
+    { kind: "link", href: "#main", job: "skip the navigation" },
+    { kind: "link", href: "/", job: "go home" },
+    { kind: "link", href: "/writing", job: "list the posts" },
+  ];
+
+  it("counts links, buttons, inputs and focusable regions, marking links inside prose", () => {
+    const found = findControls(page).map((c) => [c.kind, c.href ?? c.name, c.line, c.inProse]);
+    expect(found).toEqual([
+      ["link", "#main", 1, false],
+      ["link", "/", 1, false],
+      ["link", "/writing", 1, false],
+      ["link", "https://example.com", 2, true],
+      ["link", "/b", 2, true],
+      ["button", "Menu", 3, false],
+      ["focusable", "x", 3, false],
+    ]);
+  });
+
+  it("fails each control the route's budget does not list", () => {
+    const entries = [...layout, { kind: "prose links", job: "links the text cites" }];
+    expect(pairs(lintControls("p.html", page, entries, "/x"))).toEqual([["control-unlisted", 3], ["control-unlisted", 3]]);
+  });
+
+  it("passes when every control is listed, prose links and scroll regions as classes", () => {
+    const entries = [
+      ...layout,
+      { kind: "prose links", job: "links the text cites" },
+      { kind: "button", name: "Menu", job: "open the menu" },
+      { kind: "scroll regions", job: "wide code scrolls by keyboard" },
+    ];
+    expect(lintControls("p.html", page, entries, "/x")).toEqual([]);
+  });
+
+  it("fails a second control beyond an entry's count, and every control on an unbudgeted route", () => {
+    const twice = '<a href="/">Home</a>\n<a href="/">Home again</a>';
+    expect(pairs(lintControls("p.html", twice, [{ kind: "link", href: "/", job: "go home" }], "/x"))).toEqual([["control-unlisted", 2]]);
+    expect(pairs(lintControls("p.html", twice, null, "/x"))).toEqual([["control-unlisted", 1], ["control-unlisted", 2]]);
+  });
+
+  it("fails an <a> without href, a link with role=button, and an entry without a job", () => {
+    const html = '<a class="x">Read on</a>\n<a href="/go" role="button">Go</a>\n<button type="button">Copy</button>';
+    const entries = [
+      { kind: "link", href: "/go", job: "start" },
+      { kind: "button", name: "Copy", job: "" },
+    ];
+    expect(pairs(lintControls("p.html", html, entries, "/x"))).toEqual([["a-no-href", 1], ["role-button-link", 2], ["control-no-job", 3]]);
+  });
+});
+
 describe("lint-slop CLI", () => {
   const run = (...args: string[]) =>
     spawnSync(process.execPath, ["scripts/lint-slop.mts", ...args], { cwd: ROOT, encoding: "utf-8" });
@@ -166,5 +270,31 @@ describe("lint-slop CLI", () => {
     const out = run(`${FIX}/clean`);
     expect(out.stdout + out.stderr).toContain("pass");
     expect(out.status).toBe(0);
+  });
+
+  it("--built fails each planted control page and the planted CSS", () => {
+    const dir = `${FIX}/built-planted`;
+    const out = run("--built", dir, "--controls", `${dir}/CONTROLS.json`);
+    expect(out.status).toBe(1);
+    const app = `${dir}/server/app`;
+    expect(out.stdout).toContain(`${app}/unlisted.html:3 control-unlisted `);
+    expect(out.stdout).toContain(`${app}/no-href.html:3 a-no-href `);
+    expect(out.stdout).toContain(`${app}/role-button.html:3 role-button-link `);
+    expect(out.stdout).toContain(`${app}/no-job.html:3 control-no-job `);
+    expect(out.stdout).toContain(`${dir}/static/chunks/site.css:1 radius `);
+    expect(out.stdout.match(/^\S+:\d+ /gm)).toHaveLength(5);
+  });
+
+  it("--built passes a clean build, vendored CSS selectors included", () => {
+    const dir = `${FIX}/built-clean`;
+    const out = run("--built", dir, "--controls", `${dir}/CONTROLS.json`);
+    expect(out.stdout).toMatch(/^pass +\S+\/writing\/a-post\.html/m);
+    expect(out.status).toBe(0);
+  });
+
+  it("--built with no build output exits 2 and says so", () => {
+    const out = run("--built", `${FIX}/no-such-build`);
+    expect(out.status).toBe(2);
+    expect(out.stderr).toContain("no build output");
   });
 });

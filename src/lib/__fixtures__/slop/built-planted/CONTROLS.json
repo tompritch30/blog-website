@@ -1,0 +1,12 @@
+{
+  "layout": [
+    { "kind": "link", "href": "#main", "job": "skip the navigation" },
+    { "kind": "link", "href": "/", "job": "go to the home page" }
+  ],
+  "routes": {
+    "/unlisted": { "controls": [] },
+    "/no-href": { "controls": [] },
+    "/role-button": { "controls": [{ "kind": "link", "href": "/start", "job": "open the start page" }] },
+    "/no-job": { "controls": [{ "kind": "button", "name": "Copy", "job": "" }] }
+  }
+}

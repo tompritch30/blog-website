@@ -161,3 +161,27 @@ FAIL  src/components/PostList.tsx  1 hit
 FAIL  src/content/posts/claude-code-workflow.mdx  7 hits
 slop: 14 hits in 6 of 38 files
 ```
+
+### 2026-10-03 build evidence: slice 3b (built HTML and the controls budget)
+
+`--built [dir]` (default `.next`) lints every prerendered page under `server/app` and every CSS file under `static`. Page text rules see visible text only (head, script, style, template, noscript, `[hidden]`, pre, code, svg and comments stripped, grill item 4); built CSS skips the vendored selectors (`.prose`, `:where(`, `::backdrop`). No build output exits 2. The controls budget (`design/CONTROLS.json`, keyed by the prerender manifest's `srcRoute`, shared `layout` entries plus per-route entries `{kind, href or name, count, job}`, classes "prose links" and "scroll regions") counts `a[href]`, button, input, select, textarea, summary, iframe, `role=button` and `tabindex=0`, and fails unlisted controls (`control-unlisted`), `<a>` without href (`a-no-href`), `role=button` on a link (`role-button-link`) and entries without a job (`control-no-job`). Planted pages for each failure in `src/lib/__fixtures__/slop/built-planted/`, a passing build in `built-clean/`. `src/lib/__fixtures__/slop/built-regression/claude-code-workflow.html` is the post page from the build of 3 Oct 2026 (before the slice 4 edits): its only hits must be the six text runs with em dashes, the one "unlock" and the lucide arrow, with nothing from code, scripts or the hidden div. `src/app/global-error.tsx` replaces Next's default (Roboto on pure white).
+
+Red, the new tests against the 3a code:
+
+```
+   × lintHtml (built pages) > lints visible text only: not head, scripts, hidden, pre, code, template, noscript or comments 37ms
+   × lintHtml (built pages) > finds eyebrows, filler subtitles, class, icon and inline-style tells in markup 64ms
+   × lintHtml (built pages) > finds only the real tells on the post page as built on 3 Oct 2026 13ms
+   × controls budget > counts links, buttons, inputs and focusable regions, marking links inside prose 2ms
+   × controls budget > fails each control the route's budget does not list 13ms
+   × controls budget > passes when every control is listed, prose links and scroll regions as classes 5ms
+   × controls budget > fails a second control beyond an entry's count, and every control on an unbudgeted route 10ms
+   × controls budget > fails an <a> without href, a link with role=button, and an entry without a job 4ms
+   × lint-slop CLI > --built fails each planted control page and the planted CSS 4856ms
+   × lint-slop CLI > --built passes a clean build, vendored CSS selectors included 3100ms
+   × lint-slop CLI > --built with no build output exits 2 and says so 2387ms
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  11 failed | 42 passed (53)
+```
+
+Two of the red runs taught the code something: a short muted line between two headings was flagged both as the first heading's filler subtitle and as an eyebrow for the second (it now counts as the first heading's subtitle only), and a control inside `<pre>` lost its name because control names used the visible-text walk (they now use all text). Green: `Tests  53 passed (53)`.

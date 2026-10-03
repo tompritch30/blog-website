@@ -1,0 +1,9 @@
+{
+  "version": 4,
+  "routes": {
+    "/unlisted": { "srcRoute": "/unlisted" },
+    "/no-href": { "srcRoute": "/no-href" },
+    "/role-button": { "srcRoute": "/role-button" },
+    "/no-job": { "srcRoute": "/no-job" }
+  }
+}

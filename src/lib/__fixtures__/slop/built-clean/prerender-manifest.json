@@ -1,0 +1,7 @@
+{
+  "version": 4,
+  "routes": {
+    "/": { "srcRoute": "/" },
+    "/writing/a-post": { "srcRoute": "/writing/[slug]" }
+  }
+}
