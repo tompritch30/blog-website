@@ -59,4 +59,11 @@ describe("the real posts folder", () => {
   it("parses every post, drafts included", () => {
     expect(getAllPosts({ includeDrafts: true }).length).toBeGreaterThan(0);
   });
+
+  it("keeps the prompt caching draft out of production listings", () => {
+    const slug = "what-prompt-caching-actually-saves";
+    expect(getAllPosts({ includeDrafts: false }).map((p) => p.slug)).not.toContain(slug);
+    expect(getPost(slug, { includeDrafts: false })).toBeNull();
+    expect(getPost(slug, { includeDrafts: true })?.meta.draft).toBe(true);
+  });
 });

@@ -1,0 +1,115 @@
+---
+title: "What prompt caching actually saves"
+date: "2026-10-03"
+description: "The cache-hit maths behind the headline 90% discount, with public prices and two worked examples on made-up numbers."
+tags: ["llm", "cost", "maths"]
+draft: true
+---
+
+Prompt caching is sold as "up to 90% off input tokens". That number is true and almost never the number on your bill. This post works out what caching saves from the public price rules, then runs two examples on synthetic numbers.
+
+Every figure below comes from a small script, `scripts/prompt-cache-maths.mjs` in this site's repo, so you can change the inputs and rerun it.
+
+## How the pricing works
+
+Caching stores the start of a prompt (the **prefix**: system prompt, tool definitions, long documents) so the next request that starts with exactly the same tokens can reuse it. Providers price three things differently:
+
+- a **cache write**, the first time a prefix is stored, often at a premium;
+- a **cache read** (a hit), at a steep discount;
+- everything after the prefix, and all output tokens, at the normal price.
+
+The prefix must match byte for byte. One changed character, such as a timestamp in the system prompt, turns every request into a write.
+
+### Public prices, as of 3 October 2026
+
+Multipliers are relative to the model's normal input price.
+
+| Provider | Cache write | Cache read | How long an entry lives | Minimum prefix |
+|---|---|---|---|---|
+| Anthropic (Claude) | 1.25× (5-minute entry) or 2× (1-hour entry) | 0.1× on most models; 0.05× on Opus 5.5 | 5 minutes or 1 hour, reset free on every hit | 512 to 4,096 tokens, by model |
+| OpenAI (GPT-5.6 and later) | 1.25×, automatic | 0.1× on most; 0.05× on GPT-6.1 Sol | 30 minutes | 1,024 tokens |
+| Google Gemini (explicit cache) | normal price, plus storage per million tokens per hour | about 0.1× | you set the TTL | 2,048 to 4,096 tokens |
+
+Example list prices per million tokens: Claude Sonnet 5.5 is $2 input, $2.50 for a 5-minute write, $4 for a 1-hour write, $0.20 for a read and $10 output. Gemini 2.5 Flash is $0.30 input, $0.03 cached and $1.00 per million tokens per hour of storage.
+
+Sources: [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing), [Anthropic prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching), [OpenAI prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching), [OpenAI pricing](https://developers.openai.com/api/docs/pricing), [Gemini caching](https://ai.google.dev/gemini-api/docs/caching), [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing). Prices change; check them before you rely on these.
+
+## The maths
+
+Call the write multiplier _w_, the read multiplier _r_, and the share of requests that hit the cache _h_. On average, each request pays this multiple of the normal price for its prefix:
+
+```
+prefix multiplier = h × r + (1 − h) × w
+```
+
+Caching pays when that is below 1. Setting it equal to 1 gives the **break-even hit rate**:
+
+```
+h* = (w − 1) / (w − r)
+```
+
+| Write | Read | Break-even hit rate |
+|---|---|---|
+| 1.25× | 0.1× | 21.7% |
+| 2× | 0.1× | 52.6% |
+| 1.25× | 0.05× | 20.8% |
+| 2× | 0.05× | 51.3% |
+
+With a 5-minute entry, caching pays once a bit over one request in five reuses the prefix. A 1-hour entry needs more than half to hit, because each write costs twice the normal price.
+
+The cheaper read barely moves the break-even (21.7% to 20.8%). The write price decides whether caching pays; the read price decides how much it saves once it does.
+
+## What it does to the whole bill
+
+The discount applies only to the cached prefix. Output tokens and the uncached rest of the prompt cost the same as before. So the saving on the bill is:
+
+```
+bill saving = (prefix share of the bill) × (1 − prefix multiplier)
+```
+
+At a 95% hit rate with a 1.25× write and a 0.1× read:
+
+| Prefix share of the uncached bill | Bill falls by |
+|---|---|
+| 20% | 16.8% |
+| 50% | 42.1% |
+| 80% | 67.4% |
+| 95% | 80.0% |
+
+The headline 90% is the ceiling for a bill that is all prefix and always hits. Real bills have output tokens, which are also the most expensive tokens.
+
+## Example A: a steady support assistant
+
+Synthetic numbers, priced like a $2 input / $10 output model:
+
+- 6,000-token prefix (system prompt and tool definitions), 500 tokens of user message, 300 tokens of output;
+- 10,000 requests a day, close enough together that the 5-minute entry rarely expires;
+- 40 misses a day, from cold starts after quiet hours.
+
+| | Per request | Per day |
+|---|---|---|
+| No caching | $0.0160 | $160.00 |
+| Caching (99.6% hits) | $0.0053 | $52.55 |
+
+The bill falls by **67.2%**. The prefix was 75% of the uncached bill, so the most caching could ever save here is 67.5%. At a 99.6% hit rate, the assistant is already within a rounding error of that ceiling. To save more, cut output tokens or move more of the prompt into the prefix.
+
+## Example B: a user who replies every 8 minutes
+
+A chat with a 20,000-token shared prefix, 10 turns, and a user who takes about 8 minutes to reply. (Real conversations grow every turn; holding the prefix fixed keeps the arithmetic visible.)
+
+| | Prefix cost over 10 turns |
+|---|---|
+| No caching | $0.40 |
+| 5-minute entry | $0.50, **25% more** than no caching |
+| 1-hour entry | $0.116, 71% saved |
+
+Every reply arrives after the 5-minute entry has expired, so each turn pays the write premium and never gets a read. The 1-hour entry pays 2× once, then 0.1× nine times.
+
+The gap between requests matters as much as the price table. If requests sharing a prefix arrive less than 5 minutes apart, the 5-minute entry stays warm for free. Between 5 and 60 minutes, the 1-hour entry is the one that pays.
+
+## A checklist
+
+1. Measure the hit rate. Every provider reports cached tokens in the response usage; if they read zero, something in the prefix is changing.
+2. Keep anything that varies (timestamps, user IDs, retrieved snippets) after the cached prefix.
+3. Work out what share of the bill the prefix is. That share, not 90%, caps the saving.
+4. Match the cache lifetime to the gap between requests, not to habit.
