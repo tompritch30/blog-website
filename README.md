@@ -1,62 +1,89 @@
-# Personal Blog
+# blog-website
 
-Personal site and blog. Next.js 16 (App Router) + Tailwind v4 + MDX + Vercel.
+Thomas Pritchard's personal site and blog: a small Next.js app that turns MDX files into static pages.
 
-## Stack
+## Why
 
-- **Next.js 16** — App Router, static generation
-- **Tailwind v4** — CSS-first config
-- **next-mdx-remote** — MDX rendering in RSC
-- **gray-matter** — frontmatter parsing
-- **@tailwindcss/typography** — `prose` class for post body
+A personal site should be cheap to run, quick to load and easy to write for. Posts are plain MDX files in the repo, every page is built ahead of time, and Vercel serves the result. There is no database, CMS or client-side data fetching.
 
-Design: warm off-white (#FAFAF8) / near-black, Inter, dark mode via prefers-color-scheme, CSS custom properties
-throughout.
+![The home page: name, tagline, search box and post list](docs/screenshot.jpg)
 
-To run locally:
-export PATH="$HOME/.local/share/fnm:$PATH" && eval "$(fnm env)" && fnm use 22
-npm run dev
+## Quickstart
 
-Before going live: search for // TODO — there are ~6 placeholders for your name, domain, and GitHub handle. SETUP.md
-covers Vercel + Cloudflare step by step.
-
-## Local dev
+You need Node 22 (Next.js 16 needs 20.9 or later) and npm. With nvm or fnm, `.nvmrc` selects the version.
 
 ```bash
-npm install
-npm run dev
+git clone https://github.com/tompritch30/blog-website.git
+cd blog-website
+nvm use            # or: fnm use
+npm ci
+npm test
+npm run build
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open http://localhost:3000. For writing, use `npm run dev` instead of build and start: it reloads on save and shows draft posts.
+
+`npm ci` also installs this repo's git hooks through lefthook (lint, type check and tests before each commit). Set `LEFTHOOK=0` to skip them.
 
 ## Writing a post
 
-Create a `.mdx` file in `src/content/posts/`:
+Add `src/content/posts/<slug>.mdx`. The file name is the URL: `my-post.mdx` becomes `/blog/my-post`.
 
 ```mdx
 ---
 title: "Your post title"
-date: "2026-04-15"
-description: "One-sentence summary shown in the post list."
-tags: ["tag1", "tag2"]
+date: "2026-10-03"
+description: "One sentence for the post list, the feed and share cards."
+tags: ["tag-one", "tag-two"]
+draft: true
 ---
 
-Your content here. Full markdown + React components.
+Markdown, GitHub tables and code blocks, and React components.
 ```
 
-The filename becomes the URL slug — `my-post.mdx` → `/blog/my-post`.
+- `date` must be quoted `YYYY-MM-DD`; the build fails with the file name if it is not.
+- `draft: true` shows the post in `npm run dev` only. Production builds, the sitemap and the feed leave it out. Delete the line to publish.
+- The About page is `src/content/about.mdx`.
 
-Posts are sorted by date descending. The homepage shows the 3 most recent.
+## Configuration
 
-## TODO before going live
+| Setting | Where | Default | Purpose |
+|---|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | environment variable | Vercel's production domain, else `http://localhost:3000` | Origin for canonical URLs, the sitemap, the RSS feed and share images. Set it once there is a custom domain. |
+| Name, tagline, GitHub link | `src/lib/site.ts` | Thomas Pritchard | Shown in the header, home page, footer, metadata and share images. |
+| Colours | `src/app/globals.css` | Warm off-white and near-black, with a dark mode | A test checks every text colour meets WCAG AA contrast. |
 
-- [ ] Replace "Tom" placeholders in `Nav.tsx`, `Footer.tsx`, `layout.tsx`, `page.tsx`, `about/page.tsx`
-- [ ] Update `metadata` in `layout.tsx` with your real domain
-- [ ] Update GitHub link in `Nav.tsx`
-- [ ] Fill in `about/page.tsx`
-- [ ] Add a `favicon.ico` / `apple-touch-icon.png` in `public/`
-- [ ] Consider `src/app/sitemap.ts` for SEO (trivial to add once you have a domain)
+`.env.example` lists the environment variables.
 
-## Deployment
+## Deploying
 
-See `SETUP.md` for Vercel + Cloudflare domain setup.
+Vercel's Next.js defaults work as they are. The step-by-step guide, including a custom domain and retiring the old GitHub Pages site, is in [docs/deploy.md](docs/deploy.md). In short: import the GitHub repo at vercel.com, choose Node 22, deploy.
+
+## How it works
+
+```
+src/content/posts/*.mdx --> src/lib/posts.ts --> pages under src/app/ --> static HTML at build time
+   (frontmatter checked,      (drafts hidden       /, /about, /blog/<slug>,
+    dates validated)           in production)      /feed.xml, /sitemap.xml, share images
+```
+
+- `src/lib/posts.ts` reads and validates the MDX files. `src/components/Mdx.tsx` renders them with GitHub-flavoured Markdown, heading anchors and code highlighting.
+- `src/app/blog/[slug]/page.tsx` builds one page per published post. Unknown slugs return 404.
+- `src/app/feed.xml/route.ts`, `sitemap.ts`, `robots.ts` and the `opengraph-image.tsx` files produce the feed, sitemap and share images.
+- `scripts/ci.sh` runs every check: lint, type check, unit tests, the agent guard tests and a production build.
+
+## Working on it with coding agents
+
+`CLAUDE.md` holds the rules for agents: no pushing, deploying or publishing; no secrets or personal data. A hook in `.claude/hooks/guard.py` enforces them. Run `scripts/setup-dev.sh` once to install the git hooks and the pre-push refusal. `.claude/skills/` holds engineering skills adapted from [Matt Pocock's skills](https://github.com/mattpocock/skills) (MIT); each folder has its own `ATTRIBUTION.md` and `LICENSE`.
+
+## Status and limitations
+
+- A personal site with one author. It is not a template, though the code is free to reuse under the licence below.
+- The About page bio, the tagline, the icon and the share images are placeholders.
+- No comments, analytics, tag pages or pagination yet. All posts are listed on the home page.
+- Search filters the post list in the browser by title, description and tags; it does not search post bodies.
+
+## Licence
+
+The code is under the [MIT licence](LICENSE). The writing in `src/content/` is © Thomas Pritchard, all rights reserved.
