@@ -6,43 +6,119 @@
 @source not "../lib/__fixtures__/slop";
 @plugin "@tailwindcss/typography";
 
-/* Colour tokens: every text colour meets WCAG AA (4.5:1) on --bg and --surface-soft in both
-   themes; src/app/contrast.test.ts checks it. */
+/* The ledger: one serif, a date column down the left, figures in an amount column on the right,
+   hairline rules between entries. design/MOODBOARD.md, direction A.
+
+   Colour tokens: hex so src/app/contrast.test.ts can read them; the OKLCH each came from is beside it.
+   Every text colour (text, secondary, link) meets WCAG AA (4.5:1) on bg, surface and surface-soft in
+   both themes. Paper is warm but not the generated cream; ink is a warm near-black, never #000. */
 :root {
-  --bg: #fafaf8;
-  --text: #0f0f0e;
-  --secondary: #6b6b69;
-  --divider: #e5e5e3;
-  --surface: #fdfdfb;
-  --surface-soft: #f4f4f2;
+  --bg: #faf7f3; /* oklch(97.8% 0.007 85) paper */
+  --text: #1f1915; /* oklch(22% 0.012 60) ink */
+  --secondary: #69625d; /* oklch(50% 0.012 60) pencil */
+  --link: #234e82; /* oklch(42% 0.1 255) iron-gall blue-black */
+  --divider: #d3cfc7; /* oklch(85.5% 0.012 80) ruling */
+  --surface: #fdfcf9; /* oklch(99% 0.004 85) */
+  --surface-soft: #f0efec; /* oklch(95.4% 0.003 85) */
+  --plate: #fdfcf9; /* the light plate behind the paper's plot */
   color-scheme: light;
 }
 
+/* Dark is its own page, not an inversion: a warm ground, ink one step softer than paper white, the
+   blue lifted and calmed, rules just visible, and the same weights (Literata at fractional weights spaces its letters unevenly). */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0a0a09;
-    --text: #f0f0ee;
-    --secondary: #8a8a88;
-    --divider: #242422;
-    --surface: #141413;
-    --surface-soft: #1a1a18;
+    --bg: #15120f; /* oklch(18.5% 0.008 60) */
+    --text: #e5e1d9; /* oklch(91% 0.012 85) */
+    --secondary: #a9a49c; /* oklch(72% 0.012 75) */
+    --link: #9bbee3; /* oklch(79% 0.065 250) */
+    --divider: #393430; /* oklch(33% 0.01 60) */
+    --surface: #1c1916; /* oklch(21.5% 0.008 60) */
+    --surface-soft: #231e1b; /* oklch(24% 0.009 60) */
+    --plate: #f8f7f4; /* oklch(97.5% 0.004 85): the plot keeps its own colours on a light plate */
     color-scheme: dark;
   }
 }
 
+:root {
+  /* Type: Literata for everything; sizes step by about 1.2 from a 17px body. */
+  --font-text: var(--font-literata), "Iowan Old Style", Georgia, serif;
+  --text-meta: 0.8125rem; /* 13px, the date column and captions on phones */
+  --text-small: 0.9375rem; /* 15px */
+  --text-body: 1rem; /* 16px on phones, 17px from 48rem */
+  --text-lead: 1.125rem; /* 18px on phones, 20px from 48rem */
+  --text-h3: 1.1875rem; /* 19px on phones, 21px from 48rem */
+  --text-h2: 1.375rem; /* 22px on phones, 26px from 48rem */
+  --text-figure: clamp(2.5rem, 1.9rem + 2.4vw, 3.5rem); /* 40 to 56px */
+  --text-display: clamp(1.875rem, 1.3rem + 2.8vw, 3.25rem); /* 31 to 52px */
+  --weight-body: 400;
+  --weight-strong: 600;
+  --lh-body: 1.65;
+  --lh-lead: 1.6;
+  --lh-head: 1.25;
+  --lh-display: 1.08;
+
+  /* Space: a 4px scale named by role. */
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+
+  /* The ledger's columns: date, particulars, amount. */
+  --pad: 1rem;
+  --col-date: 4rem;
+  --col-gap: 0.75rem;
+  --col-main: 36rem;
+  --col-amount: 13rem;
+  --page-max: 60rem;
+
+  /* Motion: only colour changes on hover; nothing moves on load. */
+  --dur-quick: 120ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --text-meta: 0.9375rem;
+    --text-small: 0.9375rem;
+    --text-body: 1.0625rem;
+    --text-lead: 1.25rem;
+    --text-h3: 1.3125rem;
+    --text-h2: 1.625rem;
+    --pad: 2rem;
+    --col-date: 6.5rem;
+    --col-gap: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-quick: 0ms;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 @theme inline {
-  /* A neutral system stack until the design direction picks the faces (plan slice 5). */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-text);
+  --font-serif: var(--font-text);
   --font-mono: var(--font-geist-mono);
   --color-bg: var(--bg);
   --color-fg: var(--text);
   --color-secondary: var(--secondary);
+  --color-link: var(--link);
   --color-divider: var(--divider);
   --color-surface: var(--surface);
   --color-surface-soft: var(--surface-soft);
 }
 
-/* clip, not hidden: hidden turns body into a scroll container and breaks the sticky nav */
+/* clip, not hidden: hidden turns body into a scroll container */
 html,
 body {
   overflow-x: clip;
@@ -51,18 +127,531 @@ body {
 body {
   background-color: var(--bg);
   color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-text);
+  font-size: var(--text-body);
+  font-weight: var(--weight-body);
+  line-height: var(--lh-body);
+  font-optical-sizing: auto;
+  font-kerning: normal;
   -webkit-font-smoothing: antialiased;
 }
 
 :focus-visible {
-  outline: 2px solid var(--text);
+  outline: 2px solid var(--link);
   outline-offset: 2px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+/* Links are links: blue-black, underlined. Anchors without a class (CV, 404, About) get this too. */
+.link,
+:where(main a:not([class])) {
+  color: var(--link);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--divider);
+  transition: text-decoration-color var(--dur-quick) var(--ease-out);
+}
+
+.link:hover,
+:where(main a:not([class])):hover {
+  text-decoration-color: currentColor;
+}
+
+/* An external link's arrow: a text glyph, hidden from screen readers (they hear "opens in a new tab"). */
+.ext {
+  margin-inline-start: 0.15em;
+  font-size: 0.8em;
+}
+
+.num {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* ---------- page frame ---------- */
+
+.page {
+  width: 100%;
+  max-width: calc(var(--page-max) + 2 * var(--pad));
+  margin-inline: auto;
+  padding-inline: var(--pad);
+}
+
+/* Header and footer close the ledger with a double rule, the book-keeper's mark for a total. */
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--space-xl);
+  row-gap: var(--space-2xs);
+  padding-block: var(--space-lg) var(--space-sm);
+  border-bottom: 3px double var(--divider);
+}
+
+.masthead-name {
+  font-weight: var(--weight-strong);
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.masthead-links {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-lg);
+  font-size: var(--text-small);
+}
+
+.masthead-links a {
+  color: var(--text);
+  white-space: nowrap;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--dur-quick) var(--ease-out);
+}
+
+.masthead-links a:hover {
+  text-decoration-color: var(--divider);
+}
+
+.masthead-links a[aria-current="page"] {
+  text-decoration-color: currentColor;
+}
+
+/* ---------- the ledger grid ---------- */
+
+.ledger {
+  position: relative;
+  padding-block-end: var(--space-xl);
+}
+
+/* The margin rule between the date column and the particulars, top to bottom of the page. */
+.ledger::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: calc(var(--col-date) + var(--col-gap) / 2);
+  border-left: 1px solid var(--divider);
+}
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--col-date) minmax(0, 1fr);
+  column-gap: var(--col-gap);
+  align-items: baseline;
+}
+
+@media (min-width: 64rem) {
+  .row {
+    grid-template-columns: var(--col-date) minmax(0, var(--col-main)) var(--col-amount);
+  }
+}
+
+.c-date {
+  grid-column: 1;
+}
+.c-main {
+  grid-column: 2;
+}
+.c-wide {
+  grid-column: 2 / -1;
+}
+
+.date {
+  grid-column: 1;
+  font-size: var(--text-meta);
+  line-height: 1.4;
+  color: var(--secondary);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.date-where {
+  display: block;
+  font-size: 0.75rem;
+}
+
+@media (min-width: 48rem) {
+  .date-where {
+    font-size: inherit;
+  }
+}
+
+/* ---------- hero ---------- */
+
+/* Full width on phones (it would break into four short lines in the particulars column); from 48rem
+   it starts on the particulars column like everything else. */
+.hero {
+  padding-block: var(--space-xl) var(--space-lg);
+  max-width: 48rem;
+}
+
+@media (min-width: 48rem) {
+  .hero {
+    padding-block: var(--space-xl) var(--space-xl);
+    margin-inline-start: calc(var(--col-date) + var(--col-gap));
+  }
+}
+
+.headline {
+  font-size: var(--text-display);
+  line-height: var(--lh-display);
+  font-weight: var(--weight-strong);
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.intro {
+  display: grid;
+  row-gap: var(--space-md);
+}
+
+.intro .c-main {
+  font-size: var(--text-lead);
+  line-height: var(--lh-lead);
+  text-wrap: pretty;
+}
+
+/* ---------- sections ---------- */
+
+.section {
+  padding-block-start: var(--space-2xl);
+}
+
+.section-head {
+  padding-block-end: var(--space-md);
+  border-bottom: 1px solid var(--divider);
+}
+
+.section-title {
+  font-size: var(--text-h2);
+  line-height: var(--lh-head);
+  font-weight: var(--weight-strong);
+}
+
+.entry {
+  padding-block: var(--space-lg);
+  border-bottom: 1px solid var(--divider);
+}
+
+.entry-tight {
+  padding-block: var(--space-md);
+}
+
+/* A mark (logo or wordmark) beside each role: same column, matched by eye, not by height. */
+.record {
+  display: grid;
+  row-gap: var(--space-3xs);
+}
+
+@media (min-width: 40rem) {
+  .record {
+    grid-template-columns: 9rem minmax(0, 1fr);
+    column-gap: var(--space-lg);
+    align-items: baseline;
+  }
+}
+
+.mark {
+  font-weight: 500;
+  font-size: var(--text-body);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.mark-logo {
+  display: inline-block;
+  height: 0.86em;
+  vertical-align: baseline;
+}
+
+.mark-logo svg {
+  display: block;
+  height: 100%;
+  width: auto;
+}
+
+.role {
+  display: block;
+  font-weight: 500;
+}
+
+.role-note {
+  display: block;
+  font-size: var(--text-small);
+  line-height: 1.5;
+  color: var(--secondary);
+}
+
+.paper {
+  padding-block-start: var(--space-md);
+}
+
+.more {
+  padding-block-start: var(--space-md);
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-lg);
+  font-size: var(--text-small);
+}
+
+/* ---------- case studies ---------- */
+
+.case {
+  grid-template-areas:
+    "date title"
+    "date figure"
+    "date body"
+    "diagram diagram";
+  padding-block: var(--space-xl);
+  border-bottom: 1px solid var(--divider);
+}
+
+@media (min-width: 64rem) {
+  .case {
+    grid-template-areas:
+      "date title figure"
+      "date body figure"
+      "date diagram diagram";
+  }
+}
+
+.case > .date {
+  grid-area: date;
+}
+
+.case-title {
+  grid-area: title;
+  font-size: var(--text-h3);
+  line-height: var(--lh-head);
+  font-weight: var(--weight-strong);
+  text-wrap: balance;
+}
+
+.case-body {
+  grid-area: body;
+  display: grid;
+  row-gap: var(--space-sm);
+  padding-block-start: var(--space-sm);
+  text-wrap: pretty;
+}
+
+.runin {
+  font-weight: var(--weight-strong);
+}
+
+/* The amount column: the one number, set large, like a figure carried to the right of a ledger line. */
+.figure {
+  grid-area: figure;
+  padding-block-start: var(--space-sm);
+}
+
+.figure-value {
+  display: block;
+  font-size: var(--text-figure);
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.figure-label {
+  display: block;
+  padding-block-start: var(--space-xs);
+  font-size: var(--text-small);
+  line-height: 1.4;
+  color: var(--secondary);
+  max-width: 13rem;
+  text-wrap: balance;
+}
+
+@media (min-width: 64rem) {
+  .figure {
+    align-self: start;
+    padding-block-start: 0;
+    text-align: end;
+  }
+  .figure-label {
+    margin-inline-start: auto;
+  }
+}
+
+/* The diagram breaks the column on purpose and covers the margin rule beneath it. */
+.diagram {
+  grid-area: diagram;
+  position: relative;
+  margin-block-start: var(--space-lg);
+  padding-block: var(--space-md);
+  background: var(--bg);
+}
+
+@media (min-width: 64rem) {
+  .diagram {
+    background: none;
+  }
+}
+
+.diagram svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.diagram .diagram-wide {
+  display: none;
+  max-width: 47rem;
+}
+
+.diagram .diagram-tall {
+  max-width: 22rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 40rem) {
+  .diagram .diagram-wide {
+    display: block;
+  }
+  .diagram .diagram-tall {
+    display: none;
+  }
+}
+
+.dg-line {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.25;
+}
+
+.dg-gate {
+  stroke-width: 3;
+}
+
+.dg-rule {
+  fill: none;
+  stroke: var(--secondary);
+  stroke-width: 1;
+}
+
+.dg-box {
+  fill: var(--bg);
+  stroke: var(--text);
+  stroke-width: 1.25;
+}
+
+.dg-head {
+  fill: var(--text);
+}
+
+.dg-text {
+  fill: var(--text);
+  font-family: var(--font-text);
+  font-size: 14px;
+}
+
+.dg-strong {
+  font-weight: var(--weight-strong);
+}
+
+.dg-muted {
+  fill: var(--secondary);
+}
+
+/* ---------- research ---------- */
+
+.paper-figure {
+  padding-block: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--divider);
+}
+
+.plate {
+  max-width: 30rem;
+  padding: var(--space-xs);
+  background: var(--plate);
+  border: 1px solid var(--divider);
+}
+
+.plate img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.credit {
+  padding-block-start: var(--space-xs);
+  font-size: var(--text-meta);
+  line-height: 1.45;
+  color: var(--secondary);
+}
+
+@media (min-width: 64rem) {
+  .paper-figure .credit {
+    grid-column: 3;
+    align-self: end;
+    padding-block-start: 0;
+  }
+}
+
+/* ---------- writing ---------- */
+
+.post-title {
+  font-weight: var(--weight-strong);
+  font-size: var(--text-lead);
+  line-height: var(--lh-head);
+}
+
+.post-description {
+  padding-block-start: var(--space-2xs);
+  color: var(--secondary);
+  text-wrap: pretty;
+}
+
+/* The colophon's double rule closes the last entry, so no single rule sits above it. */
+.ledger > section:last-child li:last-child {
+  border-bottom: 0;
+}
+
+/* ---------- footer ---------- */
+
+.colophon {
+  border-top: 3px double var(--divider);
+  padding-block: var(--space-lg) var(--space-xl);
+  font-size: var(--text-small);
+  color: var(--secondary);
+}
+
+.colophon a {
+  color: var(--secondary);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--divider);
+}
+
+.colophon a:hover {
+  color: var(--text);
+}
+
+/* Room on the right for the pixel alien button, merged later. */
+.colophon-slot {
+  grid-column: -2 / -1;
+  justify-self: end;
+  min-height: 1.5rem;
+}
+
+/* ---------- other pages (plain until the build-out) ---------- */
+
+.plain {
+  max-width: var(--col-main);
+}
+
+@media (min-width: 48rem) {
+  .plain {
+    margin-inline-start: calc(var(--col-date) + var(--col-gap));
   }
 }
 
@@ -70,7 +659,7 @@ body {
   --tw-prose-body: var(--text);
   --tw-prose-headings: var(--text);
   --tw-prose-lead: var(--secondary);
-  --tw-prose-links: var(--text);
+  --tw-prose-links: var(--link);
   --tw-prose-bold: var(--text);
   --tw-prose-counters: var(--secondary);
   --tw-prose-bullets: var(--secondary);
@@ -83,6 +672,13 @@ body {
   --tw-prose-pre-bg: var(--surface);
   --tw-prose-th-borders: var(--divider);
   --tw-prose-td-borders: var(--divider);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+}
+
+.prose a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .prose pre {

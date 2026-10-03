@@ -49,21 +49,18 @@ export default async function PostPage({ params }: Props) {
       </Link>
       <article>
         <header className="mb-10">
-          <p className="mb-3 flex items-center gap-2 text-xs text-secondary">
+          <p className="mb-3 flex flex-wrap items-center gap-x-2 text-sm text-secondary">
             <time dateTime={meta.date}>{formatDate(meta.date)}</time>
             <span aria-hidden="true">·</span>
             <span>{meta.readingTime}</span>
+            {meta.tags.length > 0 && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{meta.tags.join(", ")}</span>
+              </>
+            )}
           </p>
           <h1 className="mb-4 text-2xl font-semibold leading-snug tracking-tight text-fg">{meta.title}</h1>
-          {meta.tags.length > 0 && (
-            <ul aria-label="Tags" className="flex flex-wrap gap-1.5">
-              {meta.tags.map((tag) => (
-                <li key={tag} className="rounded-sm bg-surface-soft px-2 py-0.5 text-xs text-secondary">
-                  {tag}
-                </li>
-              ))}
-            </ul>
-          )}
         </header>
         <Mdx source={content} />
       </article>

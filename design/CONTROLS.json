@@ -11,7 +11,12 @@
   ],
   "routes": {
     "/": {
-      "controls": [{ "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post from the recent writing list" }]
+      "controls": [
+        { "kind": "link", "href": "/cv", "job": "open the full web CV from the end of the work and study record" },
+        { "kind": "link", "href": "https://www.linkedin.com/in/thomas-pritchard-01a/", "job": "see his LinkedIn profile (new tab)" },
+        { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "job": "read the ForestVO paper the plot comes from (new tab)" },
+        { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post from the recent writing list" }
+      ]
     },
     "/writing": {
       "controls": [{ "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post" }]
