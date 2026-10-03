@@ -1,12 +1,14 @@
 "use client";
 
-// The way into the hidden game: a tiny pixel alien a curious visitor can find. A real button
-// whose one job is to start the game. The game itself loads only when it is pressed.
+// The way into the arcade: a tiny pixel alien a curious visitor can find. A real button whose one
+// job is to start the game; with one game in the arcade (src/components/arcade/games.ts) it opens
+// that game directly. The game itself loads only when it is pressed.
 import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
+import { GAMES, gameToOpen, type GameProps } from "@/components/arcade/games";
 import { createTrigger } from "@/lib/invaders/trigger";
 import { ALIEN, ALIEN_LOOK, gridPath } from "./alien";
 
-type GameComponent = ComponentType<{ onClose: () => void }>;
+type GameComponent = ComponentType<GameProps>;
 
 const IDLE = gridPath(ALIEN);
 const LOOK = gridPath(ALIEN_LOOK);
@@ -31,10 +33,12 @@ export default function AlienTrigger({ konami = false, className = "" }: { konam
   const returnTo = useRef<HTMLElement | null>(null);
 
   const start = useCallback((from: HTMLElement | null) => {
-    if (running) return;
+    const game = gameToOpen(GAMES);
+    if (running || !game) return;
     running = true;
     returnTo.current = from;
-    import("./Game")
+    game
+      .load()
       .then((m) => setGame(() => m.default))
       .catch(() => {
         running = false;
