@@ -1,5 +1,5 @@
 {
-  "$comment": "Controls budget (plans/site-v2.md, slice 3b): every interactive element on each built page and its job. Keyed by route pattern (srcRoute in .next/prerender-manifest.json). 'layout' entries apply to every page rendered inside the root layout; a route with \"layout\": false renders its own document. Entry: {kind, href or name, count (default 1, or \"many\"), job}. Kinds: link, button, input, select, textarea, summary, iframe, role-button, focusable, plus the classes \"prose links\" (any link inside .prose) and \"scroll regions\" (tabindex=0 on a scrolling pre, table or region). Checked by npm run lint:slop -- --built.",
+  "$comment": "Controls budget (plans/site-v2.md, slice 3b): every interactive element on each built page and its job. Keyed by route pattern (srcRoute in .next/prerender-manifest.json). 'layout' entries apply to every page rendered inside the root layout; a route with \"layout\": false renders its own document. Entry: {kind, href or name, count (default 1, or \"many\"), job}. Kinds: link, button, input, select, textarea, summary, iframe, role-button, focusable, plus the classes \"prose links\" (any link inside .prose) and \"scroll regions\" (tabindex=0 on a scrolling pre, table or region). Checked by npm run lint:slop -- --built. dialogs lists controls that exist only in the browser after a visitor opens something (the invaders game): never in built HTML, so lint:slop -- --built does not see them; npm run check:pages opens the game on / and checks the rendered dialog against the layout, the route and these entries.",
   "layout": [
     { "kind": "link", "href": "#main", "job": "skip past the navigation to the page content (keyboard and screen reader users)" },
     { "kind": "link", "href": "/", "job": "go to the home page (the name in the nav)" },
@@ -7,7 +7,8 @@
     { "kind": "link", "href": "/cv", "job": "open the web CV" },
     { "kind": "link", "href": "/about", "job": "open the About page" },
     { "kind": "link", "href": "https://github.com/tompritch30", "job": "see his code on GitHub" },
-    { "kind": "link", "href": "/feed.xml", "job": "follow new posts by RSS" }
+    { "kind": "link", "href": "/feed.xml", "job": "follow new posts by RSS" },
+    { "kind": "button", "name": "Play a game: shoot down the things I build with", "job": "start the hidden invaders game (the pixel alien in the colophon)" }
   ],
   "routes": {
     "/": {
@@ -19,7 +20,9 @@
       ]
     },
     "/writing": {
-      "controls": [{ "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post" }]
+      "controls": [
+        { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post" }
+      ]
     },
     "/writing/[slug]": {
       "controls": [
@@ -36,17 +39,33 @@
       ]
     },
     "/about": {
-      "controls": [{ "kind": "prose links", "job": "follow the paper, GitHub and LinkedIn links in the About text" }]
+      "controls": [
+        { "kind": "prose links", "job": "follow the paper, GitHub and LinkedIn links in the About text" }
+      ]
     },
     "/_not-found": {
       "controls": [
         { "kind": "link", "href": "/", "job": "leave a missing page for the home page" },
-        { "kind": "link", "href": "/writing", "job": "leave a missing page for the list of posts" }
+        { "kind": "link", "href": "/writing", "job": "leave a missing page for the list of posts" },
+        { "kind": "button", "name": "Play a game: shoot down the things I build with", "job": "start the invaders game from the missing page, where a curious visitor has time" }
       ]
     },
     "/_global-error": {
       "layout": false,
-      "controls": [{ "kind": "link", "href": "/", "job": "reload the site from the home page after an error" }]
+      "controls": [
+        { "kind": "link", "href": "/", "job": "reload the site from the home page after an error" }
+      ]
     }
+  },
+  "dialogs": {
+    "invaders": [
+      { "kind": "button", "name": "Close", "job": "quit the game and put the page back as it was" },
+      { "kind": "button", "name": "Play again", "job": "start a new game after game over" },
+      { "kind": "button", "name": "Play anyway", "job": "play when the device asks for reduced motion (the game opens on a still frame)" },
+      { "kind": "button", "name": "Resume", "job": "carry on playing after the browser blocked a mystery ship's new tab" },
+      { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "job": "open the paper by hand when the browser blocked the mystery ship's new tab" },
+      { "kind": "link", "href": "/cv", "job": "open the CV by hand when the browser blocked the mystery ship's new tab" },
+      { "kind": "link", "href": "https://github.com/tompritch30", "job": "open GitHub by hand when the browser blocked the mystery ship's new tab" }
+    ]
   }
 }

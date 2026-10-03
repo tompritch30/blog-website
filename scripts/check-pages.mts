@@ -9,7 +9,9 @@
 //   (a) axe-core with the wcag2a, wcag2aa, wcag21aa and wcag22aa tags; any serious or critical violation
 //       or any colour-contrast one fails;
 //   (b) the rendered DOM's controls against design/CONTROLS.json, with the same counting code as
-//       `npm run lint:slop -- --built` (findControls and lintControls in src/lib/slop.ts);
+//       `npm run lint:slop -- --built` (findControls and lintControls in src/lib/slop.ts); on / the
+//       invaders game is also opened from the alien, its dialog's controls checked against
+//       "dialogs.invaders", and Escape must hand focus back to the alien;
 //   (c) with --shots, a full-page PNG per page, width and theme, palette-reduced with sharp to under 300KB;
 //   (d) /cv printed while the system theme is dark: PDFs at A4 and Letter (into a temporary folder), at
 //       most 2 pages each, no nav or footer on the page, and all text dark on light paper.
@@ -155,6 +157,40 @@ async function printCheck(browser: Browser, problems: string[]): Promise<void> {
   await ctx.close();
 }
 
+/**
+ * Opens the invaders game from the alien on / (grill item 7), once with motion and once with reduced
+ * motion (which opens on a still frame with a "Play anyway" button), and checks the rendered controls
+ * against the layout, the home page and CONTROLS.json's "dialogs.invaders" entries; then Escape must
+ * close the game and put focus back on the alien.
+ */
+async function gameCheck(browser: Browser, problems: string[]): Promise<void> {
+  const entries = [...(entriesFor(budget, "/") ?? []), ...(budget.dialogs?.invaders ?? [])];
+  for (const reducedMotion of ["no-preference", "reduce"] as const) {
+    const label = `/ 1440 with the game open (reduced motion: ${reducedMotion})`;
+    const ctx = await browser.newContext({ viewport: VIEWPORTS[1], reducedMotion });
+    const page = await ctx.newPage();
+    await page.goto(`${base}/`, { waitUntil: "networkidle" });
+    const alien = page.locator("footer").getByRole("button", { name: /play a game/i });
+    await alien.click();
+    const dialog = page.locator("dialog[open]");
+    await dialog.waitFor({ state: "visible", timeout: 10_000 });
+    if (reducedMotion === "reduce") await dialog.getByRole("button", { name: "Play anyway" }).waitFor({ timeout: 5_000 });
+    const names = await dialog.evaluate((d) =>
+      [...d.querySelectorAll("a[href], button, input, select, textarea, [tabindex='0']")].map((el) => (el as HTMLElement).innerText.trim() || el.getAttribute("aria-label") || el.tagName),
+    );
+    const hits = lintControls(label, await page.content(), entries, "/ (game open)");
+    console.log(`${hits.length ? "FAIL" : "pass"}  controls ${label}: dialog has ${names.map((n) => `"${n}"`).join(", ")}`);
+    for (const h of hits) console.log(`        ${h.rule} ${h.message}`);
+    if (hits.length) problems.push(`controls ${label}: ${hits.length} hits`);
+    await page.keyboard.press("Escape");
+    await dialog.waitFor({ state: "detached", timeout: 5_000 });
+    const back = await page.evaluate(() => document.activeElement?.closest("footer") !== null && document.activeElement?.tagName === "BUTTON");
+    console.log(`${back ? "pass" : "FAIL"}  game ${label}: Escape closes it and focus is back on the alien`);
+    if (!back) problems.push(`game ${label}: focus not back on the alien after Escape`);
+    await ctx.close();
+  }
+}
+
 async function main(): Promise<number> {
   try {
     const res = await fetch(`${base}/writing`);
@@ -216,6 +252,8 @@ async function main(): Promise<number> {
       await ctx.close();
     }
   }
+  console.log("");
+  await gameCheck(browser, problems);
   console.log("");
   for (const row of axeRows) console.log(row);
   console.log("");

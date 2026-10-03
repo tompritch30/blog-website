@@ -945,7 +945,8 @@ export function lintHtml(file: string, html: string, opts: HtmlOptions = {}): Hi
 export type Control = { kind: string; name: string; href?: string; line: number; inProse: boolean; scroll: boolean };
 export type ControlEntry = { kind: string; href?: string; name?: string; count?: number | "many"; job?: string };
 export type RouteBudget = { layout?: boolean; controls: ControlEntry[] };
-export type ControlsBudget = { layout?: ControlEntry[]; routes: Record<string, RouteBudget> };
+// dialogs: controls that only exist in the browser once something is opened (the invaders game).
+export type ControlsBudget = { layout?: ControlEntry[]; routes: Record<string, RouteBudget>; dialogs?: Record<string, ControlEntry[]> };
 
 const SCROLL_TAGS = new Set(["pre", "table", "div", "section"]);
 
