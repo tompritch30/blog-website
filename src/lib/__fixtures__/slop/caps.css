@@ -1,0 +1,8 @@
+.label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.tight {
+  letter-spacing: 0.02em;
+}

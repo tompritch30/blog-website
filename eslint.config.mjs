@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Planted slop: deliberately bad files the slop lint must catch.
+    "src/lib/__fixtures__/slop/**",
   ]),
 ]);
 

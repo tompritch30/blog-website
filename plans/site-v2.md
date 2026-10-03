@@ -70,3 +70,94 @@ Raw output of: `scripts/ci.sh` (lint, tsc, tests, guard tests, build) plus `npm 
 12. Owner, reversible: (a) the blind judge picks, the owner can overrule from the shots; (b) em dashes in the existing post become commas, colons or full stops, and "biggest unlock" becomes plain wording; both listed for the owner.
 
 Owner course corrections the same day (via the lead): the easter egg's main trigger is a small pixel alien a curious visitor can find and click (hover and focus hint), Konami is a bonus, typed "invade" is dropped; before writing the engine, search for MIT, CC0 or BSD Space Invaders-style JS or TS implementations, adopt one if clean (vendored with licence, original art) or reject each in one line, and record the decision in an ADR. Owner anti-slop list added to the lint and to SYSTEM.md; the judge scores against it. All helper agents run on Opus 5.5.
+
+### 2026-10-03 build evidence: slice 3a (slop rules on source)
+
+Prior art: Hazel `design/lint/slop.mjs` adopted (colour maths, filler list, text and CSS declaration rules; credited in `src/lib/slop.ts`). Rule sources: hallmark `slop-test.md` and `anti-patterns.md`. TS and TSX are parsed with the TypeScript compiler API (already a dev dependency) rather than regexes. Rejected: htmlparser2 or parse5 as a new dependency for the HTML part (Hazel stays dependency-free, and the pages are React's well-formed output). The CLI is `scripts/lint-slop.mts`, run by Node 22 type stripping (checked first: an `.mts` file importing a `.ts` module runs on v22.23.3 without flags or warnings), so `tsconfig.json` gains `allowImportingTsExtensions`; planted fixtures are excluded from tsc and eslint. Dropped from Hazel's list: "harness" (a test harness is a real thing) and the mono-labels rule (code needs a mono face).
+
+Red, `npx vitest run src/lib/slop.test.ts` against a stub that returns no hits:
+
+```
+   × planted fixtures > em-dash.mdx fails with em-dash 84ms
+   × planted fixtures > marketing.mdx fails with marketing 25ms
+   × planted fixtures > heading.mdx fails with title-case, emoji-heading 4ms
+   × planted fixtures > exclamation.tsx fails with exclamation 1ms
+   × planted fixtures > hi-im.tsx fails with hi-im 1ms
+   × planted fixtures > caps.tsx fails with uppercase, letter-spacing, all-caps, spaced-caps 18ms
+   × planted fixtures > caps.css fails with uppercase, letter-spacing 1ms
+   × planted fixtures > radius.tsx fails with radius 1ms
+   × planted fixtures > radius.css fails with radius 2ms
+   × planted fixtures > filler-subtitle.tsx fails with filler-subtitle 15ms
+   × planted fixtures > eyebrow.tsx fails with eyebrow 2ms
+   × planted fixtures > content/money.ts fails with money 2ms
+   × planted fixtures > gradient.tsx fails with gradient, blur-blob, glass 3ms
+   × planted fixtures > gradient.css fails with gradient, purple-gradient, blur-blob, glass 1ms
+   × planted fixtures > cards.tsx fails with three-card-grid, card-grid, bento, testimonial 5ms
+   × planted fixtures > icon-kit.tsx fails with icon-kit 1ms
+   × planted fixtures > colour.css fails with pure-bw, cream-default, clay-default 1ms
+   × planted fixtures > font.css fails with default-font 1ms
+   × planted fixtures > font.tsx fails with default-font 1ms
+   × planted fixtures > motion.css fails with motion-no-reduce, transition-all, overshoot 1ms
+   × planted fixtures > motion.tsx fails with transition-all, hover-scale, motion-no-reduce 1ms
+   ✓ planted fixtures > clean/Clean.tsx passes 1ms
+   ✓ planted fixtures > clean/clean.mdx passes 0ms
+   ✓ planted fixtures > clean/clean.css passes 0ms
+   × planted fixtures > reports file, line, rule, message and excerpt 5ms
+   × lintText > counts lines from the given start line 1ms
+   ✓ lintText > leaves en dashes, acronyms on the list and plain words alone 0ms
+   × lintText > flags capitals outside the acronym list but not short ones or plurals 1ms
+   × lintText > catches a Hi or Hello opener after a sentence too 6ms
+   × lintText > only applies the money rule to content 1ms
+   × lintClasses > reads Tailwind variants and arbitrary values 1ms
+   ✓ lintClasses > allows small radii, tight tracking and plain colours 0ms
+   × lintClasses > allows a radius only in the component its allowlist entry names 1ms
+   ✓ lintCss > exempts print styles from the pure black and white rule 0ms
+   × lintCss > follows var() to the token it names 1ms
+   × lint-slop CLI > fails on the planted folder and names every planted rule 124ms
+   × lint-slop CLI > passes on the clean folder 105ms
+⎯⎯⎯⎯⎯⎯ Failed Tests 31 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  31 failed | 6 passed (37)
+```
+
+Green after implementing: `Tests  41 passed (41)` (37 at that point).
+
+The first baseline run on the real source showed three false-positive classes; each became a worked-example test first. Red:
+
+```
+   × lintText > reads capitals followed by a file extension as a file name, not shouting 37ms
+   × titleCaseWords > lets month names, single-letter labels and words after a colon keep their capitals 2ms
+   × lintCss > tells the warm cream default from a neutral off-white 3ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected [ { file: 'f.mdx', line: 1, …(3) } ] to deeply equal []
+AssertionError: expected [ 'October' ] to deeply equal []
+AssertionError: expected [ [ 'cream-default', 2 ], …(1) ] to deeply equal [ [ 'cream-default', 3 ] ]
+      Tests  3 failed | 38 passed (41)
+```
+
+Fixes: capitals followed by a file extension are file names (`CLAUDE.md`); single-letter labels and month and day names keep their capitals in sentence case; cream needs a warm tint (red above blue), so the neutral `#f4f4f2` passes. `design/slop-allow.json` gains `YYYY` (the date format in a posts.ts error message) and two money entries: the draft caching post's public list prices and synthetic examples, and `£2bn+` in `src/content/profile.ts` (client assets, not employer money; listed for the owner to confirm). Then green: `Tests  41 passed (41)`.
+
+Baseline on the real source after those fixes (`npm run lint:slop`, exit 1), all true positives that slice 4 removes:
+
+```
+src/app/blog/[slug]/page.tsx:4 icon-kit icon kit import "lucide-react" | import { ArrowLeft } from "lucide-react";
+src/app/globals.css:11 pure-bw pure white | --surface: #ffffff
+src/app/globals.css:29 default-font default face "inter" leads the stack | --font-sans: var(--font-inter)
+src/app/globals.css:48 default-font default face "inter" leads the stack | font-family: var(--font-inter), system-ui, sans-serif
+src/app/icon.tsx:21 radius radius over 4px outside the radius allowlist | border-radius: 6px
+src/app/layout.tsx:2 default-font default face "inter" from next/font | import { Geist_Mono, Inter } from "next/font/google";
+src/components/PostList.tsx:5 icon-kit icon kit import "lucide-react" | import { Search } from "lucide-react";
+src/content/posts/claude-code-workflow.mdx:8 em-dash em dash in prose; use a comma, colon or full stop | I've been using Claude Code as my primary development tool for a few months now. This isn'
+src/content/posts/claude-code-workflow.mdx:12 em-dash em dash in prose; use a comma, colon or full stop | The thing that makes Claude Code different from a chat interface is that it has *agency* o
+src/content/posts/claude-code-workflow.mdx:26 em-dash em dash in prose; use a comma, colon or full stop | **Boilerplate and scaffolding.** New API endpoints, new database migrations, new React com
+src/content/posts/claude-code-workflow.mdx:28 em-dash em dash in prose; use a comma, colon or full stop | **Cross-file refactors.** Renaming a function that's called in 40 places, changing a type
+src/content/posts/claude-code-workflow.mdx:42 em-dash em dash in prose; use a comma, colon or full stop | The biggest unlock was writing a file at the root of the project. This is a file Claude Co
+src/content/posts/claude-code-workflow.mdx:42 marketing marketing word "unlock" | The biggest unlock was writing a file at the root of the project. This is a file Claude Co
+src/content/posts/claude-code-workflow.mdx:53 em-dash em dash in prose; use a comma, colon or full stop | Claude Code has made me faster at the parts of software development that are more mechanic
+FAIL  src/app/blog/[slug]/page.tsx  1 hit
+FAIL  src/app/globals.css  3 hits
+FAIL  src/app/icon.tsx  1 hit
+FAIL  src/app/layout.tsx  1 hit
+FAIL  src/components/PostList.tsx  1 hit
+FAIL  src/content/posts/claude-code-workflow.mdx  7 hits
+slop: 14 hits in 6 of 38 files
+```

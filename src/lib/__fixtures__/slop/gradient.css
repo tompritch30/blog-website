@@ -1,0 +1,11 @@
+.hero {
+  background: radial-gradient(circle at top, #7c3aed, transparent 60%);
+}
+
+.blob {
+  filter: blur(80px);
+}
+
+.glass {
+  backdrop-filter: blur(12px);
+}

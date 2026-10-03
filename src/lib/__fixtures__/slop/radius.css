@@ -1,0 +1,11 @@
+.chip {
+  border-radius: 8px;
+}
+
+.code {
+  border-radius: 4px;
+}
+
+.avatar {
+  border-radius: 50%;
+}

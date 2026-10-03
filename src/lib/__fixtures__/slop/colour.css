@@ -1,0 +1,13 @@
+:root {
+  --surface: #ffffff;
+  --paper: #f4f1ea;
+  --accent: #d97757;
+  --ink: #000;
+}
+
+@media print {
+  body {
+    color: #000;
+    background: #fff;
+  }
+}

@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint:slop": "node scripts/lint-slop.mts"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",
