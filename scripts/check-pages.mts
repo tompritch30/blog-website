@@ -184,7 +184,11 @@ async function gameCheck(browser: Browser, problems: string[]): Promise<void> {
     if (hits.length) problems.push(`controls ${label}: ${hits.length} hits`);
     await page.keyboard.press("Escape");
     await dialog.waitFor({ state: "detached", timeout: 5_000 });
-    const back = await page.evaluate(() => document.activeElement?.closest("footer") !== null && document.activeElement?.tagName === "BUTTON");
+    // The game hands focus back on the next animation frame, after it unmounts; wait for it, up to 2s.
+    const back = await page
+      .waitForFunction(() => document.activeElement?.tagName === "BUTTON" && document.activeElement.closest("footer") !== null, null, { timeout: 2_000 })
+      .then(() => true)
+      .catch(() => false);
     console.log(`${back ? "pass" : "FAIL"}  game ${label}: Escape closes it and focus is back on the alien`);
     if (!back) problems.push(`game ${label}: focus not back on the alien after Escape`);
     await ctx.close();
