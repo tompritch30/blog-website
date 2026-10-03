@@ -1,4 +1,5 @@
 import Container from "@/components/Container";
+import AlienTrigger from "@/components/invaders/AlienTrigger";
 import { site } from "@/lib/site";
 
 export default function Footer() {
@@ -8,9 +9,13 @@ export default function Footer() {
         <span>
           © {new Date().getFullYear()} {site.name}
         </span>
-        <a href="/feed.xml" className="hover:text-fg">
-          RSS feed
-        </a>
+        <span className="flex items-center gap-3">
+          <a href="/feed.xml" className="hover:text-fg">
+            RSS feed
+          </a>
+          {/* temporary home for the easter egg trigger; the lead places it in the final design */}
+          <AlienTrigger konami />
+        </span>
       </Container>
     </footer>
   );
