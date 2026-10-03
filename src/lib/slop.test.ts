@@ -60,6 +60,10 @@ const planted: [file: string, expected: Pair[]][] = [
     "motion.tsx",
     [["transition-all", 4], ["hover-scale", 4], ["motion-no-reduce", 4], ["motion-no-reduce", 5]],
   ],
+  // Words inside <Quote> are someone else's, quoted verbatim: only the prose around them is checked.
+  ["quote.mdx", [["em-dash", 15]]],
+  // In a built page the Quote component marks its blockquote with data-verbatim; a plain one is checked.
+  ["quote.html", [["em-dash", 8]]],
 ];
 
 describe("planted fixtures", () => {

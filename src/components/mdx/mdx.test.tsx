@@ -96,6 +96,10 @@ describe("Quote", () => {
     expect(html).toMatch(/<span class="sr-only">\s*\(opens in a new tab\)<\/span>/);
   });
 
+  it("marks the quoted words as verbatim, so the slop lint leaves someone else's words as written", () => {
+    expect(attr(html, "blockquote", "data-verbatim")).toBe("quote");
+  });
+
   it("loads nothing from X: no script, image or frame", () => {
     expect(html).not.toMatch(/<(script|img|iframe)\b/);
   });

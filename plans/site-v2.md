@@ -499,3 +499,24 @@ Red (`npx vitest run src/lib/invaders`, the round 1 engine plus stubs for the ne
 ```
 
 Green: `Test Files  3 passed (3)`, `Tests  50 passed (50)`. Sprites: red 2 of 6 (`are rectangular`, `each pixel creature has two frames`) against empty stubs, then 6 of 6. Browser run: 60 of 60, including the Palindrome mark fetched only after the trigger and the golden ship seen crossing in both themes.
+
+### 2026-10-03 build evidence: slice 7 (build-out in the ledger direction)
+
+#### Quote exemption (grill item: verbatim third-party words)
+
+Text inside the `Quote` MDX component is someone else's words, quoted verbatim, so the slop text rules skip it: in source MDX between `<Quote ...>` and `</Quote>` (the tags and the prose around them are still checked), and in built HTML inside any element carrying `data-verbatim`, which `Quote` renders on its blockquote (classes and styles there are still the page's and are still checked; the caption is ours and is checked). Fixtures `quote.mdx` and `quote.html` in `src/lib/__fixtures__/slop/` each plant one em dash outside a quote and slop inside one. Red:
+
+```
+   × Quote > marks the quoted words as verbatim, so the slop lint leaves someone else's words as written 8ms
+   × planted fixtures > quote.mdx fails with em-dash 15ms
+   × planted fixtures > quote.html fails with em-dash 5ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected [ [ 'all-caps', 10 ], …(5) ] to deeply equal [ [ 'em-dash', 15 ] ]
+AssertionError: expected [ [ 'all-caps', 7 ], …(3) ] to deeply equal [ [ 'em-dash', 8 ] ]
+AssertionError: expected undefined to be 'quote' // Object.is equality
+      Tests  3 failed | 67 passed (70)
+```
+
+Green: `Test Files  2 passed (2)`, `Tests  70 passed (70)`.
+
+The draft caching post now quotes Anthropic's launch post next to its opening line (https://x.com/AnthropicAI/status/1823751314444021899, 14 August 2024). Text taken from X's public oEmbed endpoint (`publish.twitter.com/oembed`, logged out) and compared paragraph by paragraph with the post by a script: equal. The emoji and the em dash are kept as written. The only omission is the trailing `t.co` short link at the end of the post, which points back to Anthropic's announcement; the caption links the original instead. The post stays `draft: true`.

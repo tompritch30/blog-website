@@ -723,6 +723,10 @@ function lintScript(file: string, src: string, allow: Allow): Hit[] {
 
 // ---------- MDX ----------
 
+// The Quote component (src/components/mdx/Quote.tsx) holds someone else's words verbatim.
+const QUOTE_OPEN = /<Quote\b[^>]*>/;
+const QUOTE_CLOSE = /<\/Quote\s*>/;
+
 function lintMdx(file: string, src: string, allow: Allow): Hit[] {
   const out: Hit[] = [];
   const lines = src.split("\n");
@@ -740,6 +744,19 @@ function lintMdx(file: string, src: string, allow: Allow): Hit[] {
     for (let k = 0; k <= end; k++) masked[k] = "";
   }
   let fence: string | null = null;
+  let quote = false;
+  // Words between <Quote> and </Quote> are someone else's, quoted verbatim: blank them, keep the tags.
+  const maskQuotes = (l: string): string => {
+    let out = "";
+    let rest = l;
+    for (;;) {
+      const m = (quote ? QUOTE_CLOSE : QUOTE_OPEN).exec(rest);
+      if (!m) return out + (quote ? blank(rest) : rest);
+      out += (quote ? blank(rest.slice(0, m.index)) : rest.slice(0, m.index)) + m[0];
+      rest = rest.slice(m.index + m[0].length);
+      quote = quote ? false : !m[0].endsWith("/>");
+    }
+  };
   const tokens: ClassToken[] = [];
   masked.forEach((l, k) => {
     const f = /^\s*(`{3,}|~{3,})/.exec(l);
@@ -753,7 +770,7 @@ function lintMdx(file: string, src: string, allow: Allow): Hit[] {
       masked[k] = "";
       return;
     }
-    masked[k] = l
+    masked[k] = maskQuotes(l)
       .replace(/`[^`]*`/g, blank)
       .replace(/<!--.*?-->/g, blank)
       .replace(/\{\/\*.*?\*\/\}/g, blank)
@@ -836,6 +853,9 @@ export function parseHtml(html: string): El {
 }
 
 const invisible = (el: El) => INVISIBLE_TAGS.has(el.tag) || "hidden" in el.attrs;
+// Quoted words rendered by the Quote component carry data-verbatim: their text is not ours to fix,
+// but their classes and styles are still the page's.
+const verbatim = (el: El) => "data-verbatim" in el.attrs;
 
 /** Visible text of an element, leaving out code, citations and hidden parts. */
 function textOf(el: El): Literal {
@@ -906,13 +926,13 @@ export function lintHtml(file: string, html: string, opts: HtmlOptions = {}): Hi
         }
         if (c.attrs.style) out.push(...lintCss(file, `x{${c.attrs.style}}`, { allow, built, line }).filter((h) => h.rule !== "motion-no-reduce"));
         if (/testimonial/i.test(c.attrs.id ?? "")) out.push(hit(file, line, "testimonial", "testimonial markup", c.attrs.id));
-        const shown = visible && !invisible(c);
+        const shown = visible && !invisible(c) && !verbatim(c);
         if (shown) {
           for (const a of HTML_TEXT_ATTRS) if (c.attrs[a]) out.push(...lintText(file, c.attrs[a], line, { allow, where: a }));
           if (/^h[1-6]$/.test(c.tag)) out.push(...headingHits(file, textOf(c).text, line, allow));
         }
       }
-      walk(c, visible && !invisible(c), head);
+      walk(c, visible && !invisible(c) && !verbatim(c), head);
     }
     if (visible) siblings(el);
   };
