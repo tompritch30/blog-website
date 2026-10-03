@@ -240,3 +240,11 @@ export const links = {
   github: "https://github.com/tompritch30",
   linkedin: "https://www.linkedin.com/in/thomas-pritchard-01a/",
 } as const;
+
+// His GitHub avatar (github.com/tompritch30.png at 460px), re-encoded at 400px without metadata.
+export const portrait = {
+  src: "/me/thomas.jpg",
+  width: 400,
+  height: 400,
+  alt: "Thomas Pritchard",
+} as const;
