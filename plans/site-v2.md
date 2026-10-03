@@ -303,3 +303,78 @@ check-pages: 6 pages x 2 widths x 2 themes, 4 problems
 ```
 
 The print failures are the skeleton's: it has no print stylesheet yet (slice 7a). The check runs in about two minutes with screenshots.
+
+### 2026-10-03 build evidence: MDX components for posts (Figure, Chart, Quote, code and tables)
+
+Prior art, one line each:
+
+- Chart library (Recharts, Chart.js, d3-scale): rejected; a client bundle or five d3 packages for one static line chart. The tick step follows d3-array's `tickIncrement` (ISC, after Heckbert's nice numbers), re-implemented in `src/lib/chart.ts` and credited there.
+- Chart text: an SVG stretched over its box (`preserveAspectRatio="none"`, `vector-effect: non-scaling-stroke`) with HTML labels placed by percentage, so labels stay the page's size and face at 375 and 1440 instead of shrinking with a viewBox.
+- `react-tweet`: rejected; it fetches from X's syndication API and shows avatars. `Quote` is a static blockquote.
+- Tailwind `sr-only`: adopt for the chart's data table and the new-tab notice.
+- `next/image` (read `node_modules/next/dist/docs/01-app/03-api-reference/02-components/image.md`): `Figure` uses it for images, with `sizes` set to the article width.
+- next-mdx-remote 6 strips JS expressions by default (`blockJS: true`), which would drop a chart's `x={[...]}` data. Posts are files in this repo, so `Mdx.tsx` sets `blockJS: false` and keeps `blockDangerousJS` on.
+
+Red, `npx vitest run src/lib/chart.test.ts src/components/mdx` against stubs:
+
+```
+   × niceTicks > picks a step of 50 for 0 to 200 in about 5 ticks (raw step 40, 4 >= sqrt(10) rounds to 5) 75ms
+   × niceTicks > widens 0 to 0.95 out to 1 with a step of 0.2 and no floating point dust 16ms
+   × niceTicks > extends both ends to whole steps when the data crosses zero 22ms
+   × niceTicks > uses a step of 10 for 0 to 100 in 10 ticks 14ms
+   × niceTicks > gives a flat series a unit span above its value instead of dividing by zero 16ms
+   × niceTicks > accepts the ends in either order 8ms
+   × linear > maps a domain onto a range 8ms
+   × linear > inverts for a y axis drawn from the bottom up 1ms
+   × linear > puts every value in the middle of the range when the domain is a single point 2ms
+   × bands > splits a range into equal bands and gives each centre 2ms
+   × bands > handles an offset range 9ms
+   × formatTick > shows as many decimals as the step needs, the same on every tick of an axis 3ms
+   × formatTick > groups thousands and drops decimals for whole steps 6ms
+   × formatTick > writes minus as a minus sign and never prints -0 1ms
+   × linePath > draws an SVG path through the points, rounded to two decimals 1ms
+   × linePath > is empty for no points 2ms
+   × Chart > is one image to assistive tech, named by its title and described by its description 25ms
+   × Chart > carries the numbers in a visually hidden table outside the image 9ms
+   × Chart > draws one line per series and a reference line, coloured only through CSS custom properties 1ms
+   × Chart > labels the axes and the ticks 10ms
+   × Chart > draws a bar per value in a bar chart, starting from zero 12ms
+   × Quote > quotes the post as a plain blockquote that cites the original 4ms
+   × Quote > links to the original in a new tab, safely, and says so to screen readers 10ms
+   ✓ Quote > loads nothing from X: no script, image or frame 1ms
+   × Figure > wraps its content with a caption and a linked credit line 59ms
+   ✓ Figure > leaves the credit line out when there is none 2ms
+   × Pre > makes a code block a keyboard-scrollable region that keeps its classes and code 7ms
+```
+
+Green: 16 chart and 11 component tests pass (`vitest.config.mts` gives tests the `@/` alias). `npm run shots` against `next dev` (drafts shown) then found two real faults on the draft post, axe `scrollable-region-focusable` (serious): the post's price table scrolls at 375 with no keyboard access, and the chart's hidden data table became a scroll region because `.prose table { overflow-x: auto }` in globals.css beats `sr-only`. A `Table` test went red first:
+
+```
+   × Table > makes a Markdown table a keyboard-scrollable region, since wide tables scroll inside the article on a phone 5ms
+AssertionError: expected undefined to be '0' // Object.is equality
+      Tests  1 failed | 11 passed (12)
+```
+
+Then `Table` (tabindex 0, a "scroll regions" control in CONTROLS.json like `Pre`) and `overflow-hidden!` on the chart's table. Rerun on the draft post: axe 0 violations at 375 and 1440 in both themes, controls pass, page width equals the viewport at 375 and 1440, screenshots 188 to 245 KB.
+
+The draft caching post gains one chart, plotted from `node scripts/prompt-cache-maths.mjs` (new last section):
+
+```
+## Prefix cost against hit rate, as a share of the price without caching (read 0.1x; the post's chart)
+hit rate | 5-minute entry (write 1.25x) | 1-hour entry (write 2x)
+0.0% | 125.0% | 200.0%
+10.0% | 113.5% | 181.0%
+20.0% | 102.0% | 162.0%
+30.0% | 90.5% | 143.0%
+40.0% | 79.0% | 124.0%
+50.0% | 67.5% | 105.0%
+60.0% | 56.0% | 86.0%
+70.0% | 44.5% | 67.0%
+80.0% | 33.0% | 48.0%
+90.0% | 21.5% | 29.0%
+100.0% | 10.0% | 10.0%
+```
+
+No bar chart: Example B's three numbers already read clearly as a table. The post stays `draft: true`.
+
+No `Quote` added. The relevant post found is Anthropic's launch of prompt caching on X (https://x.com/AnthropicAI/status/1823751314444021899, 14 August 2024), verified word for word from X's public logged-out syndication endpoint (`cdn.syndication.twimg.com/tweet-result`). Its text has an emoji and an em dash ("more instructive prompts—all while reducing costs by up to 90%"), which the slop lint fails as prose; quoting it means either a lint exemption for quoted words or changing them, and changing a quote is not allowed. Left for the owner: allow verbatim third-party text inside `Quote` (a lint change with a test), then add it next to the post's opening line.

@@ -50,3 +50,10 @@ console.log("\n## Saving on the whole bill by prefix share (hit rate 95%, write 
 for (const share of [0.2, 0.5, 0.8, 0.95]) {
   console.log(`prefix ${pct(share)} of the bill -> bill falls ${pct(share * (1 - prefixMultiplier(0.95, 1.25, 0.1)))}`);
 }
+
+console.log("\n## Prefix cost against hit rate, as a share of the price without caching (read 0.1x; the post's chart)");
+console.log("hit rate | 5-minute entry (write 1.25x) | 1-hour entry (write 2x)");
+for (let i = 0; i <= 10; i++) {
+  const h = i / 10;
+  console.log(`${pct(h)} | ${pct(prefixMultiplier(h, 1.25, 0.1))} | ${pct(prefixMultiplier(h, 2, 0.1))}`);
+}
