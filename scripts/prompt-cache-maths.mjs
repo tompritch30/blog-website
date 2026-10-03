@@ -37,8 +37,6 @@ console.log(`hit rate ${pct(hA)}; prefix multiplier ${prefixMultiplier(hA, a.wri
 console.log(`per request uncached ${usd(uncachedA / a.requestsPerDay)}, cached ${usd(cachedA / a.requestsPerDay)}`);
 console.log(`per day uncached ${usd(uncachedA)}, cached ${usd(cachedA)}, saving ${pct(1 - cachedA / uncachedA)}`);
 console.log(`prefix share of the uncached bill ${pct(prefixShareA)}; ceiling on saving ${pct(prefixShareA * (1 - a.read))}`);
-const outputShareA = a.output * a.outputPrice / ((a.prefix + a.suffix) * a.inputPrice + a.output * a.outputPrice);
-console.log(`output share of the uncached bill ${pct(outputShareA)}`);
 
 console.log("\n## Example B: a user who replies every 8 minutes, 10 turns, 20k-token shared prefix");
 const b = { inputPrice: 2, prefix: 20_000, turns: 10 };

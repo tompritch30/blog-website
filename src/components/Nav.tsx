@@ -3,16 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Container from "@/components/Container";
-import { site } from "@/lib/site";
 
-export default function Nav() {
+// Client component (for aria-current), so the server layout passes the site fields in
+// rather than this importing the server-side site config.
+export default function Nav({ name, github }: { name: string; github: string }) {
   const pathname = usePathname();
   return (
     <header className="sticky top-0 z-50 border-b border-divider bg-bg">
       <Container>
         <nav aria-label="Main" className="flex h-12 items-center justify-between">
           <Link href="/" className="text-sm font-semibold tracking-tight text-fg">
-            {site.name}
+            {name}
           </Link>
           <ul className="flex items-center gap-5 text-sm text-secondary">
             <li>
@@ -25,7 +26,7 @@ export default function Nav() {
               </Link>
             </li>
             <li>
-              <a href={site.github} className="hover:text-fg">
+              <a href={github} className="hover:text-fg">
                 GitHub
               </a>
             </li>

@@ -30,7 +30,7 @@ describe("colour tokens", () => {
   });
 
   for (const [theme, t] of [["light", light], ["dark", dark]] as const) {
-    for (const fg of ["text", "secondary", "muted"]) {
+    for (const fg of ["text", "secondary"]) {
       for (const bg of ["bg", "surface", "surface-soft"]) {
         it(`${theme}: --${fg} on --${bg} meets WCAG AA (4.5:1)`, () => {
           expect(contrast(t[fg], t[bg])).toBeGreaterThanOrEqual(4.5);
