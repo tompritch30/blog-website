@@ -14,7 +14,7 @@ export default function Nav() {
       }}
       className="sticky top-0 z-50 backdrop-blur-sm"
     >
-      <nav className="max-w-2xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between">
+      <nav className="max-w-2xl mx-auto px-1 sm:px-2 h-12 flex items-center justify-between">
         <Link
           href="/"
           className="text-sm font-semibold tracking-tight"

@@ -44,7 +44,7 @@ export default async function PostPage({ params }: { params: Params }) {
   const { meta, content } = post;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <div className="max-w-2xl mx-auto px-1 sm:px-2 py-12 sm:py-16">
       {/* Back link */}
       <Link
         href="/"

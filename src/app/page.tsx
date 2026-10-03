@@ -5,7 +5,7 @@ export default function Home() {
   const posts = getAllPosts();
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
+    <div className="max-w-2xl mx-auto px-1 sm:px-2 py-14 sm:py-20">
       {/* Bio */}
       <div className="mb-12">
         <p

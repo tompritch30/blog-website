@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+    <div className="max-w-2xl mx-auto px-1 sm:px-2 py-12 sm:py-16">
       <h1
         className="text-xl font-semibold tracking-tight mb-10"
         style={{ color: "var(--text)" }}

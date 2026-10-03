@@ -5,7 +5,7 @@ export default function Footer() {
       style={{ borderTop: "1px solid var(--divider)" }}
     >
       <div
-        className="max-w-2xl mx-auto px-4 sm:px-6 flex items-center justify-between text-xs"
+        className="max-w-2xl mx-auto px-1 sm:px-2 flex items-center justify-between text-xs"
         style={{ color: "var(--muted)" }}
       >
         <span>© {new Date().getFullYear()} Tom</span>{/* TODO: your name */}
