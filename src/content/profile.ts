@@ -9,7 +9,43 @@ export type CaseStudy = {
   problem: string;
   built: string;
   result: string;
-  tags?: string[];
+  // The one number a stranger should see at a glance, set large by the page; omit when there is none.
+  figure?: { value: string; label: string };
+};
+
+// Candidate headlines for the top of the home page, all true to the CV. The blind judge ranks
+// them; the page uses `headline` (the winner) and the others stay here for the owner.
+export const headlines: string[] = [
+  "I build production AI for law and finance.",
+  "AI agents in production for wealth managers and law firms.",
+  "I put AI agents into production for law firms and wealth managers.",
+  "Agents that draft advice reports, check calls and win back lost leads. In production, for law and finance.",
+  "A week of report writing, now an hour. I build production AI for finance and law.",
+];
+
+export const headline: string = headlines[0];
+
+// Where he has worked and studied, for a quiet row of marks. Only Palindrome's own logo is used
+// (see design/MANIFEST.yaml); the others' terms forbid reuse without consent, so they are set as
+// plain wordmarks in the site's type.
+export type Organisation = { name: string; short: string; logo?: { src: string; width: number; height: number } };
+
+export const organisations: Organisation[] = [
+  { name: "Palindrome", short: "Palindrome", logo: { src: "/logos/palindrome.svg", width: 215, height: 26 } },
+  { name: "Fletchers Solicitors", short: "Fletchers" },
+  { name: "Stark Software Group", short: "Stark" },
+  { name: "Imperial College London", short: "Imperial" },
+  { name: "IEEE Robotics and Automation Letters", short: "IEEE RA-L" },
+];
+
+// One figure from his own paper (accepted version on arXiv 2504.01261), shown under IEEE's author
+// reuse terms with the credit line beside it.
+export const paperFigure = {
+  src: "/paper/forestvo-trajectory.png",
+  width: 1253,
+  height: 480,
+  alt: "Plot of the camera path estimated by ForestVO against the ground truth path, in metres; the two lines stay close along the whole route.",
+  credit: "© 2025 IEEE. From Pritchard et al., ForestVO, IEEE RA-L 2025.",
 };
 
 export type Role = {
@@ -65,7 +101,7 @@ export const caseStudies: CaseStudy[] = [
     built:
       "Shipped 5 AI advice-report products to production in 3 months for two wealth managers with £2bn+ in assets across 4 countries. AI agents draft each report from the client's records, and the adviser reviews it.",
     result: "Adviser report writing went from a week to an hour.",
-    tags: ["LLM agents", "Document generation", "Wealth management"],
+    figure: { value: "1 hour", label: "for a report that took a week" },
   },
   {
     slug: "prompt-caching",
@@ -77,7 +113,7 @@ export const caseStudies: CaseStudy[] = [
     built:
       "Reordered the prompts so shared instructions and client data come first and are cached, then rolled the change out across document generation, compliance checks, the chatbot and AI editing.",
     result: "Cut the LLM cost of generating an advice report by 67%, now live across every client.",
-    tags: ["Prompt caching", "Azure OpenAI", "Cost"],
+    figure: { value: "67%", label: "off the LLM cost of each report" },
   },
   {
     slug: "release-evals",
@@ -89,7 +125,6 @@ export const caseStudies: CaseStudy[] = [
     built:
       "Built an evaluation system of synthetic client cases, scored by rule checks and an LLM judge, that gates each production release. The company refined it in workshops with the FCA as part of the regulator's AI Live Testing programme.",
     result: "Stopped AI report regressions reaching clients.",
-    tags: ["Evals", "LLM-as-judge", "Regression testing"],
   },
   {
     slug: "whatsapp-agent",
@@ -101,7 +136,7 @@ export const caseStudies: CaseStudy[] = [
     built:
       "Built a production WhatsApp agent in PydanticAI that answers each lead's questions from the firm's knowledge base and books them a call in Salesforce. A backend engineer built the Salesforce connection.",
     result: "Won back 10% of the leads the firm had written off.",
-    tags: ["PydanticAI", "WhatsApp", "Salesforce"],
+    figure: { value: "10%", label: "of written-off leads won back" },
   },
 ];
 
@@ -131,6 +166,15 @@ export const cv: Cv = {
         "Turned full-day case reviews into minutes by building an Azure transcription service with a custom legal glossary and LLM speaker relabelling via FastAPI on Azure Functions",
         "Ran the LLM analysis behind an EBITDA improvement case for the C-suite, testing an external consultancy's hypotheses on 5,000+ recorded calls for the behaviours behind conversion, to shape company-wide training",
         "Scaled call QA from 300 sampled calls to all 3,000 a month with an LLM rubric-scoring pipeline that retrieves transcript evidence per question, validated against human reviewers' scorecards",
+      ],
+    },
+    {
+      company: "Stark Software Group",
+      title: "Asset Analyst",
+      dates: "May 2023 – Sep 2023",
+      descriptor: "London",
+      bullets: [
+        "Automated the monthly asset report on my own initiative, cutting it from 4 hours to 2 minutes with an automated Excel dashboard",
       ],
     },
   ],
