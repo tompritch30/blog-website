@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import Container from "@/components/Container";
 import Mdx from "@/components/Mdx";
 import { formatDate } from "@/lib/dates";
@@ -45,8 +44,7 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <Container className="py-12 sm:py-16">
-      <Link href={WRITING_PATH} className="mb-10 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-fg">
-        <ArrowLeft size={14} aria-hidden="true" />
+      <Link href={WRITING_PATH} className="mb-10 inline-block text-sm text-secondary hover:text-fg">
         All writing
       </Link>
       <article>
