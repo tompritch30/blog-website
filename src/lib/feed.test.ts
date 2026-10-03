@@ -32,8 +32,8 @@ describe("renderRss", () => {
 <atom:link href="https://casey.example/feed.xml" rel="self" type="application/rss+xml"/>
 <item>
 <title>Tea &lt;vs&gt; coffee</title>
-<link>https://casey.example/blog/tea-vs-coffee</link>
-<guid isPermaLink="true">https://casey.example/blog/tea-vs-coffee</guid>
+<link>https://casey.example/writing/tea-vs-coffee</link>
+<guid isPermaLink="true">https://casey.example/writing/tea-vs-coffee</guid>
 <pubDate>Mon, 30 Mar 2026 00:00:00 GMT</pubDate>
 <description>Say &quot;when&quot; &amp; stop</description>
 </item>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { formatDate } from "@/lib/dates";
+import { postPath } from "@/lib/paths";
 import type { PostMeta } from "@/lib/posts";
 
 function matches(post: PostMeta, query: string): boolean {
@@ -50,7 +51,7 @@ export default function PostList({ posts }: { posts: PostMeta[] }) {
             <li key={post.slug} className="flex items-baseline justify-between gap-4 border-b border-divider py-3.5">
               <div className="min-w-0">
                 <h3 className="truncate text-sm font-medium text-fg">
-                  <Link href={`/blog/${post.slug}`} className="hover:opacity-60">
+                  <Link href={postPath(post.slug)} className="hover:opacity-60">
                     {post.title}
                   </Link>
                 </h3>

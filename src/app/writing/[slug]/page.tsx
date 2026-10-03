@@ -6,6 +6,7 @@ import Container from "@/components/Container";
 import Mdx from "@/components/Mdx";
 import { formatDate } from "@/lib/dates";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
+import { postPath, WRITING_PATH } from "@/lib/paths";
 import { getAllPosts, getPost } from "@/lib/posts";
 
 // Only slugs from generateStaticParams exist; anything else, drafts included, is a 404.
@@ -24,11 +25,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { ...baseAlternates, canonical: `/blog/${slug}` },
+    alternates: { ...baseAlternates, canonical: postPath(slug) },
     openGraph: {
       ...baseOpenGraph,
       type: "article",
-      url: `/blog/${slug}`,
+      url: postPath(slug),
       title,
       description,
       publishedTime: date,
@@ -44,9 +45,9 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <Container className="py-12 sm:py-16">
-      <Link href="/" className="mb-10 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-fg">
+      <Link href={WRITING_PATH} className="mb-10 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-fg">
         <ArrowLeft size={14} aria-hidden="true" />
-        All posts
+        All writing
       </Link>
       <article>
         <header className="mb-10">

@@ -1,3 +1,4 @@
+import { postPath } from "./paths";
 import type { PostMeta } from "@/lib/posts";
 
 type Channel = { title: string; description: string; url: string; posts: PostMeta[] };
@@ -9,7 +10,7 @@ function escape(text: string): string {
 }
 
 function item(url: string, post: PostMeta): string {
-  const link = `${url}/blog/${post.slug}`;
+  const link = `${url}${postPath(post.slug)}`;
   return `<item>
 <title>${escape(post.title)}</title>
 <link>${link}</link>
