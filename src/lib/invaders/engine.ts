@@ -255,31 +255,40 @@ export type FormationOptions = { margin: number; gap: number; top: number };
 const FORMATION: FormationOptions = { margin: 16, gap: 24, top: 56 };
 
 /**
- * Where each heading starts. Headings stay where they sit on the page when at least two are
- * fully in the top 55% of the field, do not overlap and leave room to march (span at most 80%
- * of the width). Otherwise they are packed into rows from the top left; rows past half the
- * field are left out.
+ * Headings stay where they sit on the page when at least two are fully inside the side margins
+ * and the top 55% of the field, do not overlap, and leave room to march (span at most 80% of
+ * the width). Returns null when the page layout cannot be kept. Extra fields are carried through.
  */
-export function buildFormation(
-  items: FormationItem[],
+export function keepFormation<T extends FormationItem>(
+  items: T[],
   field: Field,
   opts: Partial<FormationOptions> = {},
-): (Box & { label: string })[] {
-  const o = { ...FORMATION, ...opts };
+): (T & Box)[] | null {
+  const { margin } = { ...FORMATION, ...opts };
   const placed = items.filter(
-    (i): i is Required<FormationItem> =>
-      i.x != null && i.y != null && i.x >= 0 && i.y >= 0 && i.x + i.w <= field.w && i.y + i.h <= field.h * 0.55,
+    (i): i is T & Box =>
+      i.x != null &&
+      i.y != null &&
+      i.x >= margin &&
+      i.y >= 0 &&
+      i.x + i.w <= field.w - margin &&
+      i.y + i.h <= field.h * 0.55,
   );
-  if (placed.length >= 2) {
-    const left = Math.min(...placed.map((i) => i.x));
-    const right = Math.max(...placed.map((i) => i.x + i.w));
-    const overlap = placed.some((a, ai) => placed.some((b, bi) => ai < bi && collides(a, b)));
-    if (right - left <= field.w * 0.8 && !overlap) {
-      return placed.map(({ label, x, y, w, h }) => ({ label, x, y, w, h }));
-    }
-  }
+  if (placed.length < 2) return null;
+  const left = Math.min(...placed.map((i) => i.x));
+  const right = Math.max(...placed.map((i) => i.x + i.w));
+  const overlap = placed.some((a, ai) => placed.some((b, bi) => ai < bi && collides(a, b)));
+  return right - left <= field.w * 0.8 && !overlap ? placed : null;
+}
 
-  const out: (Box & { label: string })[] = [];
+/** Packs items into rows from the top left; rows that would pass half the field are left out. */
+export function packFormation<T extends FormationItem>(
+  items: T[],
+  field: Field,
+  opts: Partial<FormationOptions> = {},
+): (T & Box)[] {
+  const o = { ...FORMATION, ...opts };
+  const out: (T & Box)[] = [];
   const maxW = field.w - 2 * o.margin;
   let x = o.margin;
   let y = o.top;
@@ -292,9 +301,19 @@ export function buildFormation(
       rowH = 0;
     }
     if (y + item.h > field.h * 0.5) break;
-    out.push({ label: item.label, x, y, w, h: item.h });
+    out.push({ ...item, x, y, w });
     x += w + o.gap;
     rowH = Math.max(rowH, item.h);
   }
   return out;
 }
+
+/** Where each heading starts: kept where it sits on the page if possible, else packed. */
+export function buildFormation<T extends FormationItem>(
+  items: T[],
+  field: Field,
+  opts: Partial<FormationOptions> = {},
+): (T & Box)[] {
+  return keepFormation(items, field, opts) ?? packFormation(items, field, opts);
+}
+
