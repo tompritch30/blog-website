@@ -1,22 +1,29 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Literata } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from "next/font/google";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
 import { site } from "@/lib/site";
 import "./globals.css";
 
-// Literata (SIL Open Font License 1.1), variable in weight and optical size, so the headline and
-// the 13px date column are each drawn for their size. Self-hosted by next/font at build time.
-const literata = Literata({
-  variable: "--font-literata",
+// Newsreader (SIL OFL 1.1) for headings, the name, figures and the one italic line: variable in
+// weight and optical size, so a 64px headline and a 19px case-study title are each drawn for their size.
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
   subsets: ["latin"],
   axes: ["opsz"],
   style: ["normal", "italic"],
   display: "swap",
 });
-// Geist Mono (SIL OFL 1.1) for code in posts only.
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+// IBM Plex Sans (SIL OFL 1.1) for reading text, nav and meta lines; Plex Mono for code in posts.
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+const plexMono = IBM_Plex_Mono({ variable: "--font-plex-mono", subsets: ["latin"], weight: ["400", "500"], display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -29,11 +36,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-GB" className={`${literata.variable} ${geistMono.variable} h-full`}>
+    <html lang="en-GB" className={`${newsreader.variable} ${plexSans.variable} ${plexMono.variable} h-full`}>
       <body className="flex min-h-full flex-col">
         <a
           href="#main"
-          className="sr-only rounded-sm bg-surface px-3 py-2 text-fg focus:not-sr-only focus:fixed focus:left-4 focus:top-2 focus:z-[60]"
+          className="sr-only bg-surface px-3 py-2 text-fg focus:not-sr-only focus:fixed focus:left-4 focus:top-2 focus:z-[60]"
         >
           Skip to content
         </a>

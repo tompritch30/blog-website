@@ -6,93 +6,83 @@
 @source not "../lib/__fixtures__/slop";
 @plugin "@tailwindcss/typography";
 
-/* The ledger: one serif, a date column down the left, figures in an amount column on the right,
-   hairline rules between entries. design/MOODBOARD.md, direction A.
+/* The kb layout: a wide single page with a two-column hero (who, then a portrait), an in-page
+   section bar, then About, Work as a timeline of roles, Outside work, Education and research, Skills
+   and Writing. A serif for headings and figures over a plain sans for reading; hairlines instead of
+   cards; colour spent on links only.
 
-   Colour tokens: hex so src/app/contrast.test.ts can read them; the OKLCH each came from is beside it.
-   Every text colour (text, secondary, link) meets WCAG AA (4.5:1) on bg, surface and surface-soft in
-   both themes. Paper is warm but not the generated cream; ink is a warm near-black, never #000. */
+   Colour tokens: hex so src/app/contrast.test.ts can read them. Every text colour (text, secondary,
+   link) meets WCAG AA (4.5:1) on bg, surface and surface-soft in both themes. The paper is a cool
+   grey-green, not the generated cream; the ink is a green-black, never #000; the one accent is a
+   claret, used for links and the current page. */
 :root {
-  --bg: #faf7f3; /* oklch(97.8% 0.007 85) paper */
-  --text: #1f1915; /* oklch(22% 0.012 60) ink */
-  --secondary: #69625d; /* oklch(50% 0.012 60) pencil */
-  --link: #234e82; /* oklch(42% 0.1 255) iron-gall blue-black */
-  --divider: #d3cfc7; /* oklch(85.5% 0.012 80) ruling */
-  --surface: #fdfcf9; /* oklch(99% 0.004 85) */
-  --surface-soft: #f0efec; /* oklch(95.4% 0.003 85) */
-  --plate: #fdfcf9; /* the light plate behind the paper's plot */
+  --bg: #f3f4f0; /* paper */
+  --text: #1a1e1c; /* ink */
+  --secondary: #575e59; /* pencil, 6.0:1 on paper */
+  --link: #8b2331; /* claret, 8.0:1 on paper */
+  --divider: #d3d7cf; /* hairline */
+  --surface: #fafaf7; /* code blocks */
+  --surface-soft: #e9ebe5; /* inline code */
+  --plate: #fafaf7; /* the light plate behind the paper's plot */
   color-scheme: light;
 }
 
-/* Dark is its own page, not an inversion: a warm ground, ink one step softer than paper white, the
-   blue lifted and calmed, rules just visible, and the same weights (Literata at fractional weights spaces its letters unevenly). */
+/* Dark is drawn for itself: a green-black ground, ink a step below white, the claret lifted to a
+   rose that still reads as the same accent, hairlines just visible. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #15120f; /* oklch(18.5% 0.008 60) */
-    --text: #e5e1d9; /* oklch(91% 0.012 85) */
-    --secondary: #a9a49c; /* oklch(72% 0.012 75) */
-    --link: #9bbee3; /* oklch(79% 0.065 250) */
-    --divider: #393430; /* oklch(33% 0.01 60) */
-    --surface: #1c1916; /* oklch(21.5% 0.008 60) */
-    --surface-soft: #231e1b; /* oklch(24% 0.009 60) */
-    --plate: #f8f7f4; /* oklch(97.5% 0.004 85): the plot keeps its own colours on a light plate */
+    --bg: #131614;
+    --text: #e3e6e1;
+    --secondary: #a0a8a2;
+    --link: #eba4ad;
+    --divider: #323833;
+    --surface: #191d1a;
+    --surface-soft: #202521;
+    --plate: #eef0eb; /* the plot keeps its own colours on a light plate */
     color-scheme: dark;
   }
 }
 
 :root {
-  /* Type: Literata for everything; sizes step by about 1.2 from a 17px body. */
-  --font-text: var(--font-literata), "Iowan Old Style", Georgia, serif;
-  --text-meta: 0.8125rem; /* 13px, the date column and captions on phones */
-  --text-small: 0.9375rem; /* 15px */
+  --font-display: var(--font-newsreader), "Iowan Old Style", Georgia, serif;
+  --font-text: var(--font-plex-sans), "Segoe UI", system-ui, sans-serif;
+  --font-code: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Type: the reference's scale (a 17px body, a 21px lead, 22px entry titles, a 40px section head and
+     a large headline), each step drawn in our own faces. */
+  --text-meta: 0.875rem; /* 14px: dates, captions, the section bar */
+  --text-nav: 0.9375rem; /* 15px */
   --text-body: 1rem; /* 16px on phones, 17px from 48rem */
-  --text-lead: 1.125rem; /* 18px on phones, 20px from 48rem */
-  --text-h3: 1.1875rem; /* 19px on phones, 21px from 48rem */
-  --text-h2: 1.375rem; /* 22px on phones, 26px from 48rem */
-  --text-figure: clamp(2.5rem, 1.9rem + 2.4vw, 3.5rem); /* 40 to 56px */
-  --text-display: clamp(1.875rem, 1.3rem + 2.8vw, 3.25rem); /* 31 to 52px */
-  --weight-body: 400;
-  --weight-strong: 600;
-  --lh-body: 1.65;
-  --lh-lead: 1.6;
-  --lh-head: 1.25;
-  --lh-display: 1.08;
+  --text-lead: 1.125rem; /* 18px on phones, 21px from 48rem */
+  --text-h4: 1.1875rem; /* 19px: a case study's title */
+  --text-h3: 1.3125rem; /* 21px on phones, 23px from 48rem: a role, a place, a post */
+  --text-h2: clamp(1.875rem, 1.45rem + 1.4vw, 2.5rem); /* 30 to 40px: a section */
+  --text-display: clamp(2.375rem, 1.55rem + 3.4vw, 4rem); /* 38 to 64px: the page's headline */
+  --text-figure: clamp(2.25rem, 1.9rem + 1.2vw, 2.75rem); /* 36 to 44px: a case study's number */
+  --lh-body: 1.7;
+  --lh-head: 1.2;
+  --lh-display: 1.04;
 
-  /* Space: a 4px scale named by role. */
-  --space-3xs: 0.125rem;
-  --space-2xs: 0.25rem;
-  --space-xs: 0.5rem;
-  --space-sm: 0.75rem;
-  --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2.5rem;
-  --space-2xl: 4rem;
-  --space-3xl: 6rem;
-
-  /* The ledger's columns: date, particulars, amount. */
+  /* Space and widths */
   --pad: 1rem;
-  --col-date: 4rem;
-  --col-gap: 0.75rem;
-  --col-main: 36rem;
-  --col-amount: 13rem;
-  --page-max: 60rem;
+  --page-max: 63.5rem; /* the reference's content width */
+  --measure: 40rem; /* reading width for prose and posts */
+  --mark-w: 9rem; /* the timeline's mark column */
+  --tl-gap: 2.5rem;
+  --section-gap: 4rem;
 
-  /* Motion: only colour changes on hover; nothing moves on load. */
+  /* Motion: colour only, on hover; nothing moves on load or on scroll. */
   --dur-quick: 120ms;
   --ease-out: cubic-bezier(0.2, 0, 0, 1);
 }
 
 @media (min-width: 48rem) {
   :root {
-    --text-meta: 0.9375rem;
-    --text-small: 0.9375rem;
     --text-body: 1.0625rem;
-    --text-lead: 1.25rem;
-    --text-h3: 1.3125rem;
-    --text-h2: 1.625rem;
+    --text-lead: 1.3125rem;
+    --text-h3: 1.4375rem;
     --pad: 2rem;
-    --col-date: 6.5rem;
-    --col-gap: 2rem;
+    --section-gap: 6rem;
   }
 }
 
@@ -107,8 +97,8 @@
 
 @theme inline {
   --font-sans: var(--font-text);
-  --font-serif: var(--font-text);
-  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-display);
+  --font-mono: var(--font-code);
   --color-bg: var(--bg);
   --color-fg: var(--text);
   --color-secondary: var(--secondary);
@@ -116,6 +106,8 @@
   --color-divider: var(--divider);
   --color-surface: var(--surface);
   --color-surface-soft: var(--surface-soft);
+  --chart-1: var(--link);
+  --chart-2: var(--secondary);
 }
 
 /* clip, not hidden: hidden turns body into a scroll container */
@@ -124,14 +116,16 @@ body {
   overflow-x: clip;
 }
 
+html {
+  scroll-padding-top: 4rem;
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
   font-family: var(--font-text);
   font-size: var(--text-body);
-  font-weight: var(--weight-body);
   line-height: var(--lh-body);
-  font-optical-sizing: auto;
   font-kerning: normal;
   -webkit-font-smoothing: antialiased;
 }
@@ -141,14 +135,25 @@ body {
   outline-offset: 2px;
 }
 
-/* Links are links: blue-black, underlined. Anchors without a class (CV, 404, About) get this too. */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  line-height: var(--lh-head);
+  text-wrap: balance;
+}
+
+/* Links are links: claret and underlined. Anchors without a class (CV, 404, About) get this too. */
 .link,
 :where(main a:not([class])) {
   color: var(--link);
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: var(--divider);
+  text-decoration-color: color-mix(in srgb, var(--link) 40%, transparent);
   transition: text-decoration-color var(--dur-quick) var(--ease-out);
 }
 
@@ -167,6 +172,11 @@ body {
   font-variant-numeric: lining-nums tabular-nums;
 }
 
+.print-only,
+.print-only-inline {
+  display: none;
+}
+
 /* ---------- page frame ---------- */
 
 .page {
@@ -176,196 +186,318 @@ body {
   padding-inline: var(--pad);
 }
 
-/* Header and footer close the ledger with a double rule, the book-keeper's mark for a total. */
-.masthead {
+/* The name on the left in the heading face, a few text links on the right. */
+.site-head {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  column-gap: var(--space-xl);
-  row-gap: var(--space-2xs);
-  padding-block: var(--space-lg) var(--space-sm);
-  border-bottom: 3px double var(--divider);
+  justify-content: space-between;
+  column-gap: 2rem;
+  row-gap: 0.25rem;
+  padding-block: 1.25rem;
 }
 
-.masthead-name {
-  font-weight: var(--weight-strong);
+.site-name {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.2;
   color: var(--text);
   text-decoration: none;
   white-space: nowrap;
 }
 
-.masthead-links {
+.site-links {
   display: flex;
   flex-wrap: wrap;
-  column-gap: var(--space-lg);
-  font-size: var(--text-small);
+  column-gap: 1.75rem;
+  font-size: var(--text-nav);
 }
 
-.masthead-links a {
+.site-links a {
   color: var(--text);
   white-space: nowrap;
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  text-underline-offset: 6px;
   text-decoration-color: transparent;
-  transition: text-decoration-color var(--dur-quick) var(--ease-out);
+  transition:
+    color var(--dur-quick) var(--ease-out),
+    text-decoration-color var(--dur-quick) var(--ease-out);
 }
 
-.masthead-links a:hover {
+.site-links a:hover {
   text-decoration-color: var(--divider);
 }
 
-.masthead-links a[aria-current="page"] {
+/* The current page: the accent colour and a rule under it, as in the reference's nav. */
+.site-links a[aria-current="page"] {
+  color: var(--link);
   text-decoration-color: currentColor;
 }
 
-/* ---------- the ledger grid ---------- */
+/* ---------- headline blocks shared by every page ---------- */
 
-.ledger {
-  position: relative;
-  padding-block-end: var(--space-xl);
-}
-
-/* The margin rule between the date column and the particulars, top to bottom of the page. */
-.ledger::before {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  left: calc(var(--col-date) + var(--col-gap) / 2);
-  border-left: 1px solid var(--divider);
-}
-
-.row {
-  position: relative;
-  display: grid;
-  grid-template-columns: var(--col-date) minmax(0, 1fr);
-  column-gap: var(--col-gap);
-  align-items: baseline;
-}
-
-@media (min-width: 64rem) {
-  .row {
-    grid-template-columns: var(--col-date) minmax(0, var(--col-main)) var(--col-amount);
-  }
-}
-
-.c-date {
-  grid-column: 1;
-}
-.c-main {
-  grid-column: 2;
-}
-.c-wide {
-  grid-column: 2 / -1;
-}
-
-.date {
-  grid-column: 1;
-  font-size: var(--text-meta);
-  line-height: 1.4;
-  color: var(--secondary);
-  font-variant-numeric: lining-nums tabular-nums;
-}
-
-.date-where {
-  display: block;
-  font-size: 0.75rem;
+.page-head {
+  padding-block: 3rem 2.5rem;
 }
 
 @media (min-width: 48rem) {
-  .date-where {
-    font-size: inherit;
+  .page-head {
+    padding-block: 5.5rem 3.5rem;
   }
 }
 
-/* ---------- hero ---------- */
+.display {
+  font-size: var(--text-display);
+  line-height: var(--lh-display);
+  letter-spacing: -0.015em;
+  max-width: 22ch;
+}
 
-/* Full width on phones (it would break into four short lines in the particulars column); from 48rem
-   it starts on the particulars column like everything else. */
+.lead {
+  margin-block-start: 1.5rem;
+  max-width: var(--measure);
+  font-size: var(--text-lead);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ---------- home: hero ---------- */
+
 .hero {
-  padding-block: var(--space-xl) var(--space-lg);
-  max-width: 48rem;
+  display: grid;
+  row-gap: 2rem;
+  padding-block: 2.5rem 3.5rem;
 }
 
 @media (min-width: 48rem) {
   .hero {
-    padding-block: var(--space-xl) var(--space-xl);
-    margin-inline-start: calc(var(--col-date) + var(--col-gap));
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    column-gap: 4rem;
+    align-items: center;
+    padding-block: 5.5rem 5rem;
   }
 }
 
-.headline {
-  font-size: var(--text-display);
-  line-height: var(--lh-display);
-  font-weight: var(--weight-strong);
-  letter-spacing: -0.012em;
-  text-wrap: balance;
-  overflow-wrap: anywhere;
-  min-width: 0;
+.hero-portrait {
+  order: -1;
+  width: 8rem;
 }
 
-.intro {
-  display: grid;
-  row-gap: var(--space-md);
+@media (min-width: 48rem) {
+  .hero-portrait {
+    order: 0;
+    width: 15rem;
+  }
 }
 
-.intro .c-main {
-  font-size: var(--text-lead);
-  line-height: var(--lh-lead);
+/* A square print with a hairline mount, where the reference has a round photo with a soft shadow. */
+.portrait {
+  padding: 0.375rem;
+  border: 1px solid var(--divider);
+  background: var(--surface);
+}
+
+.portrait img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* The one italic line, in the heading face: the reference's motto slot, in his words. */
+.motto {
+  margin-block-start: 1.5rem;
+  max-width: 34rem;
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-style: italic;
+  font-size: 1.25rem;
+  line-height: 1.45;
+  color: var(--secondary);
   text-wrap: pretty;
+}
+
+/* The reference's row of pill buttons, as plain links. */
+.link-row {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.75rem;
+  row-gap: 0.5rem;
+  margin-block-start: 2rem;
+  font-weight: 500;
+}
+
+/* ---------- home: the section bar ---------- */
+
+/* The reference's sticky in-page bar, as a row of plain anchor links between two hairlines. */
+.section-bar {
+  border-block: 1px solid var(--divider);
+  background: var(--bg);
+}
+
+@media (min-width: 48rem) {
+  .section-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+}
+
+.section-bar ul {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.75rem;
+  row-gap: 0.25rem;
+  padding-block: 0.75rem;
+  font-size: var(--text-nav);
+}
+
+.section-bar a {
+  color: var(--text);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: transparent;
+  transition: text-decoration-color var(--dur-quick) var(--ease-out);
+}
+
+.section-bar a:hover {
+  text-decoration-color: currentColor;
 }
 
 /* ---------- sections ---------- */
 
 .section {
-  padding-block-start: var(--space-2xl);
-}
-
-.section-head {
-  padding-block-end: var(--space-md);
-  border-bottom: 1px solid var(--divider);
+  padding-block-start: var(--section-gap);
 }
 
 .section-title {
   font-size: var(--text-h2);
-  line-height: var(--lh-head);
-  font-weight: var(--weight-strong);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin-block-end: 2rem;
 }
 
-.entry {
-  padding-block: var(--space-lg);
-  border-bottom: 1px solid var(--divider);
-}
-
-.entry-tight {
-  padding-block: var(--space-md);
-}
-
-/* A mark (logo or wordmark) beside each role: same column, matched by eye, not by height. */
-.record {
-  display: grid;
-  row-gap: var(--space-3xs);
-}
-
-@media (min-width: 40rem) {
-  .record {
-    grid-template-columns: 9rem minmax(0, 1fr);
-    column-gap: var(--space-lg);
-    align-items: baseline;
+@media (min-width: 48rem) {
+  .section-title {
+    margin-block-end: 2.75rem;
   }
 }
 
-.mark {
+.after-list {
+  margin-block-start: 1.75rem;
   font-weight: 500;
-  font-size: var(--text-body);
+}
+
+/* About: prose on the left, the paper's plot on the right where the reference has its globe. */
+.about {
+  display: grid;
+  row-gap: 2.5rem;
+}
+
+@media (min-width: 64rem) {
+  .about {
+    grid-template-columns: minmax(0, var(--measure)) minmax(0, 1fr);
+    column-gap: 4rem;
+  }
+}
+
+.about-text {
+  display: grid;
+  row-gap: 1.25rem;
+  text-wrap: pretty;
+}
+
+.plate {
+  padding: 0.5rem;
+  background: var(--plate);
+  border: 1px solid var(--divider);
+}
+
+.plate img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.caption {
+  margin-block-start: 0.75rem;
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  color: var(--secondary);
+}
+
+/* ---------- the timeline (home Work, /cv Experience) ---------- */
+
+/* Marks in a left column, a vertical hairline, a small ink square on the line at each role. On
+   phones the line runs down the left edge and the mark sits above its role. */
+.timeline {
+  --tl-x: 0px;
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  inset-block: 0.75rem 0;
+  left: var(--tl-x);
+  border-left: 1px solid var(--divider);
+}
+
+.tl-entry {
+  position: relative;
+  display: grid;
+  row-gap: 0.5rem;
+  padding-inline-start: 1.5rem;
+  padding-block-end: 3rem;
+}
+
+.tl-entry:last-child {
+  padding-block-end: 0.5rem;
+}
+
+.tl-entry::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--tl-x) - 3px);
+  top: 0.75rem;
+  width: 7px;
+  height: 7px;
+  background: var(--text);
+}
+
+@media (min-width: 48rem) {
+  .timeline {
+    --tl-x: calc(var(--mark-w) + var(--tl-gap) / 2);
+  }
+  .tl-entry {
+    grid-template-columns: var(--mark-w) minmax(0, 1fr);
+    column-gap: var(--tl-gap);
+    padding-inline-start: 0;
+  }
+}
+
+.tl-mark {
+  padding-block-start: 0.35rem;
+  line-height: 1.2;
+}
+
+/* A mark: Palindrome's own logo in ink, the others as wordmarks in the heading face. */
+.mark {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: 1.125rem;
   color: var(--text);
   white-space: nowrap;
 }
 
 .mark-logo {
   display: inline-block;
-  height: 0.86em;
-  vertical-align: baseline;
+  height: 0.8em;
+  vertical-align: -0.05em;
 }
 
 .mark-logo svg {
@@ -374,126 +506,122 @@ body {
   width: auto;
 }
 
-.role {
-  display: block;
-  font-weight: 500;
+.role-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: 1.5rem;
 }
 
-.role-note {
-  display: block;
-  font-size: var(--text-small);
-  line-height: 1.5;
+.role-title {
+  font-size: var(--text-h3);
+}
+
+.dates {
+  font-size: var(--text-meta);
+  color: var(--secondary);
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+}
+
+.role-where {
+  font-size: var(--text-nav);
   color: var(--secondary);
 }
 
-.paper {
-  padding-block-start: var(--space-md);
+.bullets {
+  display: grid;
+  row-gap: 0.5rem;
+  margin-block-start: 0.75rem;
+  padding-inline-start: 1.1rem;
+  list-style: disc;
+  text-wrap: pretty;
 }
 
-.more {
-  padding-block-start: var(--space-md);
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: var(--space-lg);
-  font-size: var(--text-small);
+.bullets li::marker {
+  color: var(--secondary);
 }
 
-/* ---------- case studies ---------- */
+/* Case studies inside their role: a title, the account, and the one number to its right. */
+.studies {
+  display: grid;
+  margin-block-start: 1rem;
+}
 
-.case {
-  grid-template-areas:
-    "date title"
-    "date figure"
-    "date body"
-    "diagram diagram";
-  padding-block: var(--space-xl);
-  border-bottom: 1px solid var(--divider);
+.study {
+  display: grid;
+  row-gap: 0.75rem;
+  padding-block: 1.75rem;
+  border-top: 1px solid var(--divider);
+}
+
+.study:last-child {
+  padding-block-end: 0;
 }
 
 @media (min-width: 64rem) {
-  .case {
+  .study {
+    grid-template-columns: minmax(0, 1fr) 12rem;
+    column-gap: 3rem;
     grid-template-areas:
-      "date title figure"
-      "date body figure"
-      "date diagram diagram";
+      "title figure"
+      "body figure"
+      "diagram diagram";
+  }
+  .study-title {
+    grid-area: title;
+  }
+  .study-body {
+    grid-area: body;
+  }
+  .figure {
+    grid-area: figure;
+    text-align: end;
+  }
+  .study .diagram {
+    grid-area: diagram;
   }
 }
 
-.case > .date {
-  grid-area: date;
+.study-title {
+  font-size: var(--text-h4);
 }
 
-.case-title {
-  grid-area: title;
-  font-size: var(--text-h3);
-  line-height: var(--lh-head);
-  font-weight: var(--weight-strong);
-  text-wrap: balance;
-}
-
-.case-body {
-  grid-area: body;
+.study-body {
   display: grid;
-  row-gap: var(--space-sm);
-  padding-block-start: var(--space-sm);
+  row-gap: 0.6rem;
   text-wrap: pretty;
 }
 
 .runin {
-  font-weight: var(--weight-strong);
-}
-
-/* The amount column: the one number, set large, like a figure carried to the right of a ledger line. */
-.figure {
-  grid-area: figure;
-  padding-block-start: var(--space-sm);
+  font-weight: 600;
 }
 
 .figure-value {
   display: block;
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
   font-size: var(--text-figure);
-  line-height: 1;
   font-weight: 500;
-  letter-spacing: -0.01em;
-  font-variant-numeric: lining-nums tabular-nums;
-  color: var(--text);
+  line-height: 1;
+  font-variant-numeric: lining-nums;
   white-space: nowrap;
 }
 
 .figure-label {
   display: block;
-  padding-block-start: var(--space-xs);
-  font-size: var(--text-small);
-  line-height: 1.4;
+  margin-block-start: 0.4rem;
+  font-size: var(--text-meta);
+  line-height: 1.45;
   color: var(--secondary);
-  max-width: 13rem;
   text-wrap: balance;
 }
 
-@media (min-width: 64rem) {
-  .figure {
-    align-self: start;
-    padding-block-start: 0;
-    text-align: end;
-  }
-  .figure-label {
-    margin-inline-start: auto;
-  }
-}
-
-/* The diagram breaks the column on purpose and covers the margin rule beneath it. */
+/* The evaluation diagram under its case study. */
 .diagram {
-  grid-area: diagram;
-  position: relative;
-  margin-block-start: var(--space-lg);
-  padding-block: var(--space-md);
-  background: var(--bg);
-}
-
-@media (min-width: 64rem) {
-  .diagram {
-    background: none;
-  }
+  margin-block-start: 0.75rem;
+  padding-block: 0.5rem;
 }
 
 .diagram svg {
@@ -504,12 +632,11 @@ body {
 
 .diagram .diagram-wide {
   display: none;
-  max-width: 47rem;
+  max-width: 46rem;
 }
 
 .diagram .diagram-tall {
-  max-width: 22rem;
-  margin-inline: auto;
+  max-width: 20rem;
 }
 
 @media (min-width: 40rem) {
@@ -554,106 +681,258 @@ body {
 }
 
 .dg-strong {
-  font-weight: var(--weight-strong);
+  font-weight: 600;
 }
 
 .dg-muted {
   fill: var(--secondary);
 }
 
-/* ---------- research ---------- */
+/* ---------- two-column rows: Education and research, Skills ---------- */
 
-.paper-figure {
-  padding-block: var(--space-md) var(--space-lg);
+.rows > * {
+  display: grid;
+  row-gap: 0.5rem;
+  padding-block: 1.75rem;
+  border-top: 1px solid var(--divider);
+}
+
+.rows > *:last-child {
   border-bottom: 1px solid var(--divider);
 }
 
-.plate {
-  max-width: 30rem;
-  padding: var(--space-xs);
-  background: var(--plate);
-  border: 1px solid var(--divider);
-}
-
-.plate img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.credit {
-  padding-block-start: var(--space-xs);
-  font-size: var(--text-meta);
-  line-height: 1.45;
-  color: var(--secondary);
-}
-
-@media (min-width: 64rem) {
-  .paper-figure .credit {
-    grid-column: 3;
-    align-self: end;
-    padding-block-start: 0;
+@media (min-width: 48rem) {
+  .rows > * {
+    grid-template-columns: 17rem minmax(0, 1fr);
+    column-gap: 3rem;
   }
 }
 
-/* ---------- writing ---------- */
-
-.post-title {
-  font-weight: var(--weight-strong);
-  font-size: var(--text-lead);
+.row-title {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-size: var(--text-h3);
+  font-weight: 600;
   line-height: var(--lh-head);
 }
 
-.post-description {
-  padding-block-start: var(--space-2xs);
-  color: var(--secondary);
+.row-sub {
+  display: block;
+  margin-block-start: 0.35rem;
+}
+
+.row-items {
+  display: grid;
+  row-gap: 0.85rem;
   text-wrap: pretty;
 }
 
-/* The colophon's double rule closes the last entry, so no single rule sits above it. */
-.ledger > section:last-child li:last-child {
-  border-bottom: 0;
+.row-items strong {
+  font-weight: 500;
+}
+
+.note {
+  display: block;
+  font-size: var(--text-nav);
+  color: var(--secondary);
+}
+
+/* The link under the About text sits with the paragraphs, not a block away. */
+.about-text .link-row {
+  margin-block-start: 0;
+}
+
+/* Outside work: the reference's grid of rounded cards, as a two-column list between hairlines. */
+.pairs {
+  display: grid;
+  border-top: 1px solid var(--divider);
+}
+
+@media (min-width: 48rem) {
+  .pairs {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 3rem;
+  }
+}
+
+.pairs li {
+  padding-block: 1.25rem;
+  border-bottom: 1px solid var(--divider);
+}
+
+.pair-head {
+  display: block;
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-size: var(--text-h4);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ---------- writing lists (home and /writing) ---------- */
+
+.posts {
+  border-top: 1px solid var(--divider);
+}
+
+.posts li {
+  display: grid;
+  row-gap: 0.4rem;
+  padding-block: 1.75rem;
+  border-bottom: 1px solid var(--divider);
+}
+
+.post-meta {
+  font-size: var(--text-meta);
+  color: var(--secondary);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.post-title {
+  font-size: var(--text-h3);
+}
+
+.post-title a {
+  color: var(--text);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  text-decoration-color: var(--divider);
+  transition:
+    color var(--dur-quick) var(--ease-out),
+    text-decoration-color var(--dur-quick) var(--ease-out);
+}
+
+.post-title a:hover {
+  color: var(--link);
+  text-decoration-color: currentColor;
+}
+
+.post-description {
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+/* ---------- a post, the About page ---------- */
+
+.article {
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-block: 3rem 1rem;
+}
+
+@media (min-width: 48rem) {
+  .article {
+    padding-block: 4.5rem 1rem;
+  }
+}
+
+.back {
+  display: inline-block;
+  margin-block-end: 2rem;
+  font-size: var(--text-nav);
+  color: var(--secondary);
+  text-decoration: none;
+  transition: color var(--dur-quick) var(--ease-out);
+}
+
+.back:hover {
+  color: var(--link);
+}
+
+.article-head {
+  padding-block-end: 2rem;
+  margin-block-end: 2.25rem;
+  border-bottom: 1px solid var(--divider);
+}
+
+.article-title {
+  margin-block-start: 0.75rem;
+  font-size: clamp(2.125rem, 1.6rem + 2vw, 3.125rem);
+  line-height: 1.08;
+  letter-spacing: -0.012em;
+}
+
+.about-page {
+  display: grid;
+  row-gap: 2rem;
+}
+
+@media (min-width: 64rem) {
+  .about-page {
+    grid-template-columns: minmax(0, var(--measure)) 13rem;
+    column-gap: 5rem;
+    align-items: start;
+  }
+}
+
+/* The photo leads on phones and sits beside the text on wide screens. */
+.about-portrait {
+  order: -1;
+  width: 8rem;
+}
+
+@media (min-width: 64rem) {
+  .about-portrait {
+    order: 0;
+    width: auto;
+  }
+}
+
+/* ---------- the CV ---------- */
+
+.cv-section {
+  padding-block-start: 3.5rem;
+}
+
+.cv-title {
+  font-size: 1.75rem;
+  margin-block-end: 1.75rem;
+}
+
+/* ---------- 404 ---------- */
+
+.lost {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-start: 2rem;
+  color: var(--secondary);
 }
 
 /* ---------- footer ---------- */
 
-.colophon {
-  border-top: 3px double var(--divider);
-  padding-block: var(--space-lg) var(--space-xl);
-  font-size: var(--text-small);
+.site-foot {
+  margin-block-start: var(--section-gap);
+  border-top: 1px solid var(--divider);
+}
+
+.site-foot-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 1.75rem 2.5rem;
+  font-size: var(--text-meta);
   color: var(--secondary);
 }
 
-.colophon a {
+.site-foot a {
   color: var(--secondary);
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   text-decoration-color: var(--divider);
+  transition: color var(--dur-quick) var(--ease-out);
 }
 
-.colophon a:hover {
+.site-foot a:hover {
   color: var(--text);
 }
 
-/* Room on the right for the pixel alien button, merged later. */
-.colophon-slot {
-  grid-column: -2 / -1;
-  justify-self: end;
-  min-height: 1.5rem;
-}
-
-/* ---------- other pages (plain until the build-out) ---------- */
-
-.plain {
-  max-width: var(--col-main);
-}
-
-@media (min-width: 48rem) {
-  .plain {
-    margin-inline-start: calc(var(--col-date) + var(--col-gap));
-  }
-}
+/* ---------- posts: Markdown and the MDX components ---------- */
 
 .prose {
   --tw-prose-body: var(--text);
@@ -665,7 +944,7 @@ body {
   --tw-prose-bullets: var(--secondary);
   --tw-prose-hr: var(--divider);
   --tw-prose-quotes: var(--text);
-  --tw-prose-quote-borders: var(--divider);
+  --tw-prose-quote-borders: var(--link);
   --tw-prose-captions: var(--secondary);
   --tw-prose-code: var(--text);
   --tw-prose-pre-code: var(--text);
@@ -676,6 +955,20 @@ body {
   line-height: var(--lh-body);
 }
 
+.prose :where(h2, h3, h4) {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.prose h2 {
+  font-size: 1.625rem;
+  line-height: 1.2;
+}
+
+.prose h3 {
+  font-size: 1.3125rem;
+}
+
 .prose a {
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
@@ -683,7 +976,14 @@ body {
 
 .prose pre {
   border: 1px solid var(--divider);
-  border-radius: 4px;
+  border-radius: 3px;
+  font-family: var(--font-code);
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+
+.prose code {
+  font-family: var(--font-code);
 }
 
 .prose :not(pre) > code {
@@ -691,6 +991,7 @@ body {
   padding: 0.15em 0.35em;
   border-radius: 3px;
   font-size: 0.875em;
+  font-weight: 400;
 }
 
 .prose :not(pre) > code::before,
@@ -702,4 +1003,183 @@ body {
 .prose table {
   display: block;
   overflow-x: auto;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.prose thead th {
+  font-weight: 600;
+}
+
+/* Figure: an image or chart, its caption below in the meta size. */
+.prose figure {
+  margin-block: 2rem;
+}
+
+.prose figcaption {
+  margin-block-start: 0.6rem;
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  color: var(--secondary);
+}
+
+/* Quote: someone else's words, set in the heading face's italic with a claret rule. */
+.prose .quote blockquote {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  border-inline-start: 2px solid var(--link);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.1875rem;
+  line-height: 1.5;
+  quotes: none;
+}
+
+.prose .quote blockquote p::before,
+.prose .quote blockquote p::after {
+  content: none;
+}
+
+.prose .quote figcaption {
+  padding-inline-start: 1.25rem;
+}
+
+/* ---------- print: the CV on paper ---------- */
+
+@media print {
+  @page {
+    margin: 13mm 14mm;
+  }
+
+  /* Colours are set here, not by redefining the tokens, so the screen tokens stay one definition. */
+  html,
+  body {
+    background: #ffffff;
+    color: #000000;
+    font-size: 9.6pt;
+    line-height: 1.42;
+  }
+
+  body * {
+    color: #000000 !important;
+    border-color: #999999 !important;
+  }
+
+  header,
+  nav,
+  footer,
+  .section-bar,
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  .print-only-inline {
+    display: inline;
+  }
+
+  .cv-name {
+    font-family: var(--font-display);
+    font-size: 20pt;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  .page-head {
+    padding-block: 0 0.5rem;
+  }
+
+  .display {
+    font-size: 20pt;
+    max-width: none;
+  }
+
+  .lead {
+    margin-block-start: 0.25rem;
+    font-size: 9.6pt;
+    max-width: none;
+  }
+
+  .cv-section {
+    padding-block-start: 0.9rem;
+    break-inside: auto;
+  }
+
+  .cv-title {
+    font-size: 12.5pt;
+    margin-block-end: 0.35rem;
+    padding-block-end: 0.15rem;
+    border-bottom: 0.5pt solid #000000;
+    break-after: avoid;
+  }
+
+  .timeline::before,
+  .tl-entry::before {
+    display: none;
+  }
+
+  .tl-entry {
+    display: block;
+    padding: 0 0 0.6rem;
+  }
+
+  .tl-mark {
+    display: none;
+  }
+
+  .role-title,
+  .row-title {
+    font-size: 10.5pt;
+  }
+
+  .role-head {
+    break-after: avoid;
+  }
+
+  .bullets {
+    margin-block-start: 0.2rem;
+    row-gap: 0.1rem;
+  }
+
+  .bullets li {
+    break-inside: avoid;
+  }
+
+  .rows > * {
+    display: grid;
+    grid-template-columns: 11rem 1fr;
+    column-gap: 1rem;
+    padding-block: 0.35rem;
+    border: 0 !important;
+  }
+
+  .row-items {
+    row-gap: 0.15rem;
+  }
+
+  .note,
+  .role-where,
+  .dates {
+    font-size: 9pt;
+  }
+
+  /* Links print as their address, since paper cannot be clicked. */
+  a {
+    color: #000000 !important;
+    text-decoration: none !important;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 8.5pt;
+    word-break: break-all;
+  }
+
+  .ext,
+  .sr-only {
+    display: none !important;
+  }
 }

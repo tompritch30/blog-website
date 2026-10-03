@@ -1,9 +1,4 @@
-// The frame for the plainer pages: the page's gutters, with the text set in the ledger's
-// particulars column so it lines up with the home page and the masthead.
+// The frame for the inner pages: the page's gutters at the same width as the header and footer.
 export default function Container({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className="page">
-      <div className={`plain ${className}`}>{children}</div>
-    </div>
-  );
+  return <div className={`page ${className}`}>{children}</div>;
 }

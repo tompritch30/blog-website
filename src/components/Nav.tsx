@@ -11,20 +11,22 @@ const PAGES = [
   { href: "/about", label: "About" },
 ];
 
-// Client component (for aria-current), so the server layout passes the site fields in
-// rather than this importing the server-side site config. Not sticky: the page is a document.
+// The name on the left, a few text links on the right; the current section in the accent colour
+// with a rule under it (a post counts as Writing). Client component for aria-current, so the server
+// layout passes the site fields in. Not sticky: the home page has its own section bar.
 export default function Nav({ name, github }: { name: string; github: string }) {
   const pathname = usePathname();
+  const current = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   return (
     <header className="page">
-      <nav aria-label="Main" className="masthead">
-        <Link href="/" className="masthead-name">
+      <nav aria-label="Main" className="site-head">
+        <Link href="/" className="site-name">
           {name}
         </Link>
-        <ul className="masthead-links">
+        <ul className="site-links">
           {PAGES.map(({ href, label }) => (
             <li key={href}>
-              <Link href={href} aria-current={pathname === href ? "page" : undefined}>
+              <Link href={href} aria-current={current(href) ? "page" : undefined}>
                 {label}
               </Link>
             </li>
