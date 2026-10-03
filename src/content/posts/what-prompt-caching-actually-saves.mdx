@@ -26,13 +26,13 @@ Multipliers are relative to the model's normal input price.
 
 | Provider | Cache write | Cache read | How long an entry lives | Minimum prefix |
 |---|---|---|---|---|
-| Anthropic (Claude) | 1.25× (5-minute entry) or 2× (1-hour entry) | 0.1× on most models; 0.05× on Opus 5.5 | 5 minutes or 1 hour, reset free on every hit | 512 to 4,096 tokens, by model |
-| OpenAI (GPT-5.6 and later) | 1.25×, automatic | 0.1× on most; 0.05× on GPT-6.1 Sol | 30 minutes | 1,024 tokens |
-| Google Gemini (explicit cache) | normal price, plus storage per million tokens per hour | about 0.1× | you set the TTL | 2,048 to 4,096 tokens |
+| Anthropic (Claude) | 1.25× (5-minute entry) or 2× (1-hour entry) | 0.1× on most models; 0.05× on Opus 5.5; 0.025× on Fable 5.1 | 5 minutes or 1 hour, reset free on every hit | 512 to 4,096 tokens, by model |
+| OpenAI (GPT-5.6 and later) | 1.25×, automatic | 0.1× on most; 0.05× on GPT-6.1 Sol | 30 minutes after the last write or reuse | 1,024 tokens |
+| Google Gemini (explicit cache) | a storage charge per million tokens per hour, for as long as the cache lives | 0.1× on current models | you set it; 1 hour by default | 2,048 to 4,096 tokens, by model |
 
-Example list prices per million tokens: Claude Sonnet 5.5 is $2 input, $2.50 for a 5-minute write, $4 for a 1-hour write, $0.20 for a read and $10 output. Gemini 2.5 Flash is $0.30 input, $0.03 cached and $1.00 per million tokens per hour of storage.
+Example list prices per million tokens: Claude Sonnet 5.5 is $2 input, $2.50 for a 5-minute write, $4 for a 1-hour write, $0.20 for a read and $10 output. Gemini 2.5 Flash is $0.30 for text input, $0.03 cached and $1.00 per million tokens per hour of storage.
 
-Sources: [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing), [Anthropic prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching), [OpenAI prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching), [OpenAI pricing](https://developers.openai.com/api/docs/pricing), [Gemini caching](https://ai.google.dev/gemini-api/docs/caching), [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing). Prices change; check them before you rely on these.
+Sources: [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing), [Anthropic prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching), [OpenAI prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching), [OpenAI pricing](https://developers.openai.com/api/docs/pricing), [Gemini implicit caching](https://ai.google.dev/gemini-api/docs/caching), [Gemini explicit caching](https://ai.google.dev/gemini-api/docs/generate-content/caching), [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing). Prices change; check them before you rely on these.
 
 ## The maths
 
