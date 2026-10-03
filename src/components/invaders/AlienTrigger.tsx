@@ -60,7 +60,7 @@ export default function AlienTrigger({ konami = false, className = "" }: { konam
       <button
         ref={buttonRef}
         type="button"
-        aria-label="Play a game with this page's headings"
+        aria-label="Play a game: shoot down the things I build with"
         onClick={() => start(buttonRef.current)}
         className={`group inline-flex h-7 w-7 items-center justify-center text-secondary hover:text-fg focus-visible:text-fg ${className}`}
       >

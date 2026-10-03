@@ -1,14 +1,13 @@
 "use client";
 
 // The hidden game. Loaded only by a dynamic import() from AlienTrigger, so it costs nothing
-// until a visitor finds the alien (or types the Konami code). The headings on the current
-// page become the invaders, drawn in their own words, font and colour.
+// until a visitor finds the alien (or types the Konami code). The invaders are the things
+// Thomas builds with (words.ts), drawn as word blocks in the page's own font and colours.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   DEFAULTS,
   createGame,
-  keepFormation,
   packFormation,
   step,
   type Box,
@@ -17,18 +16,20 @@ import {
   type GameState,
 } from "@/lib/invaders/engine";
 import { SHIP, cells } from "./sprites";
+import { INVADERS, type InvaderSprite } from "./words";
 
 const BEST_KEY = "invaders-best";
-const SELECTOR = "main h1, main h2, main h3, main [data-invader]";
-const MAX_INVADERS = 18;
 const PIXEL = 2;
 const TOP = 56; // below the 48px score bar
+const PAD_X = 10;
+const PAD_Y = 6;
 const SHIP_CELLS = cells(SHIP);
+const TITLE = "A game: shoot down the things I build with";
 
 type Mode = "still" | "play" | "over";
-type Look = { font: string };
-type Invader = Box & Look & { label: string };
-type Colours = { text: string; secondary: string; divider: string };
+type Look = { font: string; image?: HTMLImageElement };
+type Invader = Box & InvaderSprite & { font: string };
+type Colours = { bg: string; text: string; secondary: string; divider: string };
 type Hud = { score: number; best: number; wave: number; lives: number };
 
 // Storage can throw (private windows, blocked site data); the game works without it.
@@ -52,82 +53,39 @@ function saveBest(n: number) {
 function readColours(): Colours {
   const s = getComputedStyle(document.documentElement);
   const v = (name: string) => s.getPropertyValue(name).trim() || s.color;
-  return { text: v("--text"), secondary: v("--secondary"), divider: v("--divider") };
+  return { bg: v("--bg"), text: v("--text"), secondary: v("--secondary"), divider: v("--divider") };
 }
 
 function truncate(ctx: CanvasRenderingContext2D, label: string, maxW: number): string {
   if (ctx.measureText(label).width <= maxW) return label;
-  const words = label.split(" ");
-  let out = "";
-  for (const word of words) {
-    const next = out ? `${out} ${word}` : word;
-    if (ctx.measureText(`${next}…`).width > maxW) break;
-    out = next;
-  }
-  if (!out) {
-    out = label;
-    while (out.length > 1 && ctx.measureText(`${out}…`).width > maxW) out = out.slice(0, -1);
-  }
-  return `${out}…`;
+  let out = label;
+  while (out.length > 1 && ctx.measureText(`${out}…`).width > maxW) out = out.slice(0, -1);
+  return `${out.trimEnd()}…`;
 }
 
-/**
- * Reads the page's headings and post titles. Headings that sit on one line in the top of the
- * screen keep their place; otherwise they are packed into rows, shortened to leave room to march.
- */
-function capture(ctx: CanvasRenderingContext2D, field: Field): { invaders: Invader[]; sources: HTMLElement[] } {
-  const narrow = field.w < 640;
-  const cap = narrow ? 16 : 24;
-  const maxW = Math.min(field.w * 0.6, 420);
-  const onPage: (Invader & { el: HTMLElement })[] = [];
-  const packed: (Omit<Invader, "x" | "y"> & { el: HTMLElement })[] = [];
+// The word list; if it is ever emptied, the page's own headings stand in.
+function sprites(): InvaderSprite[] {
+  if (INVADERS.length > 0) return INVADERS;
+  return Array.from(document.querySelectorAll<HTMLElement>("main h1, main h2, main h3"))
+    .map((el) => (el.textContent ?? "").replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .slice(0, 12)
+    .map((label) => ({ kind: "word", label }));
+}
 
-  const els = Array.from(document.querySelectorAll<HTMLElement>(SELECTOR)).filter((el) => !el.closest("dialog"));
-  for (const el of els) {
-    if (packed.length >= MAX_INVADERS) break;
-    const label = (el.textContent ?? "").replace(/\s+/g, " ").trim();
-    const box = el.getBoundingClientRect();
-    const cs = getComputedStyle(el);
-    // skip empty, screen-reader-only and hidden headings
-    if (!label || box.width < 4 || box.height < 4 || cs.visibility === "hidden") continue;
-    const size = parseFloat(cs.fontSize) || 16;
-    const family = cs.fontFamily;
-    const weight = cs.fontWeight;
-
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    const text = range.getBoundingClientRect();
-    const font = `${weight} ${size}px ${family}`;
-    ctx.font = font;
-    const lineH = Math.round(size * 1.3);
-    const w = Math.min(ctx.measureText(label).width, box.width);
-    // one line, clear of the score bar
-    if (text.height < size * 1.9 && text.top >= TOP && ctx.measureText(label).width <= box.width + 1) {
-      onPage.push({ el, label, font, w, h: lineH, x: text.left, y: text.top + (text.height - lineH) / 2 });
-    }
-
-    const small = Math.min(size, cap);
-    const smallFont = `${weight} ${small}px ${family}`;
-    ctx.font = smallFont;
-    const short = truncate(ctx, label, maxW);
-    packed.push({ el, label: short, font: smallFont, w: ctx.measureText(short).width, h: Math.round(small * 1.3) });
-  }
-
-  const kept = keepFormation(onPage, field);
-  const chosen = kept ?? packFormation(packed, field, { top: TOP });
-  if (chosen.length > 0) {
-    return {
-      invaders: chosen.map(({ label, font, x, y, w, h }) => ({ label, font, x, y, w, h })),
-      sources: chosen.map((i) => i.el),
-    };
-  }
-
-  // a page with no headings: its title's words stand in
-  const words = document.title.split(/\s+/).filter(Boolean).slice(0, 8);
-  const font = `600 ${cap}px ${getComputedStyle(document.body).fontFamily}`;
+/** Word blocks in the page's font, packed into rows that fit the screen, centred, with room to march. */
+function formation(ctx: CanvasRenderingContext2D, field: Field): Invader[] {
+  const size = field.w < 640 ? 13 : 15;
+  const font = `500 ${size}px ${getComputedStyle(document.body).fontFamily}`;
+  const width = Math.min(field.w * 0.72, 880);
+  const h = Math.round(size * 1.3) + 2 * PAD_Y;
   ctx.font = font;
-  const items = words.map((label) => ({ label, font, w: ctx.measureText(label).width, h: Math.round(cap * 1.3) }));
-  return { invaders: packFormation(items, field, { top: TOP }), sources: [] };
+  const items = sprites().map((s) => {
+    if (s.kind === "image") return { ...s, font, h, w: h * 2 };
+    const label = truncate(ctx, s.label, width - 2 * PAD_X);
+    return { ...s, label, font, h, w: Math.ceil(ctx.measureText(label).width) + 2 * PAD_X };
+  });
+  return packFormation(items, field, { top: TOP, gap: 12, width, centre: true });
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -135,7 +93,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 // Pace the march to the screen: about five seconds to cross the free width and about twelve
 // drops down to the ship, so a game lasts about as long on a phone as on a wide desktop.
 function pace(field: Field, invaders: Box[]): Partial<Config> {
-  const shipGap = field.w < 640 ? 72 : 56;
+  const shipGap = field.w < 640 ? 80 : 56;
   if (invaders.length === 0) return { shipGap };
   const left = Math.min(...invaders.map((i) => i.x));
   const right = Math.max(...invaders.map((i) => i.x + i.w));
@@ -157,11 +115,31 @@ function draw(ctx: CanvasRenderingContext2D, g: GameState, looks: Look[], c: Col
   ctx.fillRect(0, ship.y + ship.h + 8, field.w, 1);
 
   ctx.fillStyle = c.text;
+  ctx.strokeStyle = c.text;
+  ctx.lineWidth = 1;
+  ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   for (const inv of g.invaders) {
-    ctx.font = looks[inv.id]?.font ?? ctx.font;
-    ctx.fillText(inv.label, inv.x, inv.y + inv.h / 2);
+    const look = looks[inv.id];
+    const x = Math.round(inv.x);
+    const y = Math.round(inv.y);
+    // a solid block, so the dimmed page does not show through the word
+    ctx.fillStyle = c.bg;
+    ctx.fillRect(x, y, inv.w, inv.h);
+    ctx.fillStyle = c.text;
+    ctx.strokeRect(x + 0.5, y + 0.5, inv.w - 1, inv.h - 1);
+    if (look?.image?.complete && look.image.naturalWidth > 0) {
+      ctx.drawImage(look.image, x + PAD_X / 2, y + PAD_Y / 2, inv.w - PAD_X, inv.h - PAD_Y);
+    } else {
+      ctx.font = look?.font ?? ctx.font;
+      ctx.fillText(inv.label, x + inv.w / 2, y + inv.h / 2 + 0.5);
+    }
+    // two pixel legs that step as the block marches
+    const stride = Math.floor(inv.x / 12) % 2 === 0 ? 6 : 9;
+    ctx.fillRect(x + stride, y + inv.h, PIXEL, 3);
+    ctx.fillRect(x + inv.w - stride - PIXEL, y + inv.h, PIXEL, 3);
   }
+  ctx.textAlign = "start";
   for (const [x, y] of SHIP_CELLS) ctx.fillRect(ship.x + x * PIXEL, ship.y + y * PIXEL, PIXEL, PIXEL);
   for (const b of g.bullets) ctx.fillRect(b.x, b.y, b.w, b.h);
   if (still) {
@@ -182,7 +160,7 @@ export default function Game({ onClose }: { onClose: () => void }) {
   const gameRef = useRef<GameState | null>(null);
   const startRef = useRef<{ field: Field; invaders: Invader[]; config: Partial<Config> } | null>(null);
   const looksRef = useRef<Look[]>([]);
-  const coloursRef = useRef<Colours>({ text: "", secondary: "", divider: "" });
+  const coloursRef = useRef<Colours>({ bg: "", text: "", secondary: "", divider: "" });
   const dprRef = useRef(1);
   const input = useRef({ left: false, right: false, fire: false, tap: false, targetX: null as number | null });
   const pointer = useRef<{ id: number; x: number; t: number; moved: boolean } | null>(null);
@@ -201,8 +179,8 @@ export default function Game({ onClose }: { onClose: () => void }) {
     if (ctx && gameRef.current) draw(ctx, gameRef.current, looksRef.current, coloursRef.current, dprRef.current, still);
   }, []);
 
-  // Open: capture the headings, hide them, lock the page, draw the first frame.
-  // Close (unmount): put every style back exactly as it was.
+  // Open: lay out the invaders, lock the page, draw the first frame.
+  // Close (unmount): put the page's style back exactly as it was.
   useEffect(() => {
     const dialog = dialogRef.current;
     const canvas = canvasRef.current;
@@ -215,20 +193,26 @@ export default function Game({ onClose }: { onClose: () => void }) {
     const restore = ({ el, style }: { el: HTMLElement; style: string | null }) =>
       style === null ? el.removeAttribute("style") : el.setAttribute("style", style);
     const field = { w: window.innerWidth, h: window.innerHeight };
-    const { invaders, sources } = capture(ctx, field);
-    const before = [html, ...sources].map(saved);
+    const invaders = formation(ctx, field);
+    const before = [html].map(saved);
 
     if (!dialog.open) dialog.showModal();
     html.style.scrollbarGutter = "stable";
     html.style.overflow = "hidden";
-    sources.forEach((el) => (el.style.visibility = "hidden"));
 
     const dpr = window.devicePixelRatio || 1;
     dprRef.current = dpr;
     canvas.width = Math.round(field.w * dpr);
     canvas.height = Math.round(field.h * dpr);
     coloursRef.current = readColours();
-    looksRef.current = invaders.map(({ font }) => ({ font }));
+    looksRef.current = invaders.map(({ font, kind, src }) => {
+      if (kind !== "image" || !src) return { font };
+      // image sprites only load when the word list has some; redraw once each arrives
+      const image = new Image();
+      image.onload = () => redraw(modeRef.current === "still");
+      image.src = src;
+      return { font, image };
+    });
     const config = pace(field, invaders);
     startRef.current = { field, invaders, config };
     gameRef.current = createGame({ field, invaders, config, highScore: readBest(), seed: Date.now() });
@@ -361,12 +345,14 @@ export default function Game({ onClose }: { onClose: () => void }) {
     stops[next].focus();
   };
 
-  const help = touch ? "Drag to move, tap to fire." : "Left and right or A and D to move, space to fire, Escape to quit.";
+  const help = `Shoot down the things I build with. ${
+    touch ? "Drag to move, tap to fire." : "Left and right or A and D to move, space to fire, Escape to quit."
+  }`;
 
   return createPortal(
     <dialog
       ref={dialogRef}
-      aria-label="Invaders: the headings on this page"
+      aria-label={TITLE}
       onKeyDown={trapTab}
       onCancel={(e) => {
         e.preventDefault();
