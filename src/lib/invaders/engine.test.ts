@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFormation, collides, createGame, step, type GameState } from "./engine";
+import { collides, createGame, packFormation, step, type GameState } from "./engine";
 
 // Worked examples on a small field so every expected number can be checked by hand.
 // Field 200 x 300. Ship 20 x 16, 20px above the bottom edge: x = (200 - 20) / 2 = 90, y = 300 - 20 - 16 = 264.
@@ -209,42 +209,85 @@ describe("bombs", () => {
   });
 });
 
-describe("buildFormation", () => {
-  const f = { w: 400, h: 600 };
-
-  it("keeps headings where they sit on the page when two or more fit the top of the field", () => {
-    const items = [
-      { label: "A", w: 100, h: 20, x: 20, y: 40 },
-      { label: "B", w: 120, h: 20, x: 20, y: 120 },
-    ];
-    expect(buildFormation(items, f).map((i) => [i.label, i.x, i.y])).toEqual([
-      ["A", 20, 40],
-      ["B", 20, 120],
+describe("invader sprites", () => {
+  it("carry their kind and image source through play and into the next wave", () => {
+    const g0 = createGame({
+      field,
+      invaders: [
+        { kind: "word", label: "Evals", x: 90, y: 230, w: 20, h: 10 },
+        { kind: "image", label: "A logo", src: "/logos/a.svg", x: 0, y: 0, w: 10, h: 10 },
+      ],
+      config: { shipW: 20, shipH: 16, shipGap: 20, bulletW: 2, bulletH: 8, bulletSpeed: 400, margin: 0, marchSpeed: 0, bombEvery: Infinity },
+    });
+    expect(g0.invaders.map((i) => [i.kind, i.label, i.src])).toEqual([
+      ["word", "Evals", undefined],
+      ["image", "A logo", "/logos/a.svg"],
+    ]);
+    // shoot the word, then the logo is the only one left; clear it by hand to start wave 2
+    let g = step(step(g0, { fire: true }, 0.1), none, 0.1);
+    expect(g.invaders.map((i) => i.kind)).toEqual(["image"]);
+    g = step({ ...g, invaders: [] }, none, 0.1);
+    expect(g.wave).toBe(2);
+    expect(g.invaders.map((i) => [i.kind, i.src])).toEqual([
+      ["word", undefined],
+      ["image", "/logos/a.svg"],
     ]);
   });
+});
 
-  it("packs headings into rows from the top left when their page boxes do not fit", () => {
+describe("packFormation", () => {
+  const f = { w: 400, h: 600 };
+  const opts = { margin: 16, gap: 24, top: 48 };
+
+  it("packs items into rows from the top left by default", () => {
     // gap 24, rows start at margin 16 and top 48; row height is the tallest item plus 16
     const items = [
-      { label: "A", w: 150, h: 20, x: 0, y: 500 },
+      { label: "A", w: 150, h: 20 },
       { label: "B", w: 150, h: 20 },
       { label: "C", w: 150, h: 30 },
     ];
-    expect(buildFormation(items, f, { margin: 16, gap: 24, top: 48 }).map((i) => [i.label, i.x, i.y])).toEqual([
+    expect(packFormation(items, f, opts).map((i) => [i.label, i.x, i.y])).toEqual([
       ["A", 16, 48],
       ["B", 190, 48],
       ["C", 16, 84],
     ]);
   });
 
-  it("leaves room to march: a formation wider than 80% of the field is packed", () => {
+  it("keeps rows within a width limit, so the formation has room to march", () => {
     const items = [
-      { label: "A", w: 180, h: 20, x: 10, y: 40 },
-      { label: "B", w: 180, h: 20, x: 210, y: 40 },
+      { label: "A", w: 90, h: 20 },
+      { label: "B", w: 90, h: 20 },
+      { label: "C", w: 90, h: 20 },
     ];
-    expect(buildFormation(items, f, { margin: 16, gap: 24, top: 48 }).map((i) => [i.x, i.y])).toEqual([
+    // 90 + 10 + 90 = 190 fits a 200 row; C starts a new row
+    expect(packFormation(items, f, { ...opts, gap: 10, width: 200 }).map((i) => [i.x, i.y])).toEqual([
       [16, 48],
+      [116, 48],
       [16, 84],
     ]);
+  });
+
+  it("centres the block in the field and each row in the block when asked", () => {
+    const items = [
+      { label: "A", w: 90, h: 20 },
+      { label: "B", w: 90, h: 20 },
+      { label: "C", w: 90, h: 20 },
+    ];
+    // widest row 190, block left (400 - 190) / 2 = 105; short row offset (190 - 90) / 2 = 50
+    expect(packFormation(items, f, { ...opts, gap: 10, width: 200, centre: true }).map((i) => [i.x, i.y])).toEqual([
+      [105, 48],
+      [205, 48],
+      [155, 84],
+    ]);
+  });
+
+  it("shortens an item wider than a row to the row width", () => {
+    expect(packFormation([{ label: "Wide", w: 500, h: 20 }], f, opts)[0].w).toBe(368);
+  });
+
+  it("leaves out rows that would pass half the field", () => {
+    const items = Array.from({ length: 30 }, (_, i) => ({ label: `W${i}`, w: 300, h: 20 }));
+    // rows at 48, 84, ... while y + 20 <= 300: 48 + 36 * 7 = 300 is the first row left out
+    expect(packFormation(items, f, opts)).toHaveLength(7);
   });
 });

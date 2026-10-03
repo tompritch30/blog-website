@@ -4,7 +4,11 @@
 export { createTrigger, KONAMI } from "./trigger";
 
 export type Box = { x: number; y: number; w: number; h: number };
-export type Invader = Box & { id: number; label: string };
+// A word is drawn as text; an image (a small monochrome logo, say) from its src. The engine
+// only moves boxes; the renderer reads kind and src.
+export type SpriteKind = "word" | "image";
+export type Sprite = { label: string; kind?: SpriteKind; src?: string };
+export type Invader = Box & Sprite & { id: number };
 export type Field = { w: number; h: number };
 export type Input = { left?: boolean; right?: boolean; fire?: boolean; targetX?: number | null };
 export type Status = "playing" | "over";
@@ -73,7 +77,7 @@ export type GameState = {
 
 export type GameOptions = {
   field: Field;
-  invaders: (Box & { label: string })[];
+  invaders: (Box & Sprite)[];
   highScore?: number;
   seed?: number;
   config?: Partial<Config>;
@@ -86,7 +90,7 @@ export function collides(a: Box, b: Box): boolean {
 
 export function createGame(opts: GameOptions): GameState {
   const config = { ...DEFAULTS, ...opts.config };
-  const template = opts.invaders.map((b, id) => ({ id, label: b.label, x: b.x, y: b.y, w: b.w, h: b.h }));
+  const template = opts.invaders.map(({ label, kind, src, x, y, w, h }, id) => ({ id, label, kind, src, x, y, w, h }));
   return {
     field: opts.field,
     config,
@@ -249,71 +253,55 @@ export function step(state: GameState, input: Input, dt: number): GameState {
   return next;
 }
 
-export type FormationItem = { label: string; w: number; h: number; x?: number; y?: number };
-export type FormationOptions = { margin: number; gap: number; top: number };
+export type FormationItem = { label: string; w: number; h: number };
+export type FormationOptions = {
+  margin: number; // space kept from the field's side edges
+  gap: number; // between items in a row
+  top: number; // y of the first row
+  width?: number; // widest a row may be; defaults to the field less its margins
+  centre?: boolean; // centre the block in the field and each row within the block
+};
 
 const FORMATION: FormationOptions = { margin: 16, gap: 24, top: 56 };
+const ROW_GAP = 16;
 
 /**
- * Headings stay where they sit on the page when at least two are fully inside the side margins
- * and the top 55% of the field, do not overlap, and leave room to march (span at most 80% of
- * the width). Returns null when the page layout cannot be kept. Extra fields are carried through.
+ * Packs items into rows, in order, each row as full as the width allows. Rows that would pass
+ * half the field are left out, and an item wider than a row is shortened to the row.
+ * Extra fields on the items are carried through.
  */
-export function keepFormation<T extends FormationItem>(
-  items: T[],
-  field: Field,
-  opts: Partial<FormationOptions> = {},
-): (T & Box)[] | null {
-  const { margin } = { ...FORMATION, ...opts };
-  const placed = items.filter(
-    (i): i is T & Box =>
-      i.x != null &&
-      i.y != null &&
-      i.x >= margin &&
-      i.y >= 0 &&
-      i.x + i.w <= field.w - margin &&
-      i.y + i.h <= field.h * 0.55,
-  );
-  if (placed.length < 2) return null;
-  const left = Math.min(...placed.map((i) => i.x));
-  const right = Math.max(...placed.map((i) => i.x + i.w));
-  const overlap = placed.some((a, ai) => placed.some((b, bi) => ai < bi && collides(a, b)));
-  return right - left <= field.w * 0.8 && !overlap ? placed : null;
-}
-
-/** Packs items into rows from the top left; rows that would pass half the field are left out. */
 export function packFormation<T extends FormationItem>(
   items: T[],
   field: Field,
   opts: Partial<FormationOptions> = {},
 ): (T & Box)[] {
   const o = { ...FORMATION, ...opts };
-  const out: (T & Box)[] = [];
-  const maxW = field.w - 2 * o.margin;
-  let x = o.margin;
+  const rowW = Math.min(o.width ?? Infinity, field.w - 2 * o.margin);
+
+  const rows: { items: (T & Box)[]; w: number }[] = [];
   let y = o.top;
+  let row: { items: (T & Box)[]; w: number } = { items: [], w: 0 };
   let rowH = 0;
   for (const item of items) {
-    const w = Math.min(item.w, maxW);
-    if (x > o.margin && x + w > field.w - o.margin) {
-      y += rowH + 16;
-      x = o.margin;
+    const w = Math.min(item.w, rowW);
+    if (row.items.length > 0 && row.w + o.gap + w > rowW) {
+      rows.push(row);
+      y += rowH + ROW_GAP;
+      row = { items: [], w: 0 };
       rowH = 0;
     }
     if (y + item.h > field.h * 0.5) break;
-    out.push({ ...item, x, y, w });
-    x += w + o.gap;
+    const x = row.items.length > 0 ? row.w + o.gap : 0;
+    row.items.push({ ...item, x, y, w });
+    row.w = x + w;
     rowH = Math.max(rowH, item.h);
   }
-  return out;
-}
+  if (row.items.length > 0) rows.push(row);
 
-/** Where each heading starts: kept where it sits on the page if possible, else packed. */
-export function buildFormation<T extends FormationItem>(
-  items: T[],
-  field: Field,
-  opts: Partial<FormationOptions> = {},
-): (T & Box)[] {
-  return keepFormation(items, field, opts) ?? packFormation(items, field, opts);
+  const blockW = Math.max(0, ...rows.map((r) => r.w));
+  const blockLeft = o.centre ? (field.w - blockW) / 2 : o.margin;
+  return rows.flatMap((r) => {
+    const shift = blockLeft + (o.centre ? (blockW - r.w) / 2 : 0);
+    return r.items.map((i) => ({ ...i, x: i.x + shift }));
+  });
 }
-
