@@ -21,7 +21,7 @@ step "slop lint (source)"
 npm run lint:slop
 
 step "slop lint (design system and release process)"
-npm run lint:slop -- design/SYSTEM.md docs/writing-a-post.md
+npm run lint:slop -- design/SYSTEM.md docs/writing-a-post.md docs/deploy.md
 
 step "typecheck"
 npm run typecheck
