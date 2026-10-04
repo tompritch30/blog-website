@@ -1,5 +1,6 @@
-// Page proof against a running site (plans/site-v2.md slice 9, grill items 7 and 9). Starts nothing:
-// run `npm run build && npm start -p 3119` (or `npm run dev`) first, then
+// Page proof against a running site (plans/site-v2.md slice 9, grill items 7 and 9). Starts nothing.
+// The default base URL is http://localhost:3005, where `npm run dev` serves; for the production build,
+// run `npm run build && npm start -p 3119` first and pass http://localhost:3119:
 //
 //   npm run check:pages [-- <base URL>]            axe, rendered controls and the /cv print check
 //   npm run shots [-- <base URL>] [--out <dir>]    the same, plus full-page screenshots (default design/shots/)
@@ -47,6 +48,7 @@ function fail(message: string): never {
 }
 
 const args = process.argv.slice(2);
+// `npm run dev` (package.json, ADR 0002 item 8)
 let base = "http://localhost:3005";
 let shots = false;
 let outDir = "design/shots";
@@ -222,7 +224,7 @@ async function main(): Promise<number> {
     const res = await fetch(`${base}/writing`);
     if (!res.ok) fail(`${base}/writing answered ${res.status}`);
   } catch (e) {
-    fail(`nothing answers at ${base} (${(e as Error).message}); start the site first, e.g. npm run build && npm start -p 3119`);
+    fail(`nothing answers at ${base} (${(e as Error).message}); start the site first: npm run dev for the default, or npm run build && npm start -p 3119 and pass http://localhost:3119`);
   }
   const { browser, from } = await launch();
   console.log(`check-pages: ${base} with Chromium ${browser.version()} from ${from}\n`);
