@@ -116,7 +116,21 @@ describe("Figure", () => {
     expect(html).toContain("<p>chart</p>");
     expect(/<figcaption[^>]*>(.*)<\/figcaption>/.exec(html)?.[1]).toContain("Prefix cost against hit rate.");
     expect(attr(html, "a", "href")).toBe("https://example.com/maths");
-    expect(html).toContain(">scripts/prompt-cache-maths.mjs</a>");
+    expect(/<a\b[^>]*>(.*?)<\/a>/.exec(html)?.[1]).toMatch(/^scripts\/prompt-cache-maths\.mjs/);
+  });
+
+  it("opens an off-site credit link in a new tab, safely, and says so to screen readers", () => {
+    const html = renderToStaticMarkup(<Figure caption="c" credit="The maths" creditHref="https://example.com/maths">x</Figure>);
+    expect(attr(html, "a", "target")).toBe("_blank");
+    expect(attr(html, "a", "rel")).toBe("noopener noreferrer");
+    expect(html).toMatch(/<span class="sr-only">\s*\(opens in a new tab\)<\/span><\/a>/);
+  });
+
+  it("keeps a credit link to a page of this site in the same tab, with no new-tab hint", () => {
+    const html = renderToStaticMarkup(<Figure caption="c" credit="The maths" creditHref="/writing/maths">x</Figure>);
+    expect(attr(html, "a", "href")).toBe("/writing/maths");
+    expect(attr(html, "a", "target")).toBeUndefined();
+    expect(html).not.toContain("opens in a new tab");
   });
 
   it("leaves the credit line out when there is none", () => {

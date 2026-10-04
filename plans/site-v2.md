@@ -664,3 +664,20 @@ AssertionError: expected 'blocked' to be 'new-tab' // Object.is equality
 ```
 
 Green: `Tests  7 passed (7)`.
+
+#### Figure credit links follow the new-tab rule
+
+`Figure`'s source link was a bare `<a>`, so an off-site credit opened in the same tab with no warning. It now renders through `ExternalLink` when the href starts with `http`, and stays a plain same-tab link for a page of this site.
+
+Red, `npx vitest run src/components/mdx/mdx.test.tsx -t Figure`:
+
+```
+   ✓ Figure > wraps its content with a caption and a linked credit line 8ms
+   × Figure > opens an off-site credit link in a new tab, safely, and says so to screen readers 13ms
+   ✓ Figure > keeps a credit link to a page of this site in the same tab, with no new-tab hint 1ms
+   ✓ Figure > leaves the credit line out when there is none 1ms
+AssertionError: expected undefined to be '_blank' // Object.is equality
+      Tests  1 failed | 3 passed | 11 skipped (15)
+```
+
+The same-tab test passes before and after: it guards the internal half of the split. Green: `Tests  15 passed (15)`.
