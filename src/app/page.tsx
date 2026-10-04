@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Fragment } from "react";
 import ExternalLink from "@/components/ExternalLink";
 import PostList from "@/components/PostList";
 import EvalGateDiagram from "@/components/home/EvalGateDiagram";
 import OrgMark from "@/components/home/OrgMark";
-import { caseStudies, cv, headline, intro, links, motto, paperFigure, portrait, type CaseStudy } from "@/content/profile";
+import { aboutShort, caseStudies, cv, headline, intro, links, motto, paperFigure, portrait, type CaseStudy } from "@/content/profile";
 import { careerEntries, educationRows } from "@/lib/career";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
 import { WRITING_PATH } from "@/lib/paths";
@@ -107,15 +108,19 @@ export default function Home() {
         <div className="about">
           <div className="about-text">
             <p>{intro[2]}</p>
-            <p>
-              I started in biology. I studied Biological Sciences at Imperial College London and graduated in 2021 with a First, having made the
-              Dean&rsquo;s List in my first and second years.
-            </p>
-            <p>
-              I then moved into computing and went back to Imperial for an MSc in Computer Science, which I finished with a Distinction in 2024. I&rsquo;m
-              co-first author of <ExternalLink href={paper.url}>ForestVO</ExternalLink>, published in IEEE Robotics and Automation Letters in 2025. Visual
-              odometry works out how a camera moves from the images it records. Our method keeps baseline accuracy while using 25% of the keypoints.
-            </p>
+            {aboutShort.map((paragraph, i) => (
+              <p key={i}>
+                {paragraph.map((part, j) =>
+                  typeof part === "string" ? (
+                    <Fragment key={j}>{part}</Fragment>
+                  ) : (
+                    <ExternalLink key={j} href={part.href}>
+                      {part.text}
+                    </ExternalLink>
+                  ),
+                )}
+              </p>
+            ))}
             <p className="link-row">
               <Link href="/about" className="link">
                 The longer version
