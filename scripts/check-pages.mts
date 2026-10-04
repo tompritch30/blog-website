@@ -269,8 +269,13 @@ async function hitCheck(browser: Browser, problems: string[]): Promise<void> {
       const canvas = d?.querySelector("canvas")?.getBoundingClientRect();
       return {
         open: !!d,
-        text: d?.querySelector("div.absolute.left-1\\/2")?.textContent?.replace(/\s+/g, " ").trim() ?? "",
-        score: d?.querySelector("p.font-mono span")?.textContent ?? "",
+        text: d?.querySelector('[data-invaders="panel"]')?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+        score: d?.querySelector('[data-invaders="score"]')?.textContent ?? "",
+        // the Open link ignores taps and clicks for OFFER_POINTER_GUARD_MS after the hit, then takes them
+        pointer: (() => {
+          const link = d?.querySelector('[data-invaders="panel"] a[target="_blank"]');
+          return link ? getComputedStyle(link).pointerEvents : "no link";
+        })(),
         canvas: canvas ? `${Math.round(canvas.width)}x${Math.round(canvas.height)}` : "none",
         focus: a ? `${a.tagName} "${a.innerText.trim()}" ${a.getAttribute("href") ?? ""} ${a.getAttribute("target") ?? ""} ${a.getAttribute("rel") ?? ""}` : "none",
       };
@@ -278,7 +283,7 @@ async function hitCheck(browser: Browser, problems: string[]): Promise<void> {
   const before = await screen();
   // the visible name, then the hidden "(opens in a new tab)", then where and how it opens
   const focused = before.focus.startsWith(`A "Open ${target.label} ↗`) && before.focus.endsWith(`" ${target.href} _blank noopener noreferrer`);
-  console.log(`${offered && focused ? "pass" : "FAIL"}  hit ${label}: paused on "${before.text}", ${before.score}, focus on ${before.focus}`);
+  console.log(`${offered && focused ? "pass" : "FAIL"}  hit ${label}: paused on "${before.text}", ${before.score}, focus on ${before.focus}, pointer-events ${before.pointer}`);
   if (!offered || !focused) problems.push(`hit ${label}: no focused Open link after the hit (focus ${before.focus})`);
   const dupes = lintControls(label, await dialog.evaluate((d) => d.outerHTML), budget.dialogs?.invaders ?? [], "the game dialog", { origins: [new URL(base).origin] });
   console.log(`${dupes.length ? "FAIL" : "pass"}  controls ${label}: hit screen within the budget, each place linked once`);
@@ -297,8 +302,8 @@ async function hitCheck(browser: Browser, problems: string[]): Promise<void> {
     // still paused a moment later: the score has not moved and the game is on screen
     await page.waitForTimeout(500);
     const after = await screen();
-    const ok = url === target.href && after.open && after.score === before.score && after.text === before.text && after.canvas !== "none";
-    console.log(`${ok ? "pass" : "FAIL"}  hit ${label}: Enter opened a new page at ${url}; ${ctx.pages().length} pages; this page still paused (${after.score}, canvas ${after.canvas}, "${after.text}"), focus on ${after.focus}`);
+    const ok = url === target.href && after.open && after.score === before.score && after.text === before.text && after.canvas !== "none" && after.pointer === "auto";
+    console.log(`${ok ? "pass" : "FAIL"}  hit ${label}: Enter opened a new page at ${url}; ${ctx.pages().length} pages; this page still paused (${after.score}, canvas ${after.canvas}, "${after.text}"), focus on ${after.focus}, pointer-events ${after.pointer} after the guard`);
     if (!ok) problems.push(`hit ${label}: new page at ${url}, this page ${JSON.stringify(after)}`);
   }
   await ctx.close();

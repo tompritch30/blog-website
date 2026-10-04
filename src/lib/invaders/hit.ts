@@ -6,7 +6,14 @@
 import type { GameEvent, GameState, Status } from "./engine";
 import { unlockedTargets, type MysteryTarget } from "./links";
 
-export type AfterFrame = { mode: "paused"; offer: MysteryTarget } | { mode: "over"; offer: null } | null;
+/**
+ * How long the hit screen's Open link and Resume ignore pointer input after a hit offers a link. The
+ * panel appears mid-screen under the player's thumb or cursor, so a fire tap or click already on its
+ * way would otherwise open the link or resume by accident. Enter on the focused link is never delayed.
+ */
+export const OFFER_POINTER_GUARD_MS = 400;
+
+export type AfterFrame ={ mode: "paused"; offer: MysteryTarget } | { mode: "over"; offer: null } | null;
 
 /**
  * The screen after one frame of play: game over if the last life went (a link won in the same frame

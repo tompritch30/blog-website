@@ -24,7 +24,7 @@ import {
 } from "@/lib/invaders/engine";
 import ExternalLink from "@/components/ExternalLink";
 import { keyInput, releasedInput, type HeldInput } from "@/lib/invaders/input";
-import { afterFrame, listedBeside, stageHit } from "@/lib/invaders/hit";
+import { OFFER_POINTER_GUARD_MS, afterFrame, listedBeside, stageHit } from "@/lib/invaders/hit";
 import { readUnlocked, saveUnlocked, type MysteryTarget } from "@/lib/invaders/links";
 import { CREATURES, MYSTERY, SHIELD, SHIP, cells } from "./sprites";
 
@@ -254,6 +254,8 @@ export default function Game({ onClose }: { onClose: () => void }) {
   const unlockedRef = useRef(unlocked);
   // the link a mystery-ship hit offers on the pause screen; null for a pause by hand
   const [offer, setOffer] = useState<MysteryTarget | null>(null);
+  // true for OFFER_POINTER_GUARD_MS after a hit: the Open link and Resume ignore taps and clicks
+  const [guarded, setGuarded] = useState(false);
   const closing = useRef(false);
   const [said, setSaid] = useState("");
 
@@ -410,6 +412,7 @@ export default function Game({ onClose }: { onClose: () => void }) {
       if (next?.mode === "paused") {
         // a hit pauses the game on its link, focused, so one Enter or click opens it in a new tab
         setOffer(next.offer);
+        setGuarded(true);
         setSaid(`Mystery ship hit, ${next.offer.label} unlocked. Paused; press Enter to open it in a new tab.`);
         setMode("paused");
         return;
@@ -486,10 +489,19 @@ export default function Game({ onClose }: { onClose: () => void }) {
     setMode("play");
   };
 
+  // The pointer guard lifts by itself; unmounting or resuming first clears the timer.
+  useEffect(() => {
+    if (!guarded) return;
+    const timer = window.setTimeout(() => setGuarded(false), OFFER_POINTER_GUARD_MS);
+    return () => window.clearTimeout(timer);
+  }, [guarded]);
+
   const resume = () => {
     setOffer(null);
+    setGuarded(false);
     setMode("play");
   };
+  const guard = guarded ? " pointer-events-none" : "";
   // the offered link stands on its own, so the list under it leaves it out (one link per place)
   const shown = mode === "paused" ? offer : null;
   const won = listedBeside(unlocked, shown);
@@ -556,7 +568,7 @@ export default function Game({ onClose }: { onClose: () => void }) {
         />
         <div className="absolute inset-x-0 top-0 flex h-12 items-center justify-between gap-4 border-b border-divider bg-bg pl-4 pr-2">
           <p className="flex gap-3 font-mono text-xs tabular-nums text-secondary sm:gap-4">
-            <span>Score {hud.score}</span>
+            <span data-invaders="score">Score {hud.score}</span>
             <span>Best {Math.max(hud.best, hud.score)}</span>
             <span>Wave {hud.wave}</span>
             <span>Lives {hud.lives}</span>
@@ -580,7 +592,9 @@ export default function Game({ onClose }: { onClose: () => void }) {
           {help}
         </p>
         {mode !== "play" && (
-          <div className="absolute left-1/2 top-1/2 w-[min(22rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 border border-divider bg-bg px-5 py-4 text-center text-sm">
+          <div
+            data-invaders="panel"
+            className="absolute left-1/2 top-1/2 w-[min(22rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 border border-divider bg-bg px-5 py-4 text-center text-sm">
             {mode === "paused" ? (
               <>
                 <p className="mb-3 text-fg">{shown ? `Paused. The mystery ship unlocked ${shown.label}.` : "Paused."}</p>
@@ -591,7 +605,7 @@ export default function Game({ onClose }: { onClose: () => void }) {
                         actionRef.current = el;
                       }}
                       href={shown.href}
-                      className={open}
+                      className={open + guard}
                     >
                       Open {shown.label}{" "}
                     </ExternalLink>
@@ -608,7 +622,7 @@ export default function Game({ onClose }: { onClose: () => void }) {
                   }
                   type="button"
                   onClick={resume}
-                  className={control}
+                  className={control + guard}
                 >
                   Resume
                 </button>
