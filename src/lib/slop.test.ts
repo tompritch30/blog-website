@@ -197,13 +197,15 @@ describe("lintHtml (built pages)", () => {
     const file = `${FIX}/built-regression/claude-code-workflow.html`;
     const hits = lintHtml(file, read("built-regression/claude-code-workflow.html"), { allow: real, built: true });
     const counts = Object.fromEntries([...new Set(hits.map((h) => h.rule))].map((r) => [r, hits.filter((h) => h.rule === r).length]));
-    expect(counts).toEqual({ "em-dash": 6, marketing: 1, "icon-kit": 1 });
+    // external-link: that build's footer GitHub link, a bare <a> (the rule came on 4 Oct)
+    expect(counts).toEqual({ "em-dash": 6, marketing: 1, "icon-kit": 1, "external-link": 1 });
   });
 
-  it("passes the same post page rebuilt after the slice 4 fixes, payload scripts and code included", () => {
+  it("finds nothing on the same post page rebuilt after the slice 4 fixes but its bare footer GitHub link, payload scripts and code included", () => {
     const real = JSON.parse(fs.readFileSync(path.join(ROOT, "design/slop-allow.json"), "utf-8")) as Allow;
     const rel = "built-regression/claude-code-workflow-after-slice-4.html";
-    expect(lintHtml(`${FIX}/${rel}`, read(rel), { allow: real, built: true })).toEqual([]);
+    const hits = lintHtml(`${FIX}/${rel}`, read(rel), { allow: real, built: true });
+    expect(hits.map((h) => [h.rule, h.excerpt])).toEqual([["external-link", "https://github.com/tompritch30"]]);
   });
 
   // The allowlist's file key names a source file, which a built page is not, so on built pages an
@@ -220,6 +222,20 @@ describe("lintHtml (built pages)", () => {
 
   it("leaves money in an HTML file alone unless it is a built page (source content has its own rule)", () => {
     expect(lintHtml(`${FIX}/built-money.html`, read("built-money.html"), { allow: keyed }).filter((h) => h.rule === "money")).toEqual([]);
+  });
+
+  it("fails a built off-site link without target=_blank, rel noopener noreferrer and the hidden new-tab hint", () => {
+    const hits = lintHtml(`${FIX}/built-external.html`, read("built-external.html"), { allow, built: true });
+    expect(pairs(hits)).toEqual([["external-link", 3], ["external-link", 4], ["external-link", 5]]);
+    expect(hits.map((h) => h.message)).toEqual([
+      expect.stringContaining('target="_blank"'),
+      expect.stringContaining("noreferrer"),
+      expect.stringContaining("(opens in a new tab)"),
+    ]);
+  });
+
+  it("checks off-site links on built pages only", () => {
+    expect(lintHtml(`${FIX}/built-external.html`, read("built-external.html"), { allow }).filter((h) => h.rule === "external-link")).toEqual([]);
   });
 });
 
@@ -311,7 +327,8 @@ describe("lint-slop CLI", { timeout: 30_000 }, () => {
     expect(out.stdout).toContain(`${dir}/static/chunks/site.css:1 radius `);
     // the real allowlist: "£2bn+" passes by its text, the split "$75k" does not
     expect(out.stdout).toContain(`${app}/money.html:3 money currency figure "$75k"`);
-    expect(out.stdout.match(/^\S+:\d+ /gm)).toHaveLength(6);
+    expect(out.stdout).toContain(`${app}/external.html:3 external-link `);
+    expect(out.stdout.match(/^\S+:\d+ /gm)).toHaveLength(7);
   });
 
   it("--built passes a clean build, vendored CSS selectors included", () => {

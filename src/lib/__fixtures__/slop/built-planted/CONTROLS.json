@@ -8,6 +8,7 @@
     "/no-href": { "controls": [] },
     "/role-button": { "controls": [{ "kind": "link", "href": "/start", "job": "open the start page" }] },
     "/no-job": { "controls": [{ "kind": "button", "name": "Copy", "job": "" }] },
-    "/money": { "controls": [] }
+    "/money": { "controls": [] },
+    "/external": { "controls": [{ "kind": "link", "href": "https://example.org/*", "count": "many", "job": "open the example site" }] }
   }
 }

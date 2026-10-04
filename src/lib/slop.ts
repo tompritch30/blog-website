@@ -877,6 +877,27 @@ function textOf(el: El): Literal {
   return acc;
 }
 
+const NEW_TAB_HINT = "(opens in a new tab)";
+
+/**
+ * The site's new-tab rule for an off-site link (any http or https href; the site links its own
+ * pages by path): target="_blank", rel with noopener and noreferrer, and a visually hidden
+ * "(opens in a new tab)" for screen readers, as ExternalLink renders it.
+ */
+function externalLinkHits(file: string, a: El, line: number): Hit[] {
+  const href = a.attrs.href ?? "";
+  if (!/^https?:\/\//i.test(href)) return [];
+  const rel = (a.attrs.rel ?? "").toLowerCase().split(/\s+/);
+  const hasHint = (el: El): boolean =>
+    el.children.some((c) => isEl(c) && (((c.attrs.class ?? "").split(/\s+/).includes("sr-only") && allText(c).includes(NEW_TAB_HINT)) || hasHint(c)));
+  const missing = [
+    ...(a.attrs.target === "_blank" ? [] : ['target="_blank"']),
+    ...(rel.includes("noopener") && rel.includes("noreferrer") ? [] : ['rel="noopener noreferrer"']),
+    ...(hasHint(a) ? [] : [`a visually hidden "${NEW_TAB_HINT}"`]),
+  ];
+  return missing.length ? [hit(file, line, "external-link", `off-site link without ${missing.join(", ")} (use ExternalLink)`, href)] : [];
+}
+
 /** Text, heading, class, style and structure rules over a built page's visible content. */
 export function lintHtml(file: string, html: string, opts: HtmlOptions = {}): Hit[] {
   const allow = opts.allow ?? NO_ALLOW;
@@ -928,6 +949,7 @@ export function lintHtml(file: string, html: string, opts: HtmlOptions = {}): Hi
         }
         if (c.attrs.style) out.push(...lintCss(file, `x{${c.attrs.style}}`, { allow, built, line }).filter((h) => h.rule !== "motion-no-reduce"));
         if (/testimonial/i.test(c.attrs.id ?? "")) out.push(hit(file, line, "testimonial", "testimonial markup", c.attrs.id));
+        if (built && c.tag === "a") out.push(...externalLinkHits(file, c, line));
         const shown = visible && !invisible(c) && !verbatim(c);
         if (shown) {
           for (const a of HTML_TEXT_ATTRS) {

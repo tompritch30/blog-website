@@ -714,3 +714,22 @@ AssertionError: expected 'src/lib/__fixtures__/slop/built-plant…' to contain '
 ```
 
 Green: `Tests  59 passed (59)`.
+
+#### External-link rule on built pages
+
+New rule `external-link` in `lintHtml` with `built`: an `<a>` whose href starts with `http://` or `https://` (the site links its own pages by path) fails unless it has `target="_blank"`, a `rel` with both `noopener` and `noreferrer`, and a descendant `.sr-only` carrying "(opens in a new tab)", which is what `ExternalLink` renders. One hit per link, naming what is missing. Fixtures: `built-external.html` (a good link, then one missing each part, then `/cv`, `#main` and `mailto:` links and a head `<link>` that must not count) and a planted `built-planted/server/app/external.html` for the CLI. The two 3 Oct regression pages each carry one bare footer GitHub link from the old design, so their expectations now name it; the clean build's post link became `ExternalLink`'s markup.
+
+Red, same run as above (external-link lines):
+
+```
+   × lintHtml (built pages) > finds only the real tells on the post page as built on 3 Oct 2026 46ms
+   × lintHtml (built pages) > finds nothing on the same post page rebuilt after the slice 4 fixes but its bare footer GitHub link, payload scripts and code included 8ms
+   × lintHtml (built pages) > fails a built off-site link without target=_blank, rel noopener noreferrer and the hidden new-tab hint 2ms
+   × lint-slop CLI > --built fails each planted control page and the planted CSS 638ms
+AssertionError: expected { 'em-dash': 6, 'icon-kit': 1, …(1) } to deeply equal { 'em-dash': 6, marketing: 1, …(2) }
+AssertionError: expected [] to deeply equal [ [ 'external-link', …(1) ] ]
+AssertionError: expected [] to deeply equal [ [ 'external-link', 3 ], …(2) ]
+      Tests  5 failed | 56 passed (61)
+```
+
+Green: `Tests  61 passed (61)`. Real hits on the site: the only bare off-site anchor in the source was `Figure`'s credit link, fixed above; the built pages' result is in the gate run at the end of this section.
