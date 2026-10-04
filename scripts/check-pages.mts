@@ -225,7 +225,7 @@ async function gameCheck(browser: Browser, problems: string[]): Promise<void> {
     const names = await dialog.evaluate((d) =>
       [...d.querySelectorAll("a[href], button, input, select, textarea, [tabindex='0']")].map((el) => (el as HTMLElement).innerText.trim() || el.getAttribute("aria-label") || el.tagName),
     );
-    const hits = lintControls(label, await page.content(), entries, "/ (game open)");
+    const hits = lintControls(label, await page.content(), entries, "/ (game open)", { origins: [new URL(base).origin] });
     console.log(`${hits.length ? "FAIL" : "pass"}  controls ${label}: dialog has ${names.map((n) => `"${n}"`).join(", ")}`);
     for (const h of hits) console.log(`        ${h.rule} ${h.message}`);
     if (hits.length) problems.push(`controls ${label}: ${hits.length} hits`);
@@ -306,7 +306,7 @@ async function main(): Promise<number> {
 
         // Controls do not change with the theme, so the rendered DOM is checked once per width.
         if (theme === "light") {
-          const hits = lintControls(label, await page.content(), entriesFor(budget, route.pattern), route.pattern);
+          const hits = lintControls(label, await page.content(), entriesFor(budget, route.pattern), route.pattern, { origins: [new URL(base).origin] });
           console.log(`${hits.length ? "FAIL" : "pass"}  controls ${route.path} ${viewport.width} (${route.pattern})`);
           for (const h of hits) console.log(`        ${h.rule} ${h.message}`);
           if (hits.length) problems.push(`controls ${route.path} ${viewport.width}: ${hits.length} hits`);

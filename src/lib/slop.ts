@@ -1088,41 +1088,89 @@ function visibleLabel(el: El): string {
   return decodeEntities(parts.join(" ")).replace(/\s+/g, " ").trim();
 }
 
-const normalHref = (href: string) => (href.length > 1 && href.endsWith("/") ? href.slice(0, -1) : href);
+const hostKey = (host: string) => host.toLowerCase().replace(/^www\./, "");
+
+/**
+ * The place a link leads, for comparing two links on one page: no query or fragment, no scheme, no
+ * "www.", no trailing slash, and an absolute link to the site's own origin read as its path. A bare
+ * "#..." anchor stays as it is.
+ */
+export function placeKey(href: string, ownHosts: ReadonlySet<string> = new Set()): string {
+  if (href.startsWith("#")) return href;
+  let place = href.replace(/[?#].*$/, "");
+  const abs = /^(?:https?:)?\/\/([^/]+)(.*)$/i.exec(place);
+  if (abs) {
+    const host = hostKey(abs[1]);
+    place = ownHosts.has(host) ? abs[2] || "/" : `//${host}${abs[2]}`;
+  }
+  return place.length > 1 && place.endsWith("/") ? place.slice(0, -1) : place;
+}
+
+/** The hosts the page calls its own: its canonical link and og:url, plus any origins passed in. */
+function ownHostsOf(root: El, origins: readonly string[]): Set<string> {
+  const hosts = new Set<string>();
+  const add = (url: string | undefined) => {
+    const m = url ? /^(?:https?:)?\/\/([^/?#]+)/i.exec(url.trim()) : null;
+    if (m) hosts.add(hostKey(m[1]));
+  };
+  origins.forEach(add);
+  const walk = (el: El) => {
+    for (const c of el.children) {
+      if (!isEl(c)) continue;
+      if (c.tag === "link" && (c.attrs.rel ?? "").split(/\s+/).includes("canonical")) add(c.attrs.href);
+      if (c.tag === "meta" && c.attrs.property === "og:url") add(c.attrs.content);
+      walk(c);
+    }
+  };
+  walk(root);
+  return hosts;
+}
+
+const hasClass = (el: El, name: string) => (el.attrs.class ?? "").split(/\s+/).includes(name);
 
 /**
  * Owner review, 4 Oct 2026: each place is linked once per page (duplicate-href) and one visible label
- * never names two places (duplicate-label). Same-page anchors (#...) are exempt from the first rule:
- * they move within the page rather than lead anywhere, and the skip link and footnote references need
- * them; they still count for the second, so an "About" anchor beside an "About" page link fails.
+ * never names two places (duplicate-label). Addresses are compared by placeKey.
+ * duplicate-href exempts same-page anchors (#...), which move within the page rather than lead
+ * anywhere (the skip link, footnotes), and links inside the post body (.prose), since an essay may
+ * cite one source twice; the page chrome may still not repeat itself.
+ * duplicate-label skips footnote links and lets two anchors share a label (remark-gfm marks every
+ * footnote's way back "↩"), but an anchor named like a link to another place still fails, so an
+ * "About" anchor beside the nav's About page link is caught.
  */
-function linkUseHits(file: string, root: El, lineOf: (i: number) => number): Hit[] {
+function linkUseHits(file: string, root: El, lineOf: (i: number) => number, origins: readonly string[]): Hit[] {
   const out: Hit[] = [];
+  const own = ownHostsOf(root, origins);
   const byHref = new Map<string, string>();
   const byLabel = new Map<string, string>();
-  const walk = (el: El) => {
+  const walk = (el: El, inProse: boolean) => {
     for (const c of el.children) {
       if (!isEl(c) || ["head", "script", "style", "template", "noscript"].includes(c.tag)) continue;
+      const prose = inProse || hasClass(c, "prose");
       if (c.tag === "a" && "href" in c.attrs) {
-        const href = normalHref(c.attrs.href);
+        const href = placeKey(c.attrs.href, own);
         const label = visibleLabel(c) || (c.attrs["aria-label"] ?? "").trim();
         const line = lineOf(c.start);
-        if (!href.startsWith("#")) {
+        const anchor = href.startsWith("#");
+        if (!anchor && !prose) {
           const first = byHref.get(href);
           if (first !== undefined) out.push(hit(file, line, "duplicate-href", `second link to ${href} on the page (first: "${first}"); link each place once`, label));
           else byHref.set(href, label);
         }
         const key = label.toLowerCase();
-        if (key) {
+        const footnote = "data-footnote-ref" in c.attrs || "data-footnote-backref" in c.attrs;
+        if (key && !footnote) {
           const other = byLabel.get(key);
-          if (other !== undefined && other !== href) out.push(hit(file, line, "duplicate-label", `"${label}" links to ${href} here and to ${other} elsewhere on the page`, label));
-          else if (other === undefined) byLabel.set(key, href);
+          if (other === undefined) byLabel.set(key, href);
+          else if (other !== href && !(anchor && other.startsWith("#"))) {
+            out.push(hit(file, line, "duplicate-label", `"${label}" links to ${href} here and to ${other} elsewhere on the page`, label));
+          }
         }
       }
-      walk(c);
+      walk(c, prose);
     }
   };
-  walk(root);
+  walk(root, false);
   return out;
 }
 
@@ -1131,7 +1179,7 @@ function hrefMatches(pattern: string, href: string): boolean {
 }
 
 /** Controls on one built page against its budget entries (null: the route has no budget). */
-export function lintControls(file: string, html: string, entries: ControlEntry[] | null, route: string): Hit[] {
+export function lintControls(file: string, html: string, entries: ControlEntry[] | null, route: string, opts: { origins?: string[] } = {}): Hit[] {
   const out: Hit[] = [];
   const lineOf = lineFinder(html);
   const root = parseHtml(html);
@@ -1144,7 +1192,7 @@ export function lintControls(file: string, html: string, entries: ControlEntry[]
     }
   };
   walkAnchors(root);
-  out.push(...linkUseHits(file, root, lineOf));
+  out.push(...linkUseHits(file, root, lineOf, opts.origins ?? []));
   const left = new Map<ControlEntry, number>((entries ?? []).map((e) => [e, e.count === "many" ? Infinity : (e.count ?? 1)]));
   const firstLine = new Map<ControlEntry, number>();
   for (const c of findControls(html)) {

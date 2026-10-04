@@ -360,13 +360,13 @@ describe("links appear once per page", () => {
   ];
   const rules = (html: string) => pairs(lintControls("p.html", html, any, "/x").filter((h) => h.rule.startsWith("duplicate-")));
 
-  it("fails a second link to the same address, a trailing slash or not, but not same-page anchors", () => {
+  it("fails a second link to the same address, a trailing slash or not, but not same-page anchors or the post body", () => {
     const html = [
       '<a href="#main">Skip to content</a><nav><a href="/cv">CV</a></nav>',
       `<p>${ext("https://github.com/casey", "GitHub")} <a href="/cv/">Every role</a></p>`,
       `<div class="prose"><p>${ext("https://github.com/casey", "my code")} <a href="#fn-1">1</a> <a href="#fn-1">1</a> <a href="#main">top</a></p></div>`,
     ].join("\n");
-    expect(rules(html)).toEqual([["duplicate-href", 2], ["duplicate-href", 3]]);
+    expect(rules(html)).toEqual([["duplicate-href", 2]]);
   });
 
   it("fails two links with the same visible label that lead to different places, reading only the visible text", () => {
@@ -382,6 +382,44 @@ describe("links appear once per page", () => {
   it("passes a page that links each place once under its own label", () => {
     const html = `<a href="#main">Skip to content</a><a href="/">Casey</a><a href="/cv">CV</a>\n<p>${ext("https://github.com/casey", "GitHub")} ${ext("https://linkedin.com/in/casey", "LinkedIn")}</p>`;
     expect(rules(html)).toEqual([]);
+  });
+
+  // Review round 2: remark-gfm draws every footnote's way back as "↩" to its own anchor, so two
+  // footnotes read as one label naming two places. Same-page anchors move within the page; only an
+  // anchor named like a link to another page (an "About" anchor beside the nav's About) still fails.
+  it("passes a post with two GFM footnotes, as remark-gfm renders them", () => {
+    const entries: ControlEntry[] = [
+      { kind: "link", href: "#main", job: "skip the navigation" },
+      { kind: "link", href: "/", job: "go home" },
+      { kind: "link", href: "/writing", job: "list the posts" },
+      { kind: "prose links", job: "links the post cites" },
+    ];
+    expect(pairs(lintControls("footnotes.html", read("footnotes.html"), entries, "/writing/[slug]"))).toEqual([]);
+  });
+
+  it("compares addresses without query or fragment, scheme, www. or a trailing slash, and reads the page's own origin as a path", () => {
+    expect(rules(read("duplicate-href.html"))).toEqual([
+      ["duplicate-href", 2],
+      ["duplicate-href", 3],
+      ["duplicate-href", 5],
+      ["duplicate-href", 6],
+      ["duplicate-href", 9],
+    ]);
+  });
+
+  it("resolves the site's own origin from an option when the page has no canonical link", () => {
+    const html = '<a href="/cv">CV</a>\n<a href="https://casey.example/cv/">My CV</a>';
+    expect(pairs(lintControls("p.html", html, any, "/x"))).toEqual([]);
+    expect(pairs(lintControls("p.html", html, any, "/x", { origins: ["https://casey.example"] }))).toEqual([["duplicate-href", 2]]);
+  });
+
+  it("lets a post's body cite one source twice, but not the page chrome", () => {
+    const html = [
+      '<nav><a href="/">Casey</a><a href="/cv">CV</a></nav>',
+      `<div class="prose"><p>${ext("https://example.com/paper", "the paper")} and later ${ext("https://example.com/paper", "the same paper")} and <a href="/cv">CV</a></p></div>`,
+      '<p><a href="/cv">CV</a></p>',
+    ].join("\n");
+    expect(rules(html)).toEqual([["duplicate-href", 3]]);
   });
 });
 

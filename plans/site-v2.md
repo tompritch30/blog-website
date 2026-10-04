@@ -883,3 +883,59 @@ Green: 72 passed (one proper-noun case added after green, as a guard). `design/s
 #### Gates
 
 From a fresh `git clone --local` of `site-v2-kb` at 094cecb in a `mktemp -d` folder (`npm ci --prefer-offline`, `scripts/setup-dev.sh`), so the owner's dev server on 3006 kept its `.next`: `scripts/ci.sh` ends `slop: 0 hits in 0 of 8 files` and `ci: all gates green`. Then `npx next start -p 3016`, `npm run check:pages -- http://localhost:3016` (exit 0): controls and nav pass on all 6 routes at 375 and 1440, axe 24 of 24 runs pass, the game opens from the nav alien and gives focus back to it, `print /cv A4: 1 page, want 1` and `print /cv Letter: 1 page, want 1`, `0 problems`. `npm run shots` refreshed the 24 screenshots (8 KB to 204 KB, 256 colours).
+
+### 2026-10-04 review fixes, round 2
+
+A fresh review of the owner-review work (via the lead) found thirteen items. The builder here did not write the reviewed code.
+
+#### Two commit messages reworded
+
+`5780fae` (`feat(pages)`) had a body cut off mid-sentence and no Co-Authored-By trailer, and `85f00fd` (`feat(slop)`) carried a paragraph apologising for it. The branch is local and unpushed, so the lead allowed a one-off rewrite of those two messages only: `git branch -f site-v2-kb-pre-reword HEAD`, then `git filter-branch --msg-filter` over `ac2abdf..site-v2-kb` with a script that matches the two original subject lines and prints a complete message written from each commit's diff; every other message passes through `cat` unchanged. Proof:
+
+```
+--- git diff site-v2-kb-pre-reword site-v2-kb (bytes):
+0
+--- commit count:
+7
+--- Co-Authored-By count:
+7
+--- per-commit message compare:
+identical  feat(posts): drop tags from post meta, the feed and the Post type
+identical  feat(layout): move the alien into the nav and drop the footer
+REWRITTEN  feat(pages): link each place once per page
+REWRITTEN  feat(slop): fail a page that links one place twice or names two alike
+identical  feat(cv): lay /cv out like the PDF CV, as a paper sheet
+identical  feat(slop): make heading case a setting, sentence by default
+identical  docs(design): log the owner review and refresh the screenshots
+--- dates/authors old vs new:
+      7 same
+```
+
+The first two commits kept their hashes; `refs/original` was deleted afterwards. The line in "Links once per page" above about the next commit saying so is history: that paragraph is gone.
+
+#### Link rules: footnotes, address forms, the post body
+
+Three gaps in `duplicate-href` and `duplicate-label`:
+
+- remark-gfm draws every footnote's way back as "↩" linking to its own anchor, so a post with two footnotes failed `duplicate-label`. Footnote links (`data-footnote-ref`, `data-footnote-backref`) are skipped by the label rule, and two same-page anchors may share a label. Decision: an anchor named like a link to another place still fails (an "About" anchor beside the nav's About page), because that was the owner's complaint about the old section index; anchors never clash with each other, since neither leads anywhere.
+- Addresses are compared by `placeKey`: query and fragment stripped (a bare `#...` stays exempt), scheme and `www.` dropped, trailing slash ignored, and an absolute link to the page's own origin read as its path. The origin comes from the page's canonical link or `og:url`, and check-pages also passes its base URL.
+- Judgement 10: links inside `.prose` are exempt from `duplicate-href`, since an essay may cite one source twice; the page chrome still may not repeat. The old test that expected a prose link repeating the chrome's GitHub link to fail now expects it to pass.
+
+The footnote fixture (`src/lib/__fixtures__/slop/footnotes.html`) is real remark-gfm output, rendered through `@mdx-js/mdx` and React as the site does. Red, `npx vitest run src/lib/slop.test.ts`:
+
+```
+   × links appear once per page > fails a second link to the same address, a trailing slash or not, but not same-page anchors or the post body 15ms
+   × links appear once per page > passes a post with two GFM footnotes, as remark-gfm renders them 3ms
+   × links appear once per page > compares addresses without query or fragment, scheme, www. or a trailing slash, and reads the page's own origin as a path 3ms
+   × links appear once per page > resolves the site's own origin from an option when the page has no canonical link 1ms
+   × links appear once per page > lets a post's body cite one source twice, but not the page chrome 4ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected [ [ 'duplicate-href', 2 ], …(1) ] to deeply equal [ [ 'duplicate-href', 2 ] ]
+AssertionError: expected [ [ 'duplicate-label', 10 ] ] to deeply equal []
+AssertionError: expected [ [ 'duplicate-href', 8 ] ] to deeply equal [ [ 'duplicate-href', 2 ], …(4) ]
+AssertionError: expected [] to deeply equal [ [ 'duplicate-href', 2 ] ]
+AssertionError: expected [ [ 'duplicate-href', 2 ], …(2) ] to deeply equal [ [ 'duplicate-href', 3 ] ]
+      Tests  5 failed | 71 passed (76)
+```
+
+Green: `Tests  76 passed (76)`.
