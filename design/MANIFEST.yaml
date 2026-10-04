@@ -43,9 +43,9 @@ fonts:
 
 images:
   - name: portrait
-    path: public/me/thomas.jpg (src/content/profile.ts, portrait)
-    kind: 400 x 400 JPEG, progressive, no EXIF, ICC, XMP or IPTC metadata (checked with sharp, 4 Oct 2026); sha256 87829ad999e17a5ea99197b0de20e9579a3cca93281a0550bcb3f853045b543b
-    origin: his GitHub avatar, https://github.com/tompritch30.png?size=460, re-encoded at 400px without metadata (3 Oct 2026) and stored locally so the page makes no call to GitHub
+    path: public/me/headshot.jpg (src/content/profile.ts, portrait; rendered with next/image, which serves AVIF or WebP)
+    kind: 800 x 800 JPEG (mozjpeg, quality 80), no EXIF, ICC, XMP or IPTC metadata; sha256 b5d4631e78f2ae2ecbc921b68a9d658ee9c1b654de4c76d490d09770aa4c864b
+    origin: owner-supplied photo, 4 Oct 2026 (a 1254 x 1254 PNG he provided), resized and re-encoded without metadata; replaces the GitHub avatar used on 3 Oct
     licence: his own photo, used on his own site at his request
   - name: Palindrome logo
     path: public/logos/palindrome.svg (inlined by src/components/home/OrgMark.tsx beside the Palindrome role on / and /cv; also invader type 1, below)

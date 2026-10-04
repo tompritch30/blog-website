@@ -265,11 +265,11 @@ export const links = {
   linkedin: "https://www.linkedin.com/in/thomas-pritchard-01a/",
 } as const;
 
-// His GitHub avatar (github.com/tompritch30.png at 460px), re-encoded at 400px without metadata.
+// His headshot, supplied by him on 4 Oct 2026, re-encoded at 800px without metadata. next/image
+// serves AVIF or WebP at the displayed size.
 export const portrait = {
-  src: "/me/thomas.jpg",
-  width: 400,
-  height: 400,
-  // Not his name: the site name in the header already says it, so a screen reader would hear it twice.
+  src: "/me/headshot.jpg",
+  width: 800,
+  height: 800,
   alt: "Portrait photo",
 } as const;
