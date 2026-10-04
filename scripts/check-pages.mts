@@ -29,6 +29,7 @@ import path from "node:path";
 import { type Browser, type Page, chromium } from "playwright-core";
 import sharp from "sharp";
 import { blocking, pageRoutes, pickChromium, shotFile } from "../src/lib/check-pages.ts";
+import { MYSTERY_TARGETS, UNLOCKED_KEY } from "../src/lib/invaders/links.ts";
 import { type ControlsBudget, entriesFor, lintControls } from "../src/lib/slop.ts";
 
 const TAGS = ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"];
@@ -39,8 +40,8 @@ const VIEWPORTS = [
 const THEMES = ["light", "dark"] as const;
 const MAX_SHOT = 300 * 1024;
 const MISSING = "/check-pages-missing-page";
-// The mystery ship's links in rotation (src/lib/invaders/links.ts), seeded as already won.
-const UNLOCKED = ["https://doi.org/10.1109/lra.2025.3557738", "https://github.com/tompritch30", "https://www.linkedin.com/in/thomas-pritchard-01a/"];
+// The mystery ship's links in rotation, seeded as already won.
+const UNLOCKED = MYSTERY_TARGETS.map((t) => t.href);
 // WCAG 2.2 target size asks for 24x24; the alien's button is drawn at 28x28.
 const ALIEN_MIN = 28;
 
@@ -154,7 +155,7 @@ async function gameCheck(browser: Browser, problems: string[]): Promise<void> {
     const label = `/ 1440 with the game open (reduced motion: ${reducedMotion})`;
     const ctx = await browser.newContext({ viewport: VIEWPORTS[1], reducedMotion });
     // A returning player: every mystery-ship link already won, so the pause screen lists all three.
-    await ctx.addInitScript((list) => window.localStorage.setItem("invaders-unlocked", JSON.stringify(list)), UNLOCKED);
+    await ctx.addInitScript(({ key, list }) => window.localStorage.setItem(key, JSON.stringify(list)), { key: UNLOCKED_KEY, list: UNLOCKED });
     const page = await ctx.newPage();
     await page.goto(`${base}/`, { waitUntil: "networkidle" });
     const alien = page.locator("header nav").getByRole("button", { name: /play space invaders/i });

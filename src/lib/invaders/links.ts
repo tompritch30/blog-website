@@ -1,7 +1,8 @@
 // What a hit on the mystery ship wins: a link added to the game's Unlocked list. The game never
 // leaves the page or opens a tab on a hit (owner, 4 Oct 2026); the pause and game-over screens list
 // the unlocked links for the player to open. Pure apart from the storage the caller passes in.
-import { cv, links } from "@/content/profile";
+// relative, with its extension, so scripts/check-pages.mts can import this under plain Node
+import { cv, links } from "../../content/profile.ts";
 
 export type MysteryTarget = { href: string; label: string };
 
