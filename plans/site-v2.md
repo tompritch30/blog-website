@@ -939,3 +939,24 @@ AssertionError: expected [ [ 'duplicate-href', 2 ], …(2) ] to deeply equal [ [
 ```
 
 Green: `Tests  76 passed (76)`.
+
+#### The client-size figure out until the owner clears it
+
+The home case study and the CV bullet read "for two wealth managers across 4 countries"; the rest of each sentence is unchanged. The allowlist entry that let the figure through is gone, so the slop lint now fails it anywhere in content. The CLI's planted money page shows the allowlist matching by text with the caching post's "$2.50" instead. Red, `npm run lint:slop` and `npx vitest run src/lib/slop.test.ts` with the entry removed and the copy not yet changed:
+
+```
+> node scripts/lint-slop.mts
+
+src/content/profile.ts:110 money currency figure "£2bn+" in content is not on the money allowlist | "Shipped 5 AI advice-report products to production in 3 months for two wealth managers wit
+src/content/profile.ts:159 money currency figure "£2bn+" in content is not on the money allowlist | "Cut adviser report writing from a week to an hour by shipping 5 AI advice-report products
+
+FAIL  src/content/profile.ts  2 hits
+
+slop: 2 hits in 1 of 71 files
+   × lint-slop CLI > --built fails each planted control page and the planted CSS 925ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected [ …(10) ] to have a length of 9 but got 10
+      Tests  1 failed | 75 passed (76)
+```
+
+Green: `slop: 0 hits in 0 of 71 files` and `Tests  76 passed (76)`.

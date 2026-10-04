@@ -107,7 +107,7 @@ export const caseStudies: CaseStudy[] = [
     problem:
       "Advisers at UK wealth managers wrote each client's advice report by hand, and a complex report took about a week.",
     built:
-      "Shipped 5 AI advice-report products to production in 3 months for two wealth managers with £2bn+ in assets across 4 countries. AI agents draft each report from the client's records, and the adviser reviews it.",
+      "Shipped 5 AI advice-report products to production in 3 months for two wealth managers across 4 countries. AI agents draft each report from the client's records, and the adviser reviews it.",
     result: "Adviser report writing went from a week to an hour.",
     figure: { value: "1 hour", label: "for a report that took a week" },
   },
@@ -156,7 +156,7 @@ export const cv: Cv = {
       dates: "Apr 2026 – Present",
       descriptor: "AI platform for UK wealth managers, London",
       bullets: [
-        "Cut adviser report writing from a week to an hour by shipping 5 AI advice-report products to production in 3 months for two wealth managers with £2bn+ in assets across 4 countries",
+        "Cut adviser report writing from a week to an hour by shipping 5 AI advice-report products to production in 3 months for two wealth managers across 4 countries",
         "Represented Palindrome in the UK FCA's AI Live Testing programme alongside three major banks, and refined the company's AI report evaluation system in workshops with the regulator",
         "Cut the LLM cost of each AI advice report by 67% by restructuring prompts so shared instructions and client data are cached, then rolled it out to compliance checks, chatbot and AI editing",
         "Sped up new client report builds 10x, from 3 weeks to 2 days, by enforcing prompts-as-code standards and architecting a Claude Code system that compounds client lessons into shared skills",

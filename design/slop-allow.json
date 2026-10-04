@@ -14,11 +14,6 @@
   "radius": [],
   "money": [
     {
-      "file": "src/content/profile.ts",
-      "texts": ["£2bn+"],
-      "reason": "Assets of the two client firms, a size that describes the clients without naming them; not revenue, savings or a deal value (ADR 0003 item 3). Listed for the owner to confirm."
-    },
-    {
       "file": "src/content/posts/what-prompt-caching-actually-saves.mdx",
       "texts": [
         "$2", "$2.50", "$4", "$0.20", "$10", "$0.30", "$0.03", "$1.00", "$0.0160", "$160.00", "$0.0053", "$52.55",

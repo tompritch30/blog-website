@@ -453,7 +453,7 @@ describe("lint-slop CLI", { timeout: 30_000 }, () => {
     expect(out.stdout).toContain(`${app}/role-button.html:3 role-button-link `);
     expect(out.stdout).toContain(`${app}/no-job.html:3 control-no-job `);
     expect(out.stdout).toContain(`${dir}/static/chunks/site.css:1 radius `);
-    // the real allowlist: "£2bn+" passes by its text, the split "$75k" does not
+    // the real allowlist: "$2.50" passes by its text, the split "$75k" does not
     expect(out.stdout).toContain(`${app}/money.html:3 money currency figure "$75k"`);
     expect(out.stdout).toContain(`${app}/external.html:3 external-link `);
     expect(out.stdout).toContain(`${app}/duplicate.html:2 duplicate-href `);
