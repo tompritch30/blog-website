@@ -1152,3 +1152,30 @@ pass  hit / 1440 with a staged mystery-ship hit: Enter opened a new page at http
 The new page is caught with `context.waitForEvent("page")`; the paper's host is routed to a local stub, so only its URL is read and nothing is fetched. What a visitor sees in Chromium: the game freezes with the panel "Paused. The mystery ship unlocked ForestVO paper.", the claret "Open ForestVO paper ↗" with focus, and Resume under it. Enter (or a click) opens the paper in a new foreground tab, which takes focus, as Chromium does for any `target="_blank"` link opened without a modifier; the game's tab stays behind it, paused on the same panel with focus still on the link, so coming back shows exactly where they left off. Headless Playwright treats every page as focused, so tab focus itself is Chromium's documented behaviour, not something this run measured. Firefox is not tested: its Playwright build is not installed here and downloads are not allowed.
 
 Screenshots (light, from that run): `design/shots/home-1440-light.png`, `home-375-light.png`, `about-1440-light.png`, `about-375-light.png`, and `game-hit-1440-light.png` (the game paused on "Open ForestVO paper ↗"). The server was stopped by its process group and the clone removed; the dev server on 3006 was left alone.
+
+### 2026-10-04 writing hidden
+
+Owner: writing is hidden for now; he will write and backdate real articles later, nothing generic. Done:
+
+- Both posts are drafts (`draft: true`); neither is deleted. ADR 0001 checked against the code, not assumed: `getAllPosts` and `getPost` drop drafts unless `NODE_ENV` is `development`; `/writing/[slug]` and its share image take `generateStaticParams` from `getAllPosts` with `dynamicParams = false`; the sitemap, the feed and both list pages read `getAllPosts`. No `cacheComponents` in `next.config.ts`, so an empty `generateStaticParams` is allowed (Next 16 docs: only Cache Components rejects an empty list).
+- Home: the Writing section is gone, and so is the hero's italic line about writing (`motto`, lead's addition; nothing else used it, so it left `profile.ts` and its CSS). `src/content/about.mdx` still carries the same sentence; left alone as asked and reported.
+- `/writing`: its title and one plain line, "Articles coming soon.", while nothing is published: no subtitle, no list, no RSS link. With a published post the list and the RSS link come back, so publishing a draft needs no code change; in `next dev` the drafts are listed for previewing.
+- A draft in `next dev` opens with a claret banner (`draftBanner` in `src/lib/draft.ts`).
+- The feed with zero items is a valid RSS 2.0 channel (title, link and description are its only required elements), so every page head keeps the feed's `<link rel="alternate">`.
+- `docs/writing-a-post.md`, the owner's release process, is slop-linted by `scripts/ci.sh` beside `design/SYSTEM.md` and linked from README. Neither checkout has a `.claude/launch.json`; the doc says so and gives `npm run dev` (3005) and `npx next dev -p 3006`.
+
+Red, `npx vitest run src/lib/draft.test.ts src/lib/posts.test.ts src/lib/feed.test.ts src/lib/check-pages.test.ts` with `draftBanner` stubbed to return null and only one post a draft:
+
+```
+   × draftBanner > labels a draft, which only next dev renders, so a preview is never mistaken for the live post 8ms
+   ✓ draftBanner > says nothing on a published post 0ms
+ ✓ src/lib/feed.test.ts (2 tests) 4ms
+   × the real posts folder > keeps every post a draft for now: production lists none, dev still has both 25ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected null to be 'Draft. Shown by next dev only: not bu…' // Object.is equality
+AssertionError: expected [ { …(6) } ] to deeply equal []
+ Test Files  2 failed | 2 passed (4)
+      Tests  2 failed | 20 passed (22)
+```
+
+The empty-feed golden test (`renderRss` with no posts, compared whole) and the `pageRoutes([])` test passed on first run: the old code already did the right thing, and the tests now pin it. Green: `Tests  239 passed (239)`.

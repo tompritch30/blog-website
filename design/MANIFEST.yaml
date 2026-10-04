@@ -5,7 +5,7 @@ fonts:
   # Every font the built site loads. The three page faces are fetched by next/font/google at build
   # time and self-hosted with the site (src/app/layout.tsx); the browser makes no request to Google.
   - name: Newsreader
-    use: headings, the name, case-study figures and the one italic line
+    use: headings, the name and case-study figures
     files: next/font/google (Newsreader), CSS variable --font-newsreader
     upstream: https://github.com/productiontype/Newsreader
     licence: SIL Open Font License 1.1

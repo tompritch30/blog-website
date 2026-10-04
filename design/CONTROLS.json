@@ -12,14 +12,13 @@
       "controls": [
         { "kind": "link", "href": "https://www.linkedin.com/in/thomas-pritchard-01a/", "job": "see his LinkedIn profile from the hero (new tab); the one LinkedIn link on the page" },
         { "kind": "link", "href": "https://github.com/tompritch30", "job": "see his code on GitHub from the hero (new tab); the one GitHub link on the page" },
-        { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "job": "read the ForestVO paper (new tab) from its row in Education and research" },
-        { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post from the recent writing list" }
+        { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "job": "read the ForestVO paper (new tab) from its row in Education and research" }
       ]
     },
     "/writing": {
       "controls": [
-        { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post" },
-        { "kind": "link", "href": "/feed.xml", "job": "follow new posts by RSS (a quiet link under the list; feed readers use the head's link rel=alternate)" }
+        { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post (none while every post is a draft: the page then says only \"Articles coming soon.\")" },
+        { "kind": "link", "href": "/feed.xml", "job": "follow new posts by RSS (a quiet link under the list, shown only once a post is published; feed readers use the head's link rel=alternate)" }
       ]
     },
     "/writing/[slug]": {

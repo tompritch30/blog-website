@@ -3,16 +3,18 @@
 Words used in code, tests and plans. Use these names; add a line when a new term appears.
 
 - **Post**: one MDX file in `src/content/posts/`. Its file name is its **slug**.
-- **Post URL**: `/writing/<slug>` (`postPath` in `src/lib/paths.ts`); `/writing` lists the published posts. The old `/blog` and `/blog/<slug>` URLs redirect there permanently (308, `next.config.ts`).
+- **Post URL**: `/writing/<slug>` (`postPath` in `src/lib/paths.ts`); `/writing` lists the published posts, or says "Articles coming soon." when there are none. The old `/blog` and `/blog/<slug>` URLs redirect there permanently (308, `next.config.ts`).
 - **Frontmatter**: the YAML block at the top of a post: `title`, `date` (quoted `YYYY-MM-DD`), `description` and optional `draft`. Validated once, in `src/lib/posts.ts`; any other key (an old `tags` line, say) is ignored. Posts have no tags: the site shows none.
-- **Draft**: a post with `draft: true`. Shown by `next dev` only; never built, listed, put in the sitemap or the feed.
+- **Draft**: a post with `draft: true`. Shown by `next dev` only; never built, listed, put in the sitemap or the feed. Both posts are drafts for now (owner, 4 Oct 2026): writing is hidden until he publishes real articles.
+- **Draft banner**: the claret line at the top of a draft in `next dev` (`draftBanner` in `src/lib/draft.ts`), so a preview is never taken for the live post.
 - **Published post**: any post that is not a draft.
 - **Profile**: `src/content/profile.ts`, the facts about Thomas the pages render: the intro, the case studies, his roles, education, paper and skills (`cv`, which the home page reads; the web CV page was dropped on 4 Oct 2026 and `/cv` redirects home) and his profile links. Sources and limits in ADR 0003.
 - **Case study**: one piece of his work told as problem, what he built and the result, with where and when (`caseStudies` in the profile); shown on the home page. Clients are described, never named.
 - **Site config**: `src/lib/site.ts`: name, tagline, description, locale and the **site URL**.
 - **Site URL**: the public origin. `NEXT_PUBLIC_SITE_URL`, else Vercel's production domain, else `http://localhost:3000`.
 - **Share image**: the Open Graph image generated at build time (`opengraph-image.tsx`); one for the site, one per post.
-- **Feed**: the RSS 2.0 document at `/feed.xml`.
+- **Feed**: the RSS 2.0 document at `/feed.xml`; with no published posts it is a valid channel with no items.
+- **Release process**: `docs/writing-a-post.md`, the steps from a new MDX file to a live post.
 - **Colour token**: a CSS custom property in `globals.css` (`--text`, `--secondary`, `--link`, ...). Text tokens must meet WCAG AA on every background token. There is one set: the site is light only, with no dark theme and no toggle (owner decision, 4 Oct 2026).
 - **Slop lint**: `npm run lint:slop` (`src/lib/slop.ts`, `scripts/lint-slop.mts`): rules for the tells of generated design and copy (em dashes, marketing words, letter-spaced caps, big radii, filler subtitles, money figures in content, default fonts, pure black and white, and more). Exemptions, each with a reason, in `design/slop-allow.json`. `--built` lints the production build's pages and CSS.
 - **Controls budget**: `design/CONTROLS.json`, every link, button and focusable element each built page may have, with its job, keyed by route pattern. `lint:slop -- --built` fails a control that is not listed.

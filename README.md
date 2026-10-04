@@ -28,6 +28,8 @@ Open http://localhost:3000. For writing, use `npm run dev` instead of build and 
 
 ## Writing a post
 
+Writing is hidden for now: both posts are drafts, so the live site has no post pages, `/writing` says "Articles coming soon." and the home page has no Writing section. The release process, from a new file to a live post, is in [docs/writing-a-post.md](docs/writing-a-post.md).
+
 Add `src/content/posts/<slug>.mdx`. The file name is the URL: `my-post.mdx` becomes `/writing/my-post`.
 
 ```mdx
@@ -42,7 +44,7 @@ Markdown, GitHub tables and code blocks, and React components.
 ```
 
 - `date` must be quoted `YYYY-MM-DD`; the build fails with the file name if it is not.
-- `draft: true` shows the post in `npm run dev` only. Production builds, the sitemap and the feed leave it out. Delete the line to publish. The MDX file is still in the repo, so anyone can read a draft on GitHub if the repo is public.
+- `draft: true` shows the post in `npm run dev` only, under a "Draft" banner. Production builds, the sitemap and the feed leave it out, and its URL is a 404. Delete the line to publish. The MDX file is still in the repo, so anyone can read a draft on GitHub if the repo is public.
 - The About page is `src/content/about.mdx`.
 
 ## Checking pages
@@ -55,7 +57,7 @@ npm run check:pages -- http://localhost:3119   # default base URL: http://localh
 npm run shots -- http://localhost:3119         # the same checks, plus screenshots in design/shots/
 ```
 
-Every page (home, writing, each post, About and a missing page) is opened at 375 and 1440 pixels wide (the site is light only). The check runs axe (WCAG 2.2 AA) and fails on any serious, critical or colour-contrast violation; checks the rendered page's links and buttons against `design/CONTROLS.json` with the same code as `npm run lint:slop -- --built`, and again on the home page with the invaders game open and paused, and after a staged mystery-ship hit (`?invaders-test`), where Enter on the focused "Open ForestVO paper" link must open a new page at the paper while the game stays paused. It also measures the header nav on every page (one line, the alien's button at least 28x28, no sideways scroll). `--shots` saves `<page>-<width>-light.png` full-page screenshots, palette-reduced to under 300KB; `--out <dir>` puts them elsewhere. Nothing is downloaded: it uses a Chromium that Playwright has already cached.
+Every page (home, writing, each published post, About and a missing page) is opened at 375 and 1440 pixels wide (the site is light only). The check runs axe (WCAG 2.2 AA) and fails on any serious, critical or colour-contrast violation; checks the rendered page's links and buttons against `design/CONTROLS.json` with the same code as `npm run lint:slop -- --built`, and again on the home page with the invaders game open and paused, and after a staged mystery-ship hit (`?invaders-test`), where Enter on the focused "Open ForestVO paper" link must open a new page at the paper while the game stays paused. It also measures the header nav on every page (one line, the alien's button at least 28x28, no sideways scroll). `--shots` saves `<page>-<width>-light.png` full-page screenshots, palette-reduced to under 300KB; `--out <dir>` puts them elsewhere. Nothing is downloaded: it uses a Chromium that Playwright has already cached.
 
 ## Configuration
 
@@ -85,7 +87,7 @@ src/content/posts/*.mdx --> src/lib/posts.ts --> pages under src/app/ --> static
 - `src/lib/posts.ts` reads and validates the MDX files. `src/components/Mdx.tsx` renders them with GitHub-flavoured Markdown, heading anchors and code highlighting.
 - `src/app/writing/[slug]/page.tsx` builds one page per published post. Unknown slugs return 404.
 - `src/app/feed.xml/route.ts`, `sitemap.ts`, `robots.ts` and the `opengraph-image.tsx` files produce the feed, sitemap and share images.
-- `scripts/ci.sh` runs every check: lint, the slop lint on the source and the design system, type check, unit tests, the agent guard tests, a production build and the slop lint on the built pages.
+- `scripts/ci.sh` runs every check: lint, the slop lint on the source, the design system and the release process, type check, unit tests, the agent guard tests, a production build and the slop lint on the built pages.
 
 ## Working on it with coding agents
 
@@ -95,7 +97,7 @@ src/content/posts/*.mdx --> src/lib/posts.ts --> pages under src/app/ --> static
 
 - A personal site with one author. It is not a template, though the code is free to reuse under the licence below.
 - The icon and the share images are simple generated placeholders.
-- No comments, analytics, tags, search or pagination. The home page lists the three latest posts; `/writing` lists them all.
+- No comments, analytics, tags, search or pagination. `/writing` lists the published posts (none yet); the home page lists none.
 
 ## Licence
 

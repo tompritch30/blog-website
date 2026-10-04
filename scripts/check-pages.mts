@@ -5,7 +5,8 @@
 //   npm run check:pages [-- <base URL>]            axe, rendered controls and the nav
 //   npm run shots [-- <base URL>] [--out <dir>]    the same, plus full-page screenshots (default design/shots/)
 //
-// Every route (/, /writing, each post linked from /writing, /about and a missing page) is opened at
+// Every route (/, /writing, each post linked from /writing (none while every post is a draft), /about
+// and a missing page) is opened at
 // 375x812 and 1440x900 (light only, owner decision 4 Oct 2026; the context still asks for light):
 //   (a) axe-core with the wcag2a, wcag2aa, wcag21aa and wcag22aa tags; any serious or critical violation
 //       or any colour-contrast one fails;
