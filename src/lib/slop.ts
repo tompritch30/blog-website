@@ -1134,9 +1134,10 @@ const hasClass = (el: El, name: string) => (el.attrs.class ?? "").split(/\s+/).i
  * duplicate-href exempts same-page anchors (#...), which move within the page rather than lead
  * anywhere (the skip link, footnotes), and links inside the post body (.prose), since an essay may
  * cite one source twice; the page chrome may still not repeat itself.
- * duplicate-label skips footnote links and lets two anchors share a label (remark-gfm marks every
- * footnote's way back "↩"), but an anchor named like a link to another place still fails, so an
- * "About" anchor beside the nav's About page link is caught.
+ * duplicate-label skips links inside the post body (.prose), whose labels are the author's (two
+ * sources may both be "the paper"), and footnote links, and lets two anchors share a label
+ * (remark-gfm marks every footnote's way back "↩"); in the chrome an anchor named like a link to
+ * another place still fails, so an "About" anchor beside the nav's About page link is caught.
  */
 function linkUseHits(file: string, root: El, lineOf: (i: number) => number, origins: readonly string[]): Hit[] {
   const out: Hit[] = [];
@@ -1159,7 +1160,7 @@ function linkUseHits(file: string, root: El, lineOf: (i: number) => number, orig
         }
         const key = label.toLowerCase();
         const footnote = "data-footnote-ref" in c.attrs || "data-footnote-backref" in c.attrs;
-        if (key && !footnote) {
+        if (key && !footnote && !prose) {
           const other = byLabel.get(key);
           if (other === undefined) byLabel.set(key, href);
           else if (other !== href && !(anchor && other.startsWith("#"))) {

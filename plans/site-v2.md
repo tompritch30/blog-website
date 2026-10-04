@@ -1058,3 +1058,16 @@ AssertionError: expected 'https://www.linkedin.com/in/thomas-pr…' to be 'https
 ```
 
 Green: `Tests  63 passed (63)` for `src/lib/invaders`.
+
+#### Labels inside a post body are the author's
+
+`duplicate-label` now skips links inside `.prose`, as `duplicate-href` already did: a post may call two sources "the paper" or link an older post as "Writing". The chrome is still held to one label per place. Fixture `src/lib/__fixtures__/slop/prose-labels.html` (a post page whose body reuses a label for two places and a nav label, then a chrome "About" to another place). Red, `npx vitest run src/lib/slop.test.ts -t "links appear once"`:
+
+```
+   × links appear once per page > lets a post's body reuse a label for two places, or a nav label, but not the page chrome 26ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected [ [ 'duplicate-label', 2 ], …(3) ] to deeply equal [ [ 'duplicate-label', 4 ] ]
+      Tests  1 failed | 7 passed | 69 skipped (77)
+```
+
+Green: `Tests  77 passed (77)`.

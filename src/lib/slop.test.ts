@@ -421,6 +421,12 @@ describe("links appear once per page", () => {
     ].join("\n");
     expect(rules(html)).toEqual([["duplicate-href", 3]]);
   });
+
+  // Review round 3: a post body may call two sources "the paper", or link an older post as
+  // "Writing"; labels inside .prose are the author's, so only the page chrome is held to one label.
+  it("lets a post's body reuse a label for two places, or a nav label, but not the page chrome", () => {
+    expect(rules(read("prose-labels.html"))).toEqual([["duplicate-label", 4]]);
+  });
 });
 
 // Each test starts a Node process; under the parallel pre-commit hook that can take several seconds.
