@@ -1179,3 +1179,28 @@ AssertionError: expected [ { …(6) } ] to deeply equal []
 ```
 
 The empty-feed golden test (`renderRss` with no posts, compared whole) and the `pageRoutes([])` test passed on first run: the old code already did the right thing, and the tests now pin it. Green: `Tests  239 passed (239)`.
+
+### 2026-10-04 review fixes, round 4
+
+#### The real-posts test checks the rule, not today's content
+
+`src/lib/posts.test.ts` pinned "no published posts", so following `docs/writing-a-post.md` (set `draft: false`, run CI) would have turned CI red. Red, in a throwaway clone with `claude-code-workflow.mdx` set to `draft: false`, the old test:
+
+```
+   × the real posts folder > keeps every post a draft for now: production lists none, dev still has both 29ms
+ FAIL  src/lib/posts.test.ts > the real posts folder > keeps every post a draft for now: production lists none, dev still has both
+      Tests  1 failed | 10 passed (11)
+```
+
+The new test, still on the real folder: every post listed with drafts excluded has `draft: false` and the same metadata from `getPost`; every draft is null from `getPost` with drafts excluded and returned with drafts included; published plus drafts is every post. Green in the same clone with one post published (`Tests  11 passed (11)`) and in the worktree with both drafts (`Tests  11 passed (11)`).
+
+#### The hit screen ignores a stray tap
+
+A fire tap or click already on its way could land on the "Open <label>" link (or Resume) that appears mid-screen on a hit. Both carry `pointer-events-none` for `OFFER_POINTER_GUARD_MS` (400, in `src/lib/invaders/hit.ts`) after the offer; a timer clears it, and its effect cleanup clears the timer on unmount, and Resume lifts it at once. Focus and Enter are untouched. No unit test: a constant and a timer are not logic worth one; `scripts/check-pages.mts` proves it in a real browser instead (Enter opens the link at once, inside the guard, and the link reads `pointer-events: auto` after it).
+
+#### Smaller fixes
+
+- `check-pages` hitCheck finds the panel and the score by `data-invaders="panel"` and `data-invaders="score"`, not Tailwind classes.
+- `docs/writing-a-post.md` step 5 says a plain push is refused by the pre-push hook by design and gives the owner's `git push --no-verify origin main`.
+- `design/shots/case-compare-*.png` deleted (they predate the hidden Writing section; the owner has seen them) and the SYSTEM.md sentence pointing at them trimmed; the `headingCase` setting stays.
+- The orphan motto comment left `profile.ts`; `page.tsx` lost a stray blank line and its header comment is re-wrapped.
