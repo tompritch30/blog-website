@@ -116,10 +116,6 @@ body {
   overflow-x: clip;
 }
 
-html {
-  scroll-padding-top: 4rem;
-}
-
 body {
   background-color: var(--bg);
   color: var(--text);
@@ -337,44 +333,6 @@ h4 {
   font-weight: 500;
 }
 
-/* ---------- home: the section bar ---------- */
-
-/* The reference's sticky in-page bar, as a row of plain anchor links between two hairlines. */
-.section-bar {
-  border-block: 1px solid var(--divider);
-  background: var(--bg);
-}
-
-@media (min-width: 48rem) {
-  .section-bar {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-}
-
-.section-bar ul {
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: 1.75rem;
-  row-gap: 0.25rem;
-  padding-block: 0.75rem;
-  font-size: var(--text-nav);
-}
-
-.section-bar a {
-  color: var(--text);
-  text-decoration-line: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-  text-decoration-color: transparent;
-  transition: text-decoration-color var(--dur-quick) var(--ease-out);
-}
-
-.section-bar a:hover {
-  text-decoration-color: currentColor;
-}
-
 /* ---------- sections ---------- */
 
 .section {
@@ -392,11 +350,6 @@ h4 {
   .section-title {
     margin-block-end: 2.75rem;
   }
-}
-
-.after-list {
-  margin-block-start: 1.75rem;
-  font-weight: 500;
 }
 
 /* About: prose on the left, the paper's plot on the right where the reference has its globe. */
@@ -745,11 +698,6 @@ h4 {
   color: var(--secondary);
 }
 
-/* The link under the About text sits with the paragraphs, not a block away. */
-.about-text .link-row {
-  margin-block-start: 0;
-}
-
 /* Outside work: the reference's grid of rounded cards, as a two-column list between hairlines. */
 .pairs {
   display: grid;
@@ -833,19 +781,6 @@ h4 {
   .article {
     padding-block: 4.5rem 1rem;
   }
-}
-
-.back {
-  display: inline-block;
-  margin-block-end: 2rem;
-  font-size: var(--text-nav);
-  color: var(--secondary);
-  text-decoration: none;
-  transition: color var(--dur-quick) var(--ease-out);
-}
-
-.back:hover {
-  color: var(--link);
 }
 
 .article-head {

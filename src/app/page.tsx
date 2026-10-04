@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { Fragment } from "react";
 import ExternalLink from "@/components/ExternalLink";
 import PostList from "@/components/PostList";
@@ -9,7 +8,6 @@ import OrgMark from "@/components/home/OrgMark";
 import { aboutShort, caseStudies, cv, headline, intro, links, motto, paperFigure, portrait, type CaseStudy } from "@/content/profile";
 import { careerEntries, educationRows } from "@/lib/career";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
-import { WRITING_PATH } from "@/lib/paths";
 import { getAllPosts } from "@/lib/posts";
 
 export const metadata: Metadata = {
@@ -17,18 +15,11 @@ export const metadata: Metadata = {
   openGraph: { ...baseOpenGraph, type: "website", url: "/" },
 };
 
-// The kb layout, in the reference's order: a two-column hero (who he is, then his photo), a bar of
-// in-page links, About with a figure beside it, Work as a timeline of roles with their case studies,
-// Outside work, Education and research, Skills, and Writing.
-
-const SECTIONS = [
-  { id: "about", label: "About" },
-  { id: "work", label: "Work" },
-  { id: "outside", label: "Outside work" },
-  { id: "education", label: "Education" },
-  { id: "skills", label: "Skills" },
-  { id: "writing", label: "Writing" },
-];
+// The kb layout, in the reference's order: a two-column hero (who he is, then his photo), About with a
+// figure beside it, Work as a timeline of roles with their case studies, Outside work, Education and
+// research, Skills, and Writing. Each place is linked once on the page (owner review, 4 Oct 2026): the
+// nav carries Writing, CV and About, the hero carries LinkedIn and GitHub, and the paper is linked from
+// its row in Education and research. There is no in-page section index.
 
 function Study({ study }: { study: CaseStudy }) {
   return (
@@ -79,9 +70,6 @@ export default function Home() {
           <p className="link-row">
             <ExternalLink href={links.linkedin}>LinkedIn</ExternalLink>
             <ExternalLink href={links.github}>GitHub</ExternalLink>
-            <Link href="/cv" className="link">
-              CV
-            </Link>
           </p>
         </div>
         <div className="hero-portrait">
@@ -90,16 +78,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <nav className="section-bar" aria-label="On this page">
-        <ul className="page">
-          {SECTIONS.map((s) => (
-            <li key={s.id}>
-              <a href={`#${s.id}`}>{s.label}</a>
-            </li>
-          ))}
-        </ul>
-      </nav>
 
       <section id="about" className="page section" aria-labelledby="about-title">
         <h2 id="about-title" className="section-title">
@@ -121,11 +99,6 @@ export default function Home() {
                 )}
               </p>
             ))}
-            <p className="link-row">
-              <Link href="/about" className="link">
-                The longer version
-              </Link>
-            </p>
           </div>
           <figure>
             <div className="plate">
@@ -173,11 +146,6 @@ export default function Home() {
             </li>
           ))}
         </ol>
-        <p className="after-list">
-          <Link href="/cv" className="link">
-            Every role and result in the CV
-          </Link>
-        </p>
       </section>
 
       <section id="outside" className="page section" aria-labelledby="outside-title">
@@ -247,11 +215,6 @@ export default function Home() {
           Writing
         </h2>
         <PostList posts={posts} heading="h3" />
-        <p className="after-list">
-          <Link href={WRITING_PATH} className="link">
-            All writing
-          </Link>
-        </p>
       </section>
     </>
   );

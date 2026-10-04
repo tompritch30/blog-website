@@ -245,8 +245,9 @@ export const cv: Cv = {
 };
 
 // The home page's short About: the paragraphs it shares with src/content/about.mdx, kept here so no
-// page carries its own copy of the facts. A paragraph is a list of plain text and links, in order;
-// the one link (the paper) is off-site, so the page renders it with ExternalLink.
+// page carries its own copy of the facts. A paragraph is a list of plain text and links, in order; a
+// link is off-site, so the page renders it with ExternalLink. The paper is named here but linked from
+// its own row further down the home page, since a page links each place once.
 export type Inline = string | { text: string; href: string };
 
 export const aboutShort: Inline[][] = [
@@ -254,9 +255,7 @@ export const aboutShort: Inline[][] = [
     "I started in biology. I studied Biological Sciences at Imperial College London and graduated in 2021 with a First, having made the Dean’s List in my first and second years.",
   ],
   [
-    "I then moved into computing and went back to Imperial for an MSc in Computer Science, which I finished with a Distinction in 2024. I’m co-first author of ",
-    { text: "ForestVO", href: cv.publication.url },
-    ", published in IEEE Robotics and Automation Letters in 2025. Visual odometry works out how a camera moves from the images it records. Our method keeps baseline accuracy while using 25% of the keypoints.",
+    "I then moved into computing and went back to Imperial for an MSc in Computer Science, which I finished with a Distinction in 2024. I’m co-first author of ForestVO, published in IEEE Robotics and Automation Letters in 2025. Visual odometry works out how a camera moves from the images it records. Our method keeps baseline accuracy while using 25% of the keypoints.",
   ],
 ];
 

@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import Container from "@/components/Container";
 import Mdx from "@/components/Mdx";
 import { formatDate } from "@/lib/dates";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
-import { postPath, WRITING_PATH } from "@/lib/paths";
+import { postPath } from "@/lib/paths";
 import { getAllPosts, getPost } from "@/lib/posts";
 
 // Only slugs from generateStaticParams exist; anything else, drafts included, is a 404.
@@ -36,8 +35,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// A post in one centred reading column, as in the reference: a way back to the list, the date and
-// reading time, the title, a hairline, then the text.
+// A post in one centred reading column, as in the reference: the date and reading time, the title, a
+// hairline, then the text. The way back to the list is the nav's Writing link, marked current here.
 export default async function PostPage({ params }: Props) {
   const post = getPost((await params).slug);
   if (!post) notFound();
@@ -46,9 +45,6 @@ export default async function PostPage({ params }: Props) {
   return (
     <Container>
       <article className="article">
-        <Link href={WRITING_PATH} className="back">
-          <span aria-hidden="true">{"← "}</span>All writing
-        </Link>
         <div className="article-head">
           <p className="post-meta">
             <time dateTime={meta.date}>{formatDate(meta.date)}</time> · {meta.readingTime}

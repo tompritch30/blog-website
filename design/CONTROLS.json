@@ -1,5 +1,5 @@
 {
-  "$comment": "Controls budget (plans/site-v2.md, slice 3b): every interactive element on each built page and its job. Keyed by route pattern (srcRoute in .next/prerender-manifest.json). 'layout' entries apply to every page rendered inside the root layout; a route with \"layout\": false renders its own document. Entry: {kind, href or name, count (default 1, or \"many\"), job}. Kinds: link, button, input, select, textarea, summary, iframe, role-button, focusable, plus the classes \"prose links\" (any link inside .prose) and \"scroll regions\" (tabindex=0 on a scrolling pre, table or region). Checked by npm run lint:slop -- --built. dialogs lists controls that exist only in the browser after a visitor opens something (the invaders game): never in built HTML, so lint:slop -- --built does not see them; npm run check:pages opens the game on / and checks the rendered dialog against the layout, the route and these entries.",
+  "$comment": "Controls budget (plans/site-v2.md, slice 3b): every interactive element on each built page and its job. Keyed by route pattern (srcRoute in .next/prerender-manifest.json). 'layout' entries apply to every page rendered inside the root layout; a route with \"layout\": false renders its own document. Entry: {kind, href or name, count (default 1, or \"many\"), job}. Kinds: link, button, input, select, textarea, summary, iframe, role-button, focusable, plus the classes \"prose links\" (any link inside .prose) and \"scroll regions\" (tabindex=0 on a scrolling pre, table or region). Checked by npm run lint:slop -- --built. dialogs lists controls that exist only in the browser after a visitor opens something (the invaders game): never in built HTML, so lint:slop -- --built does not see them; npm run check:pages opens the game on / and checks the rendered dialog against the layout, the route and these entries. Each page links a place once and a label names one place (rules duplicate-href and duplicate-label, owner review 4 Oct 2026), so no href repeats across the layout and a route.",
   "layout": [
     { "kind": "link", "href": "#main", "job": "skip past the navigation to the page content (keyboard and screen reader users)" },
     { "kind": "link", "href": "/", "job": "go to the home page (the name in the nav)" },
@@ -11,19 +11,10 @@
   "routes": {
     "/": {
       "controls": [
-        { "kind": "link", "href": "#about", "job": "jump to the About section (the bar under the hero)" },
-        { "kind": "link", "href": "#work", "job": "jump to the Work timeline (the bar under the hero)" },
-        { "kind": "link", "href": "#outside", "job": "jump to the Outside work section (the bar under the hero)" },
-        { "kind": "link", "href": "#education", "job": "jump to the Education and research section (the bar under the hero)" },
-        { "kind": "link", "href": "#skills", "job": "jump to the Skills section (the bar under the hero)" },
-        { "kind": "link", "href": "#writing", "job": "jump to the recent writing (the bar under the hero)" },
-        { "kind": "link", "href": "https://www.linkedin.com/in/thomas-pritchard-01a/", "job": "see his LinkedIn profile from the hero (new tab)" },
-        { "kind": "link", "href": "https://github.com/tompritch30", "job": "see his code on GitHub from the hero (new tab)" },
-        { "kind": "link", "href": "/cv", "count": 2, "job": "open the web CV: from the hero, and from the end of the Work timeline" },
-        { "kind": "link", "href": "/about", "job": "read the long version of the About section" },
-        { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "count": 2, "job": "read the ForestVO paper (new tab): from the About text and from Education and research" },
-        { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post from the recent writing list" },
-        { "kind": "link", "href": "/writing", "job": "see all posts from the end of the recent writing list" }
+        { "kind": "link", "href": "https://www.linkedin.com/in/thomas-pritchard-01a/", "job": "see his LinkedIn profile from the hero (new tab); the one LinkedIn link on the page" },
+        { "kind": "link", "href": "https://github.com/tompritch30", "job": "see his code on GitHub from the hero (new tab); the one GitHub link on the page" },
+        { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "job": "read the ForestVO paper (new tab) from its row in Education and research" },
+        { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post from the recent writing list" }
       ]
     },
     "/writing": {
@@ -34,7 +25,6 @@
     },
     "/writing/[slug]": {
       "controls": [
-        { "kind": "link", "href": "/writing", "job": "go back to the list of posts" },
         { "kind": "prose links", "job": "follow a source or page the post cites" },
         { "kind": "scroll regions", "job": "scroll a wide code block or table by keyboard" }
       ]
@@ -53,8 +43,6 @@
     },
     "/_not-found": {
       "controls": [
-        { "kind": "link", "href": "/", "job": "leave a missing page for the home page" },
-        { "kind": "link", "href": "/writing", "job": "leave a missing page for the list of posts" },
         { "kind": "button", "name": "Play space invaders", "job": "start the invaders game from the missing page, where a curious visitor has time" }
       ]
     },
