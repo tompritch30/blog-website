@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const ogSize = { width: 1200, height: 630 };
 
-// Share card: a heading and a subheading in the light theme's paper, ink and pencil colours.
+// Share card: a heading and a subheading in the paper, ink and pencil colours (the site is light only).
 export function ogImage(heading: string, subheading: string): ImageResponse {
   return new ImageResponse(
     (

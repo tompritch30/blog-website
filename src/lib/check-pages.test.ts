@@ -15,8 +15,8 @@ describe("pageRoutes", () => {
 });
 
 describe("shotFile", () => {
-  it("names a screenshot <route>-<width>-<theme>.png", () => {
-    expect(shotFile("writing-prompt-caching", 375, "dark")).toBe("writing-prompt-caching-375-dark.png");
+  it("names a screenshot <route>-<width>-light.png (the site is light only)", () => {
+    expect(shotFile("writing-prompt-caching", 375)).toBe("writing-prompt-caching-375-light.png");
   });
 });
 

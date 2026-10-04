@@ -7,7 +7,6 @@ body { margin: 0; padding: 3rem 1rem; font-family: ui-sans-serif, system-ui, san
   background: #f3f4f0; color: #1a1e1c; }
 main { max-width: 42rem; margin: 0 auto; }
 a { color: inherit; }
-@media (prefers-color-scheme: dark) { body { background: #131614; color: #e3e6e1; } }
 `;
 
 export default function GlobalError() {

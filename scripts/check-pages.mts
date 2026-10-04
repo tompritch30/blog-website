@@ -6,7 +6,7 @@
 //   npm run shots [-- <base URL>] [--out <dir>]    the same, plus full-page screenshots (default design/shots/)
 //
 // Every route (/, /writing, each post linked from /writing, /about and a missing page) is opened at
-// 375x812 and 1440x900 in light and dark (emulated prefers-color-scheme):
+// 375x812 and 1440x900 (light only, owner decision 4 Oct 2026; the context still asks for light):
 //   (a) axe-core with the wcag2a, wcag2aa, wcag21aa and wcag22aa tags; any serious or critical violation
 //       or any colour-contrast one fails;
 //   (b) the rendered DOM's controls against design/CONTROLS.json, with the same counting code as
@@ -17,7 +17,7 @@
 //       back to the alien;
 //   (b2) the header nav: its links and the alien sit on one line, the alien's button is at least 28x28
 //       (WCAG 2.2 target size), and the page does not scroll sideways, at both widths;
-//   (c) with --shots, a full-page PNG per page, width and theme, palette-reduced with sharp to under 300KB.
+//   (c) with --shots, a full-page PNG per page and width, palette-reduced with sharp to under 300KB.
 //
 // Browser: CHECK_PAGES_CHROMIUM if set, else the build playwright-core expects, else the newest Chromium
 // in the Playwright cache (PLAYWRIGHT_BROWSERS_PATH or ~/.cache/ms-playwright). Nothing is downloaded.
@@ -37,7 +37,6 @@ const VIEWPORTS = [
   { width: 375, height: 812 },
   { width: 1440, height: 900 },
 ];
-const THEMES = ["light", "dark"] as const;
 const MAX_SHOT = 300 * 1024;
 const MISSING = "/check-pages-missing-page";
 // The mystery ship's links in rotation, seeded as already won.
@@ -258,46 +257,41 @@ async function main(): Promise<number> {
   const axeRows: string[] = [];
   const shotRows: string[] = [];
   for (const viewport of VIEWPORTS) {
-    for (const theme of THEMES) {
-      const ctx = await browser.newContext({ viewport, colorScheme: theme });
-      const page = await ctx.newPage();
-      for (const route of routes) {
-        const res = await page.goto(`${base}${route.path}`, { waitUntil: "networkidle" });
-        const status = res?.status() ?? 0;
-        const want = route.pattern === "/_not-found" ? 404 : 200;
-        if (status !== want) problems.push(`${route.path}: HTTP ${status}, expected ${want}`);
-        await page.evaluate(() => document.fonts.ready);
-        const label = `${route.path} ${viewport.width} ${theme}`;
+    const ctx = await browser.newContext({ viewport, colorScheme: "light" });
+    const page = await ctx.newPage();
+    for (const route of routes) {
+      const res = await page.goto(`${base}${route.path}`, { waitUntil: "networkidle" });
+      const status = res?.status() ?? 0;
+      const want = route.pattern === "/_not-found" ? 404 : 200;
+      if (status !== want) problems.push(`${route.path}: HTTP ${status}, expected ${want}`);
+      await page.evaluate(() => document.fonts.ready);
+      const label = `${route.path} ${viewport.width}`;
 
-        const violations = await runAxe(page);
-        const bad = blocking(violations);
-        axeRows.push(`${bad.length ? "FAIL" : "pass"}  axe ${label.padEnd(44)} ${violations.length} violation${violations.length === 1 ? "" : "s"}, ${bad.length} blocking`);
-        for (const v of violations) {
-          axeRows.push(`        ${bad.includes(v) ? "x" : "-"} ${v.id} (${v.impact}, ${v.count} node${v.count === 1 ? "" : "s"}): ${v.help} | ${v.targets.join(", ")}`);
-        }
-        if (bad.length) problems.push(`axe ${label}: ${bad.map((v) => v.id).join(", ")}`);
-
-        // Controls do not change with the theme, so the rendered DOM is checked once per width.
-        if (theme === "light") {
-          const hits = lintControls(label, await page.content(), entriesFor(budget, route.pattern), route.pattern, { origins: [new URL(base).origin] });
-          console.log(`${hits.length ? "FAIL" : "pass"}  controls ${route.path} ${viewport.width} (${route.pattern})`);
-          for (const h of hits) console.log(`        ${h.rule} ${h.message}`);
-          if (hits.length) problems.push(`controls ${route.path} ${viewport.width}: ${hits.length} hits`);
-          await navCheck(page, `${route.path} ${viewport.width}`, problems);
-        }
-
-        if (shots) {
-          const png = await page.screenshot({ fullPage: true, animations: "disabled" });
-          const { out, note } = await shrink(png, viewport.width);
-          const file = path.join(outDir, shotFile(route.name, viewport.width, theme));
-          fs.writeFileSync(file, out);
-          const over = out.length >= MAX_SHOT;
-          shotRows.push(`${over ? "FAIL" : "pass"}  shot ${file} ${(out.length / 1024).toFixed(0)} KB (${note})`);
-          if (over) problems.push(`shot ${file} is ${(out.length / 1024).toFixed(0)} KB, over 300KB`);
-        }
+      const violations = await runAxe(page);
+      const bad = blocking(violations);
+      axeRows.push(`${bad.length ? "FAIL" : "pass"}  axe ${label.padEnd(44)} ${violations.length} violation${violations.length === 1 ? "" : "s"}, ${bad.length} blocking`);
+      for (const v of violations) {
+        axeRows.push(`        ${bad.includes(v) ? "x" : "-"} ${v.id} (${v.impact}, ${v.count} node${v.count === 1 ? "" : "s"}): ${v.help} | ${v.targets.join(", ")}`);
       }
-      await ctx.close();
+      if (bad.length) problems.push(`axe ${label}: ${bad.map((v) => v.id).join(", ")}`);
+
+      const hits = lintControls(label, await page.content(), entriesFor(budget, route.pattern), route.pattern, { origins: [new URL(base).origin] });
+      console.log(`${hits.length ? "FAIL" : "pass"}  controls ${route.path} ${viewport.width} (${route.pattern})`);
+      for (const h of hits) console.log(`        ${h.rule} ${h.message}`);
+      if (hits.length) problems.push(`controls ${route.path} ${viewport.width}: ${hits.length} hits`);
+      await navCheck(page, label, problems);
+
+      if (shots) {
+        const png = await page.screenshot({ fullPage: true, animations: "disabled" });
+        const { out, note } = await shrink(png, viewport.width);
+        const file = path.join(outDir, shotFile(route.name, viewport.width));
+        fs.writeFileSync(file, out);
+        const over = out.length >= MAX_SHOT;
+        shotRows.push(`${over ? "FAIL" : "pass"}  shot ${file} ${(out.length / 1024).toFixed(0)} KB (${note})`);
+        if (over) problems.push(`shot ${file} is ${(out.length / 1024).toFixed(0)} KB, over 300KB`);
+      }
     }
+    await ctx.close();
   }
   console.log("");
   await gameCheck(browser, problems);
@@ -309,7 +303,7 @@ async function main(): Promise<number> {
   }
   await browser.close();
 
-  console.log(`\ncheck-pages: ${routes.length} pages x ${VIEWPORTS.length} widths x ${THEMES.length} themes, ${problems.length} problem${problems.length === 1 ? "" : "s"}`);
+  console.log(`\ncheck-pages: ${routes.length} pages x ${VIEWPORTS.length} widths (light only), ${problems.length} problem${problems.length === 1 ? "" : "s"}`);
   for (const p of problems) console.log(`  ${p}`);
   return problems.length ? 1 : 0;
 }

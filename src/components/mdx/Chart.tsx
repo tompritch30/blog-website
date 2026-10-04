@@ -5,8 +5,8 @@ import { bands, formatTick, linePath, linear, niceTicks } from "@/lib/chart";
 // The plot is an SVG stretched over its box (preserveAspectRatio="none", strokes kept at their
 // width by vector-effect), and every label is HTML placed by percentage, so text stays the page's
 // own size and face at 375px and at 1440px. Colours come only from CSS custom properties: the
-// design's --chart-1.. tokens when it defines them, else the text and secondary tokens, so both
-// themes style it. Assistive tech gets one image (title and description) plus a hidden data table.
+// design's --chart-1.. tokens when it defines them, else the text and secondary tokens, so the
+// palette styles it. Assistive tech gets one image (title and description) plus a hidden data table.
 
 type Series = { name: string; values: number[] };
 

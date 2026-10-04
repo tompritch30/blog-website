@@ -13,7 +13,7 @@ Words used in code, tests and plans. Use these names; add a line when a new term
 - **Site URL**: the public origin. `NEXT_PUBLIC_SITE_URL`, else Vercel's production domain, else `http://localhost:3000`.
 - **Share image**: the Open Graph image generated at build time (`opengraph-image.tsx`); one for the site, one per post.
 - **Feed**: the RSS 2.0 document at `/feed.xml`.
-- **Colour token**: a CSS custom property in `globals.css` (`--text`, `--secondary`, `--muted`, ...). Text tokens must meet WCAG AA on every background token.
+- **Colour token**: a CSS custom property in `globals.css` (`--text`, `--secondary`, `--link`, ...). Text tokens must meet WCAG AA on every background token. There is one set: the site is light only, with no dark theme and no toggle (owner decision, 4 Oct 2026).
 - **Slop lint**: `npm run lint:slop` (`src/lib/slop.ts`, `scripts/lint-slop.mts`): rules for the tells of generated design and copy (em dashes, marketing words, letter-spaced caps, big radii, filler subtitles, money figures in content, default fonts, pure black and white, and more). Exemptions, each with a reason, in `design/slop-allow.json`. `--built` lints the production build's pages and CSS.
 - **Controls budget**: `design/CONTROLS.json`, every link, button and focusable element each built page may have, with its job, keyed by route pattern. `lint:slop -- --built` fails a control that is not listed.
 - **Guard**: `.claude/hooks/guard.py`, the PreToolUse hook that stops agents pushing, deploying, publishing or reading secrets.

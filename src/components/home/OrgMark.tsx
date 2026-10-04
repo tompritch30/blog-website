@@ -3,7 +3,7 @@ import path from "node:path";
 import { organisations, type Organisation } from "@/content/profile";
 
 // Palindrome's own logo, inlined from public/ at build time so it takes the ink colour
-// (fill="currentColor") in both themes. Its shape is untouched; only the editor's comment,
+// (fill="currentColor"). Its shape is untouched; only the editor's comment,
 // the XML prolog and the layer id are dropped.
 function logoSvg(src: string): string {
   const file = path.join(/*turbopackIgnore: true*/ process.cwd(), "public", src);

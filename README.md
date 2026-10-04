@@ -55,7 +55,7 @@ npm run check:pages -- http://localhost:3119   # default base URL: http://localh
 npm run shots -- http://localhost:3119         # the same checks, plus screenshots in design/shots/
 ```
 
-Every page (home, writing, each post, About and a missing page) is opened at 375 and 1440 pixels wide in the light and dark themes. The check runs axe (WCAG 2.2 AA) and fails on any serious, critical or colour-contrast violation; checks the rendered page's links and buttons against `design/CONTROLS.json` with the same code as `npm run lint:slop -- --built`, and again on the home page with the invaders game open and paused. It also measures the header nav on every page (one line, the alien's button at least 28x28, no sideways scroll). `--shots` saves `<page>-<width>-<theme>.png` full-page screenshots, palette-reduced to under 300KB; `--out <dir>` puts them elsewhere. Nothing is downloaded: it uses a Chromium that Playwright has already cached.
+Every page (home, writing, each post, About and a missing page) is opened at 375 and 1440 pixels wide (the site is light only). The check runs axe (WCAG 2.2 AA) and fails on any serious, critical or colour-contrast violation; checks the rendered page's links and buttons against `design/CONTROLS.json` with the same code as `npm run lint:slop -- --built`, and again on the home page with the invaders game open and paused. It also measures the header nav on every page (one line, the alien's button at least 28x28, no sideways scroll). `--shots` saves `<page>-<width>-light.png` full-page screenshots, palette-reduced to under 300KB; `--out <dir>` puts them elsewhere. Nothing is downloaded: it uses a Chromium that Playwright has already cached.
 
 ## Configuration
 
@@ -63,7 +63,7 @@ Every page (home, writing, each post, About and a missing page) is opened at 375
 |---|---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | environment variable | Vercel's production domain, else `http://localhost:3000` | Origin for canonical URLs, the sitemap, the RSS feed and share images. Set it once there is a custom domain. |
 | Name, tagline, description | `src/lib/site.ts` | Thomas Pritchard, his role at Palindrome | The name in the nav, page titles, metadata, the feed and the share images. His profile links live in `src/content/profile.ts`. |
-| Colours | `src/app/globals.css` | A cool grey-green paper and green-black ink, with a dark theme drawn for itself (`design/SYSTEM.md`) | A test checks every text colour meets WCAG AA contrast. |
+| Colours | `src/app/globals.css` | A cool grey-green paper and green-black ink, light only (`design/SYSTEM.md`) | A test checks every text colour meets WCAG AA contrast. |
 | Node version | `.nvmrc`, `package.json` `engines` | 22 | Vercel builds with the `engines` version. |
 | `CHECK_PAGES_CHROMIUM` | environment variable | the Chromium build `playwright-core` expects, else the newest headless shell or Chromium in `PLAYWRIGHT_BROWSERS_PATH` (default `~/.cache/ms-playwright`) | Path to the Chromium or Chrome binary `npm run check:pages` and `npm run shots` drive. Set it when no Playwright browser is cached (`npx playwright-core install chromium-headless-shell` downloads one). |
 

@@ -8,7 +8,7 @@ The anti-slop list the owner set on 3 October 2026:
 
 - **No letter-spaced caps.** Sentence case everywhere (the slop lint’s `headingCase` setting in `design/slop-allow.json` is "sentence"; "title" exists only to compare the two, see `design/shots/case-compare-*.png`, whose Title Case half rewrites the section headings, case-study and role titles, skills labels and post titles in the browser on the same build, and is never shipped). No `uppercase`, no `tracking-wide*`, no letter-spacing of 0.05em or more, no spaced-out capitals. Headings may tighten (down to -0.015em), never widen.
 - **No pills or rounded boxes, except where they mean something.** Hairlines and space separate things; nothing is a card. Radius is 3px on code blocks and inline code only, and the lint fails anything over 4px. `design/slop-allow.json` has an empty radius list: any exception is listed there by component, with its reason, before it ships.
-- **No controls without a job.** Links are links, buttons are buttons. Every link, button and focusable element on each page is listed with its job in `design/CONTROLS.json` (the controls budget); the built-page lint and the rendered check fail anything unlisted. No theme toggle (the system setting already does that job), no search over a handful of posts, no print button.
+- **No controls without a job.** Links are links, buttons are buttons. Every link, button and focusable element on each page is listed with its job in `design/CONTROLS.json` (the controls budget); the built-page lint and the rendered check fail anything unlisted. No theme toggle (the site is light only), no search over a handful of posts, no print button.
 - **No grey filler under headings.** A heading is followed by content, a date, a number or a link, never a muted tagline.
 - **His voice.** All copy is first person, plain and specific, taken from his CV, his achievements record and the extras he approved (ADR 0003). Clients are described, never named.
 
@@ -42,7 +42,7 @@ Each of the reference's patterns either became something the owner's rules allow
 - Chip clouds of skills: one comma-separated line per group.
 - Newsletter box: a Writing section with recent posts. The feed is a quiet "RSS" link under the list on `/writing`, and every page's head carries the feed's `<link rel="alternate">` for feed readers.
 - Footer with a name, a motto and icon buttons: no footer at all. A colophon line (the faces and a revised date) stood there until the owner's review of 4 October 2026 called it filler; with the feed link moved to `/writing`, nothing was left for a footer to hold, and each page ends a section's gap below its last line.
-- Theme toggle: none; both themes follow the system.
+- Theme toggle: none, and no dark theme: the site is light only (owner decision, 4 October 2026).
 - Content revealed on scroll: everything renders on load.
 
 ### Type
@@ -73,28 +73,30 @@ Headings use line height 1.2 and `text-wrap: balance`; paragraphs use `text-wrap
 
 ### Colour
 
-A cool grey-green paper, not the generated cream; a green-black ink, never pure black; one accent, a claret, spent on links and the current page only. Dark is drawn for itself: a green-black ground, ink a step below white, the claret lifted to a rose that still reads as the same accent. Tokens are hex so `src/app/contrast.test.ts` can read them.
+A cool grey-green paper, not the generated cream; a green-black ink, never pure black; one accent, a claret, spent on links and the current page only. Tokens are hex so `src/app/contrast.test.ts` can read them.
 
-| Token | Light | Dark | Job |
-|---|---|---|---|
-| `--bg` | `#f3f4f0` | `#131614` | paper |
-| `--text` | `#1a1e1c` | `#e3e6e1` | ink |
-| `--secondary` | `#575e59` | `#a0a8a2` | pencil: dates, notes, captions |
-| `--link` | `#8b2331` | `#eba4ad` | links, the current page, focus |
-| `--divider` | `#d3d7cf` | `#323833` | hairlines |
-| `--surface` | `#fafaf7` | `#191d1a` | code blocks, the portrait mount |
-| `--surface-soft` | `#e9ebe5` | `#202521` | inline code |
-| `--plate` | `#fafaf7` | `#eef0eb` | the light plate behind the paper's plot in both themes |
+**Light only.** The owner decided on 4 October 2026 to "just default to light": there is no dark theme and no toggle, whatever the visitor's system setting. One palette also means one set of contrast ratios, one gold for the game and one set of screenshots to keep right. `color-scheme` is `light`, the stylesheet has no `prefers-color-scheme` block, and the contrast test fails if one comes back.
+
+| Token | Value | Job |
+|---|---|---|
+| `--bg` | `#f3f4f0` | paper |
+| `--text` | `#1a1e1c` | ink |
+| `--secondary` | `#575e59` | pencil: dates, notes, captions |
+| `--link` | `#8b2331` | links, the current page, focus |
+| `--divider` | `#d3d7cf` | hairlines |
+| `--surface` | `#fafaf7` | code blocks, the portrait mount |
+| `--surface-soft` | `#e9ebe5` | inline code |
+| `--plate` | `#fafaf7` | the light plate behind the paper's plot |
 
 Contrast ratios, measured from the hex values in `globals.css` with the WCAG formula (the same one the contrast test uses). Every text colour meets AA (4.5:1) on every background:
 
-| Text on | Light: bg | surface | surface-soft | Dark: bg | surface | surface-soft |
-|---|---|---|---|---|---|---|
-| `--text` | 15.25 | 16.11 | 14.02 | 14.47 | 13.53 | 12.37 |
-| `--secondary` | 6.03 | 6.37 | 5.55 | 7.48 | 6.99 | 6.39 |
-| `--link` | 7.98 | 8.43 | 7.34 | 9.06 | 8.48 | 7.75 |
+| Text on | bg | surface | surface-soft |
+|---|---|---|---|
+| `--text` | 15.25 | 16.11 | 14.02 |
+| `--secondary` | 6.03 | 6.37 | 5.55 |
+| `--link` | 7.98 | 8.43 | 7.34 |
 
-Hairlines are decoration, not text or a control edge: `--divider` is 1.32:1 on the light paper and 1.52:1 on the dark one. The game's gold mystery ship is a graphic that needs 3:1: `#9a6f00` is 4.09:1 on the light paper and `#e3b341` is 9.36:1 on the dark one. Print sets black text on white paper (21:1) with grey `#999999` rules, inside the print block only, which is why the lint exempts it from the pure black and white rule.
+Hairlines are decoration, not text or a control edge: `--divider` is 1.32:1 on the paper. The game's gold mystery ship is a graphic that needs 3:1: `#9a6f00` is 4.09:1 on the paper. Print sets black text on white paper (21:1) with grey `#999999` rules, inside the print block only, which is why the lint exempts it from the pure black and white rule.
 
 ### Spacing
 
@@ -116,14 +118,14 @@ Hairlines are decoration, not text or a control edge: `--divider` is 1.32:1 on t
 
 ### Focus
 
-- `:focus-visible` draws a 2px solid outline in `--link`, offset 2px, never animated. It meets 3:1 against the paper in both themes (the link colour's ratios above).
+- `:focus-visible` draws a 2px solid outline in `--link`, offset 2px, never animated. It meets 3:1 against the paper (the link colour's ratios above).
 - A skip link is the first control on every page. The game is a modal dialog: Tab cycles its buttons and links. P or Escape pauses a running game; Escape on the pause screen, or Quit, closes it and focus returns to the alien that opened it.
 
 ### Images
 
 - **Portrait.** His GitHub avatar (`https://github.com/tompritch30.png?size=460`), re-encoded as a 400px square `.jpg` with no metadata, stored in `public/me/` so the page makes no call to GitHub. Square, in a 1px hairline mount on `--surface`; 8rem wide above the text on phones, 15rem beside it from 48rem; on `/about`, 8rem above the text on phones and 13rem beside it from 64rem.
-- **Palindrome mark.** Palindrome's own logo, made monochrome with `fill="currentColor"` and inlined at build time, so it takes the ink colour in both themes. It is the only organisation logo on the site; the others' terms forbid reuse, so Fletchers, Stark, Imperial and IEEE are wordmarks in the heading face.
-- **Paper plot.** One trajectory figure from his own paper (accepted version, arXiv 2504.01261), shown under IEEE's author reuse terms with the credit line beside it: "© 2025 IEEE. From Pritchard et al., ForestVO, IEEE RA-L 2025." It keeps its own colours on a light plate in both themes rather than sitting as a white block on the dark page.
+- **Palindrome mark.** Palindrome's own logo, made monochrome with `fill="currentColor"` and inlined at build time, so it takes the ink colour. It is the only organisation logo on the site; the others' terms forbid reuse, so Fletchers, Stark, Imperial and IEEE are wordmarks in the heading face.
+- **Paper plot.** One trajectory figure from his own paper (accepted version, arXiv 2504.01261), shown under IEEE's author reuse terms with the credit line beside it: "© 2025 IEEE. From Pritchard et al., ForestVO, IEEE RA-L 2025." It keeps its own colours on a light plate.
 - Origins, hashes and terms for every asset are in `design/MANIFEST.yaml`.
 
 ### The easter egg
@@ -140,8 +142,8 @@ Run in the Linux checkout of the repo with Node 22.
 
 - `scripts/ci.sh`: lint, the slop lint on source, typecheck, unit tests (including the contrast test and `src/lib/career.test.ts`), the guard hook tests, the production build, then `npm run lint:slop -- --built` (built pages, built CSS and the controls budget). It also lints this file.
 - `npm run lint:slop -- design/SYSTEM.md`: this file passes the same prose rules as the site.
-- Against a running production build (`npm run build && npx next start -p <port>`): `npm run check:pages -- http://localhost:<port>` runs axe (WCAG 2.2 AA) on every page at 375 and 1440 in both themes, checks the rendered controls against the budget with the game open, and measures the nav on every page at both widths (its items and the alien on one line, the alien at least 28x28, no sideways scroll).
-- `npm run shots -- http://localhost:<port>` does the same and writes every page at 375 and 1440, light and dark, into `design/shots/`, palette-reduced to under 300KB each.
+- Against a running production build (`npm run build && npx next start -p <port>`): `npm run check:pages -- http://localhost:<port>` runs axe (WCAG 2.2 AA) on every page at 375 and 1440 (light only), checks the rendered controls against the budget with the game open, and measures the nav on every page at both widths (its items and the alien on one line, the alien at least 28x28, no sideways scroll).
+- `npm run shots -- http://localhost:<port>` does the same and writes every page at 375 and 1440 into `design/shots/` as `<page>-<width>-light.png`, palette-reduced to under 300KB each.
 
 ## Learnings
 

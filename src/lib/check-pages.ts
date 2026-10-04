@@ -15,7 +15,8 @@ export function pageRoutes(slugs: string[], missing: string): PageRoute[] {
   ];
 }
 
-export const shotFile = (name: string, width: number, theme: string) => `${name}-${width}-${theme}.png`;
+// The site is light only (owner decision, 4 Oct 2026); the name keeps "light" so older shots still match.
+export const shotFile = (name: string, width: number) => `${name}-${width}-light.png`;
 
 /** The violations that fail the check: serious or critical ones, and any colour-contrast one. */
 export function blocking<V extends Violation>(violations: V[]): V[] {

@@ -11,8 +11,9 @@
    and Writing. A serif for headings and figures over a plain sans for reading; hairlines instead of
    cards; colour spent on links only.
 
-   Colour tokens: hex so src/app/contrast.test.ts can read them. Every text colour (text, secondary,
-   link) meets WCAG AA (4.5:1) on bg, surface and surface-soft in both themes. The paper is a cool
+   Colour tokens: hex so src/app/contrast.test.ts can read them. Light only (owner decision, 4 Oct
+   2026): there is no dark theme and no toggle. Every text colour (text, secondary, link) meets
+   WCAG AA (4.5:1) on bg, surface and surface-soft. The paper is a cool
    grey-green, not the generated cream; the ink is a green-black, never #000; the one accent is a
    claret, used for links and the current page. */
 :root {
@@ -25,22 +26,6 @@
   --surface-soft: #e9ebe5; /* inline code */
   --plate: #fafaf7; /* the light plate behind the paper's plot */
   color-scheme: light;
-}
-
-/* Dark is drawn for itself: a green-black ground, ink a step below white, the claret lifted to a
-   rose that still reads as the same accent, hairlines just visible. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #131614;
-    --text: #e3e6e1;
-    --secondary: #a0a8a2;
-    --link: #eba4ad;
-    --divider: #323833;
-    --surface: #191d1a;
-    --surface-soft: #202521;
-    --plate: #eef0eb; /* the plot keeps its own colours on a light plate */
-    color-scheme: dark;
-  }
 }
 
 :root {

@@ -55,9 +55,8 @@ function saveBest(n: number) {
 function readColours(): Colours {
   const s = getComputedStyle(document.documentElement);
   const v = (name: string) => s.getPropertyValue(name).trim() || s.color;
-  const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  // the mystery ship's gold, darker on the light theme to hold 3:1 against the page
-  return { bg: v("--bg"), text: v("--text"), secondary: v("--secondary"), divider: v("--divider"), gold: dark ? "#e3b341" : "#9a6f00" };
+  // the mystery ship's gold, dark enough to hold 3:1 against the paper (the site is light only)
+  return { bg: v("--bg"), text: v("--text"), secondary: v("--secondary"), divider: v("--divider"), gold: "#9a6f00" };
 }
 
 /**
@@ -341,19 +340,10 @@ export default function Game({ onClose }: { onClose: () => void }) {
       });
     void tintMark();
 
-    const scheme = window.matchMedia("(prefers-color-scheme: dark)");
-    const onScheme = () => {
-      coloursRef.current = readColours();
-      void tintMark();
-      if (modeRef.current !== "play") redraw();
-    };
-    scheme.addEventListener("change", onScheme);
-
     closing.current = false;
     return () => {
       live = false;
       closing.current = true;
-      scheme.removeEventListener("change", onScheme);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
       cancelAnimationFrame(pending);

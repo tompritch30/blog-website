@@ -21,21 +21,25 @@ function contrast(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
+// Light only (owner decision, 4 Oct 2026): one set of colour tokens, no dark theme, no toggle.
 const light = tokens(css.match(/^:root \{([^}]*)\}/m)![1]);
-const dark = tokens(css.match(/prefers-color-scheme: dark\) \{\s*:root \{([^}]*)\}/)![1]);
 
 describe("colour tokens", () => {
   it("knows the contrast of black on white", () => {
     expect(contrast("#000000", "#ffffff")).toBeCloseTo(21, 5);
   });
 
-  for (const [theme, t] of [["light", light], ["dark", dark]] as const) {
-    for (const fg of ["text", "secondary", "link"]) {
-      for (const bg of ["bg", "surface", "surface-soft"]) {
-        it(`${theme}: --${fg} on --${bg} meets WCAG AA (4.5:1)`, () => {
-          expect(contrast(t[fg], t[bg])).toBeGreaterThanOrEqual(4.5);
-        });
-      }
+  it("is light only: no dark colour scheme anywhere, and the page says it is light", () => {
+    expect(css).not.toMatch(/prefers-color-scheme/);
+    expect(css).not.toMatch(/color-scheme:\s*dark/);
+    expect(css).toMatch(/^:root \{[^}]*color-scheme: light;/m);
+  });
+
+  for (const fg of ["text", "secondary", "link"]) {
+    for (const bg of ["bg", "surface", "surface-soft"]) {
+      it(`--${fg} on --${bg} meets WCAG AA (4.5:1)`, () => {
+        expect(contrast(light[fg], light[bg])).toBeGreaterThanOrEqual(4.5);
+      });
     }
   }
 });

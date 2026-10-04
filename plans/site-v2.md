@@ -1077,3 +1077,31 @@ Green: `Tests  77 passed (77)`.
 README: a current home page screenshot (the top 1440x900 of `design/shots/home-1440-light.png` at 1200px, 58 KB JPEG) with alt text saying what it shows, `/writing/<slug>` and `src/app/writing/[slug]/page.tsx` for the old `/blog` paths, the gate list as `scripts/ci.sh` runs it, and "CMS" spelt out (the slop lint's all-caps hit). MANIFEST.yaml: the Palindrome logo is on `/` only. `scripts/check-pages.mts` takes `MYSTERY_TARGETS` and `UNLOCKED_KEY` from `src/lib/invaders/links.ts`, which now imports the profile by a relative path with its extension so plain Node loads it. The duplicate-href fixture uses `/about` for the gone `/cv`; the `.gitignore` comment says only what the comparison images are.
 
 Gates from one fresh `git clone --local` at 7e4a68f in a `mktemp -d` folder (`npm ci --prefer-offline`, `scripts/setup-dev.sh`): `scripts/ci.sh` ends `slop: 0 hits in 0 of 6 files` and `ci: all gates green` (`Tests  235 passed (235)`). `npx next start -p 3016` and `npm run check:pages -- http://localhost:3016` exit 0: the game pauses on P with Resume focused and the three won links, resizes, and gives focus back to the alien on Escape; `check-pages: 5 pages x 2 widths x 2 themes, 0 problems`. The server was stopped by PID and the clone removed; the dev server on 3006 was left alone.
+
+### 2026-10-04 light only and ship links
+
+Owner feedback round on the kb branch: "just default to light", and a hit on the gold ship opened nothing.
+
+#### Light only
+
+No theme toggle existed (`grep -rniE "toggle|data-theme|setTheme|next-themes" src scripts package.json` found none). Removed: the `prefers-color-scheme: dark` token block in `globals.css` (`color-scheme: light` stays), the dark body colours in `global-error.tsx`, the game's dark gold and its colour-scheme listener in `Game.tsx`; the share card was already drawn in the light colours only. `scripts/check-pages.mts` runs axe, controls and the nav once per width in light; `shotFile` drops its theme argument and names files `<page>-<width>-light.png`. The ten `*-dark.png` shots in `design/shots/` are deleted. `design/SYSTEM.md`, `README.md`, `CONTEXT.md` and `design/MANIFEST.yaml` say light only and why (owner decision, 4 Oct).
+
+Red, `npx vitest run src/app/contrast.test.ts` with the new test against the old `globals.css`:
+
+```
+   × colour tokens > is light only: no dark colour scheme anywhere, and the page says it is light 4ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected '/* Classes come from src/ only (not p…' not to match /prefers-color-scheme/
+      Tests  1 failed | 10 passed (11)
+```
+
+Green: `Tests  11 passed (11)`. Red, `npx vitest run src/lib/check-pages.test.ts` before `shotFile` changed:
+
+```
+   × shotFile > names a screenshot <route>-<width>-light.png (the site is light only) 6ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected 'writing-prompt-caching-375-undefined.…' to be 'writing-prompt-caching-375-light.png' // Object.is equality
+      Tests  1 failed | 5 passed (6)
+```
+
+Green: `Tests  6 passed (6)`.
