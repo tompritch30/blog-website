@@ -1039,3 +1039,22 @@ AssertionError: expected null to deeply equal { left: true, right: true, …(3) 
 ```
 
 Green: `Tests  6 passed (6)`.
+
+#### The first hit of a game wins a link not yet won
+
+`mysteryHits` restarts at 0 each game, so the first hit always picked the paper, already won by a returning player. `createGame` now takes the stored `unlocked` list; a hit wins `nextTarget(unlocked, mysteryHits)` (`src/lib/invaders/links.ts`): the first target in rotation not yet won, or, once all three are, the rotation by hit count. The state carries the grown list and the event says `newLink`. `Game.tsx` shows "Unlocked: ..." and saves only when the list grows; once all are won a hit shows a plain "Mystery ship: 100 points". Red, `npx vitest run src/lib/invaders/links.test.ts src/lib/invaders/engine.test.ts` with `nextTarget` stubbed to the old rotation and the engine unchanged:
+
+```
+   × nextTarget > is the first target in rotation not yet won, whatever this game's hit count, so a returning player wins something new 58ms
+   × the mystery ship > a hit scores, removes it and wins the first link not yet won 71ms
+   × the mystery ship > starts from the links won in earlier games, so a new game's first hit is not the paper again 17ms
+   × the mystery ship > once all three are won, keeps rotating and says no new link was won 11ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected [ { type: 'mystery-hit', …(2) } ] to deeply equal [ { type: 'mystery-hit', …(3) } ]
+AssertionError: expected [ { type: 'mystery-hit', …(2) } ] to deeply equal [ { type: 'mystery-hit', …(3) } ]
+AssertionError: expected { type: 'mystery-hit', …(2) } to match object { target: { …(2) }, newLink: false }
+AssertionError: expected 'https://www.linkedin.com/in/thomas-pr…' to be 'https://doi.org/10.1109/lra.2025.3557…' // Object.is equality
+      Tests  4 failed | 44 passed (48)
+```
+
+Green: `Tests  63 passed (63)` for `src/lib/invaders`.

@@ -21,7 +21,7 @@ import {
 } from "@/lib/invaders/engine";
 import ExternalLink from "@/components/ExternalLink";
 import { keyInput, releasedInput, type HeldInput } from "@/lib/invaders/input";
-import { readUnlocked, saveUnlocked, unlock, unlockedTargets } from "@/lib/invaders/links";
+import { readUnlocked, saveUnlocked, unlockedTargets } from "@/lib/invaders/links";
 import { CREATURES, MYSTERY, SHIELD, SHIP, cells } from "./sprites";
 
 const BEST_KEY = "invaders-best";
@@ -265,7 +265,16 @@ export default function Game({ onClose }: { onClose: () => void }) {
   const newGame = useCallback((best: number) => {
     const L = layoutRef.current;
     if (!L) return;
-    gameRef.current = createGame({ field: L.field, invaders: L.invaders, shields: L.shields, config: L.config, highScore: best, seed: Date.now() });
+    // the links already won go in, so the next hit wins one not yet won
+    gameRef.current = createGame({
+      field: L.field,
+      invaders: L.invaders,
+      shields: L.shields,
+      config: L.config,
+      highScore: best,
+      seed: Date.now(),
+      unlocked: unlockedRef.current,
+    });
   }, []);
 
   // Open: lay out the game, lock the page, draw the first frame.
@@ -391,11 +400,16 @@ export default function Game({ onClose }: { onClose: () => void }) {
       }
       for (const e of g.events) {
         if (e.type !== "mystery-hit") continue;
-        // the game keeps running: the link joins the Unlocked list and a notice shows for 2 seconds
-        const next = unlock(unlockedRef.current, e.target.href);
-        unlockedRef.current = next;
-        setUnlocked(next);
-        saveUnlocked(() => window.localStorage, next);
+        // the game keeps running; a new link joins the Unlocked list and a notice shows for 2
+        // seconds; once every link is won, a hit only scores
+        if (!e.newLink) {
+          setNotice(`Mystery ship: ${e.points} points`);
+          setSaid(`Mystery ship, ${e.points} points.`);
+          continue;
+        }
+        unlockedRef.current = g.unlocked;
+        setUnlocked(g.unlocked);
+        saveUnlocked(() => window.localStorage, g.unlocked);
         setNotice(`Unlocked: ${e.target.label}`);
         setSaid(`Mystery ship, ${e.points} points. Unlocked ${e.target.label}; pause to open it.`);
       }

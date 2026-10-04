@@ -3,7 +3,7 @@
 // (ADR 0004), after the arcade original's rules: a formation of three invader types that
 // steps sideways on a heartbeat which quickens as they die, drops and turns at the edges,
 // shields that erode where they are hit, and a mystery ship crossing the top.
-import { mysteryTarget, type MysteryTarget } from "./links";
+import { nextTarget, unlock, type MysteryTarget } from "./links";
 
 export { createTrigger, KONAMI } from "./trigger";
 
@@ -15,7 +15,8 @@ export type Shield = { x: number; y: number; cell: number; cells: boolean[][] };
 export type Mystery = Box & { dir: 1 | -1 };
 export type Input = { left?: boolean; right?: boolean; fire?: boolean; targetX?: number | null };
 export type Status = "playing" | "over";
-export type GameEvent = { type: "mystery-hit"; target: MysteryTarget; points: number };
+// newLink: the hit added a link to the unlocked list (false once every link is won)
+export type GameEvent = { type: "mystery-hit"; target: MysteryTarget; points: number; newLink: boolean };
 
 export type Config = {
   margin: number; // space kept between the formation and the field's side edges
@@ -93,6 +94,7 @@ export type GameState = {
   mysteryClock: number;
   mysteryRuns: number;
   mysteryHits: number;
+  unlocked: string[]; // links won, this game and earlier ones, in the order won
   dir: 1 | -1;
   marchClock: number;
   frame: 0 | 1;
@@ -114,6 +116,7 @@ export type GameOptions = {
   highScore?: number;
   seed?: number;
   config?: Partial<Config>;
+  unlocked?: readonly string[]; // links won in earlier games, so the next hit wins one not yet won
 };
 
 /** Overlap of two boxes. Boxes that only share an edge or a corner do not collide. */
@@ -261,6 +264,7 @@ export function createGame(opts: GameOptions): GameState {
     mysteryClock: 0,
     mysteryRuns: 0,
     mysteryHits: 0,
+    unlocked: [...(opts.unlocked ?? [])],
     dir: 1,
     marchClock: 0,
     frame: 0,
@@ -331,7 +335,7 @@ export function step(state: GameState, input: Input, dt: number): GameState {
   let shields = eatShields(state.shields, invaders);
 
   // the mystery ship crosses the top, alternating sides
-  let { mystery, mysteryClock, mysteryRuns, mysteryHits } = state;
+  let { mystery, mysteryClock, mysteryRuns, mysteryHits, unlocked } = state;
   if (mystery) {
     const x = mystery.x + mystery.dir * c.mysterySpeed * dt;
     mystery = x > field.w || x + mystery.w < 0 ? null : { ...mystery, x };
@@ -362,7 +366,10 @@ export function step(state: GameState, input: Input, dt: number): GameState {
       continue;
     }
     if (mystery && collides(path, mystery)) {
-      events.push({ type: "mystery-hit", target: mysteryTarget(mysteryHits), points: c.mysteryPoints });
+      const won = nextTarget(unlocked, mysteryHits);
+      const newLink = !unlocked.includes(won.href);
+      unlocked = unlock(unlocked, won.href);
+      events.push({ type: "mystery-hit", target: won, points: c.mysteryPoints, newLink });
       score += c.mysteryPoints;
       mysteryHits += 1;
       mystery = null;
@@ -430,6 +437,7 @@ export function step(state: GameState, input: Input, dt: number): GameState {
     mysteryClock,
     mysteryRuns,
     mysteryHits,
+    unlocked,
     dir,
     marchClock,
     frame,

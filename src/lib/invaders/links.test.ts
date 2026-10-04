@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MYSTERY_TARGETS, UNLOCKED_KEY, mysteryTarget, readUnlocked, saveUnlocked, unlock } from "./links";
+import { MYSTERY_TARGETS, UNLOCKED_KEY, mysteryTarget, nextTarget, readUnlocked, saveUnlocked, unlock } from "./links";
 
 const PAPER = "https://doi.org/10.1109/lra.2025.3557738";
 const GITHUB = "https://github.com/tompritch30";
@@ -16,6 +16,20 @@ describe("mystery ship link targets", () => {
 
   it("rotate: the nth hit wins target n, paper, GitHub, LinkedIn, then round again", () => {
     expect([0, 1, 2, 3, 4].map((n) => mysteryTarget(n).href)).toEqual([PAPER, GITHUB, LINKEDIN, PAPER, GITHUB]);
+  });
+});
+
+describe("nextTarget", () => {
+  it("is the first target in rotation not yet won, whatever this game's hit count, so a returning player wins something new", () => {
+    expect(nextTarget([], 0).href).toBe(PAPER);
+    expect(nextTarget([], 2).href).toBe(PAPER);
+    expect(nextTarget([PAPER], 0).href).toBe(GITHUB);
+    expect(nextTarget([GITHUB], 0).href).toBe(PAPER);
+    expect(nextTarget([PAPER, LINKEDIN], 1).href).toBe(GITHUB);
+  });
+
+  it("keeps rotating by hit count once all three are won", () => {
+    expect([0, 1, 2, 3].map((n) => nextTarget([LINKEDIN, PAPER, GITHUB], n).href)).toEqual([PAPER, GITHUB, LINKEDIN, PAPER]);
   });
 });
 

@@ -17,6 +17,14 @@ export function mysteryTarget(n: number): MysteryTarget {
   return MYSTERY_TARGETS[((n % len) + len) % len];
 }
 
+/**
+ * What the next mystery hit wins: the first target in rotation not yet in the unlocked list (kept
+ * across games, so a returning player's first hit is not the paper again), or, once all are won,
+ * the rotation by this game's hit count n.
+ */
+export const nextTarget = (unlocked: readonly string[], n: number): MysteryTarget =>
+  MYSTERY_TARGETS.find((t) => !unlocked.includes(t.href)) ?? mysteryTarget(n);
+
 /** The unlocked list with href added once, in the order the links were won. */
 export const unlock = (list: readonly string[], href: string): string[] => (list.includes(href) ? [...list] : [...list, href]);
 

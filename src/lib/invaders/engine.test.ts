@@ -361,27 +361,49 @@ describe("the mystery ship", () => {
     expect(g.events).toEqual([]);
   });
 
-  it("a hit scores, removes it and reports the next link target in rotation", () => {
-    // the mystery sits over the ship's column; a bullet just below it
-    const shot = (mysteryHits: number) =>
-      step(
-        {
-          ...game([{ x: 0, y: 100, w: 10, h: 10 }], mystery),
-          mystery: { x: 90, y: 30, w: 20, h: 8, dir: 1 as const },
-          bullets: [{ x: 99, y: 45, w: 2, h: 8 }],
-          mysteryHits,
-        },
-        none,
-        0.1,
-      );
+  // the mystery sits over the ship's column; a bullet just below it; unlocked is the list won in
+  // earlier games, as Game.tsx reads it from storage
+  const shot = (mysteryHits: number, unlocked?: string[]) =>
+    step(
+      {
+        ...createGame({ field, invaders: [{ x: 0, y: 100, w: 10, h: 10, type: 1, row: 0, col: 0 }], config: { ...base, ...mystery }, unlocked }),
+        mystery: { x: 90, y: 30, w: 20, h: 8, dir: 1 as const },
+        bullets: [{ x: 99, y: 45, w: 2, h: 8 }],
+        mysteryHits,
+      },
+      none,
+      0.1,
+    );
+  const [paper, github, linkedin] = MYSTERY_TARGETS;
+
+  it("a hit scores, removes it and wins the first link not yet won", () => {
     const first = shot(0);
-    expect(first.events).toEqual([{ type: "mystery-hit", target: MYSTERY_TARGETS[0], points: 100 }]);
+    expect(first.events).toEqual([{ type: "mystery-hit", target: paper, points: 100, newLink: true }]);
     expect(first.mystery).toBeNull();
     expect(first.score).toBe(100);
     expect(first.mysteryHits).toBe(1);
-    expect(shot(1).events[0]).toMatchObject({ target: MYSTERY_TARGETS[1] });
-    expect(shot(2).events[0]).toMatchObject({ target: MYSTERY_TARGETS[2] });
-    expect(shot(3).events[0]).toMatchObject({ target: MYSTERY_TARGETS[0] });
+    expect(first.unlocked).toEqual([paper.href]);
+  });
+
+  it("starts from the links won in earlier games, so a new game's first hit is not the paper again", () => {
+    const g = shot(0, [paper.href]);
+    expect(g.events).toEqual([{ type: "mystery-hit", target: github, points: 100, newLink: true }]);
+    expect(g.unlocked).toEqual([paper.href, github.href]);
+    expect(shot(0, [github.href, paper.href]).events[0]).toMatchObject({ target: linkedin, newLink: true });
+  });
+
+  it("once all three are won, keeps rotating and says no new link was won", () => {
+    const all = [linkedin.href, paper.href, github.href];
+    expect(shot(0, all).events[0]).toMatchObject({ target: paper, newLink: false });
+    expect(shot(1, all).events[0]).toMatchObject({ target: github, newLink: false });
+    expect(shot(3, all).events[0]).toMatchObject({ target: paper, newLink: false });
+    expect(shot(1, all).unlocked).toEqual(all);
+  });
+
+  it("does not change the list it was given", () => {
+    const seed = [paper.href];
+    shot(0, seed);
+    expect(seed).toEqual([paper.href]);
   });
 
   it("events last one step", () => {
