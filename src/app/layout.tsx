@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from "next/font/google";
 import Nav from "@/components/Nav";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
 import { site } from "@/lib/site";
+import { writingIsLive } from "@/lib/writing";
 import "./globals.css";
 
 // Newsreader (SIL OFL 1.1) for headings, the name, figures and the one italic line: variable in
@@ -43,7 +44,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         >
           Skip to content
         </a>
-        <Nav name={site.name} />
+        <Nav name={site.name} showWriting={writingIsLive()} />
         <main id="main" tabIndex={-1} className="site-main flex-1 focus:outline-none">
           {children}
         </main>

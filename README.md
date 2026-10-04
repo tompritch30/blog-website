@@ -6,7 +6,7 @@ Thomas Pritchard's personal site and blog: a small Next.js app that turns MDX fi
 
 A personal site should be cheap to run, quick to load and easy to write for. Posts are plain MDX files in the repo, every page is built ahead of time, and Vercel serves the result. There is no database, content management system or client-side data fetching.
 
-![The home page at 1440 pixels wide in the light theme: the name, the nav (Writing, About and the alien that opens the game), a headline about putting AI agents into production, a short introduction, a portrait and links to LinkedIn and GitHub](docs/screenshot.jpg)
+![The home page at 1440 pixels wide in the light theme: the name, the nav (About and the alien that opens the game), a headline about putting AI agents into production, a short introduction, a portrait and links to LinkedIn and GitHub](docs/screenshot.jpg)
 
 ## Quickstart
 

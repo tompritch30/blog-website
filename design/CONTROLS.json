@@ -3,7 +3,7 @@
   "layout": [
     { "kind": "link", "href": "#main", "job": "skip past the navigation to the page content (keyboard and screen reader users)" },
     { "kind": "link", "href": "/", "job": "go to the home page (the name in the nav)" },
-    { "kind": "link", "href": "/writing", "job": "open the list of posts" },
+    { "kind": "link", "href": "/writing", "job": "open the list of posts (in the nav only once a post is published; until then nothing links to /writing)" },
     { "kind": "link", "href": "/about", "job": "open the About page" },
     { "kind": "button", "name": "Play space invaders", "job": "start the hidden invaders game (the pixel alien in the header nav, next to About)" }
   ],
@@ -18,7 +18,7 @@
     "/writing": {
       "controls": [
         { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post (none while every post is a draft: the page then says only \"Articles coming soon.\")" },
-        { "kind": "link", "href": "/feed.xml", "job": "follow new posts by RSS (a quiet link under the list, shown only once a post is published; feed readers use the head's link rel=alternate)" }
+        { "kind": "link", "href": "/feed.xml", "job": "follow new posts by RSS (a quiet link under the list, shown only once a post is published; the head's link rel=alternate appears at the same time)" }
       ]
     },
     "/writing/[slug]": {

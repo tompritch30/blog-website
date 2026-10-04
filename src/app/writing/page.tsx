@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 // Every post is a draft for now (owner, 4 Oct 2026), so a production build has nothing to list and the
 // page says one plain line. Once a post is published (draft: false), the posts show between hairlines
-// with a quiet RSS link under them; feed readers find the feed from the <link rel="alternate"> in every
+// with a quiet RSS link under them; the head's <link rel="alternate"> and the nav's Writing link appear at the same time, in every
 // page's head either way. Drafts are never listed, in `next dev` either, so dev looks like the live
 // site; a draft is previewed at its own URL, under the Draft banner.
 export default function WritingPage() {

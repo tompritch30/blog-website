@@ -117,7 +117,7 @@ async function shrink(png: Buffer, width: number): Promise<{ out: Buffer; note: 
 }
 
 /**
- * The header nav on the page as rendered: its list items (Writing, About and the alien) on one line,
+ * The header nav on the page as rendered: its list items (About and the alien; Writing joins once a post is published) on one line,
  * the alien's button at least ALIEN_MIN square, and nothing wider than the viewport. Only the li items
  * are measured: at 375 the name sits on its own line above them by design.
  */

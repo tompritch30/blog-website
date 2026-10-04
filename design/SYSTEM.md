@@ -40,7 +40,7 @@ Each of the reference's patterns either became something the owner's rules allow
 - Eyebrow plus slogan heading on each section, grey subtitle under it: one plain sentence-case heading.
 - Career cards, emoji bullets, bold keywords, chips: no cards; each case study is a title, the problem, what he built and one large figure.
 - Chip clouds of skills: one comma-separated line per group.
-- Newsletter box: none. Once posts are published, the feed is a quiet "RSS" link under the list on `/writing`; every page's head carries the feed's `<link rel="alternate">` for feed readers, kept while the feed is empty because a channel with no items is valid RSS 2.0.
+- Newsletter box: none. Once posts are published, the feed is a quiet "RSS" link under the list on `/writing`; every page's head carries the feed's `<link rel="alternate">` from then on. Until a post is published (owner, 4 October 2026) nothing links to `/writing`: the nav is About and the alien, the head has no feed link, and `/writing` ("Articles coming soon.") is reachable only by its URL; the empty feed stays valid RSS 2.0.
 - Footer with a name, a motto and icon buttons: no footer at all. A colophon line (the faces and a revised date) stood there until the owner's review of 4 October 2026 called it filler; with the feed link moved to `/writing`, nothing was left for a footer to hold, and each page ends a section's gap below its last line.
 - Theme toggle: none, and no dark theme: the site is light only (owner decision, 4 October 2026).
 - Content revealed on scroll: everything renders on load.

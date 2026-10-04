@@ -14,7 +14,7 @@ export function siteUrl(env: Env = process.env): string {
 export const site = {
   name: "Thomas Pritchard",
   tagline: "Founding Forward Deployed Engineer at Palindrome. I build LLM systems for clients.",
-  description: "Thomas Pritchard's personal site: notes on building LLM systems, what they cost and how to make them work.",
+  description: "Thomas Pritchard, founding Forward Deployed Engineer at Palindrome. I put AI agents into production for law firms and wealth managers.",
   locale: "en_GB",
   url: siteUrl(),
 };

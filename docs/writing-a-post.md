@@ -57,4 +57,4 @@ Once the one-time setup in [deploy.md](deploy.md) is done, Vercel deploys every 
 
 ## Publishing an existing draft
 
-Set `draft: false` in its frontmatter (or delete the `draft` line), then do steps 4 and 5. The post then appears on `/writing`, in `/feed.xml` and in the sitemap, and its URL works. The home page has no Writing section while writing is hidden, so it does not list posts.
+Set `draft: false` in its frontmatter (or delete the `draft` line), then do steps 4 and 5. The post then appears on `/writing`, in `/feed.xml` and in the sitemap, and its URL works. Publishing the first post also brings back the Writing link in the nav and the feed link in the page head, by themselves (`writingIsLive` in `src/lib/writing.ts`): until then nothing links to `/writing`, which says "Articles coming soon." to anyone who types its address. The home page has no Writing section while writing is hidden, so it does not list posts.
