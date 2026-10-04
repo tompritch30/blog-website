@@ -48,8 +48,10 @@ It must end `ci: all gates green`. The slop lint checks the post's prose too (no
 ```bash
 git add src/content/posts/<slug>.mdx
 git commit -m "feat(posts): add <slug>"
-git push origin main
+git push --no-verify origin main
 ```
+
+A plain `git push origin main` is refused, by design: `scripts/setup-dev.sh` installs `scripts/hooks/pre-push`, which refuses every push with "push disabled: owner rule" so that no agent can push. `--no-verify` skips that hook. Only you push, by hand; agents never push (their guard hook blocks any `git push` before it runs).
 
 Once the one-time setup in [deploy.md](deploy.md) is done, Vercel deploys every push to `main` by itself.
 
