@@ -733,3 +733,25 @@ AssertionError: expected [] to deeply equal [ [ 'external-link', 3 ], …(2) ]
 ```
 
 Green: `Tests  61 passed (61)`. Real hits on the site: the only bare off-site anchor in the source was `Figure`'s credit link, fixed above; the built pages' result is in the gate run at the end of this section.
+
+#### Footer revised date from the last commit
+
+The footer's "Revised" date was a constant (`2026-10-03`) that would go stale with the next commit. Kept rather than removed, because it tells a visitor the site is current and the colophon line is part of the design; now it cannot drift. `src/lib/revised.ts`: `lastCommitDate` runs `git log -1 --format=%cs` (null when git or the history is missing) and `revisedDate` returns it when it is a `YYYY-MM-DD`, else the build day in UTC. The footer reads it once per build, so every static page carries the same day. On Vercel the build may have no `.git` (its environment gives a commit SHA, not a date), and then the build day is shown, which is the day the deployed pages were made.
+
+Red, `npx vitest run src/lib/revised.test.ts` against stubs returning "stub":
+
+```
+   × revisedDate > is the last commit's date when git gives one 10ms
+   × revisedDate > falls back to the build day when git is not there (a build without the repo's history) 1ms
+   × revisedDate > falls back to the build day when git answers with something that is not a date 1ms
+   × lastCommitDate > reads this repository's last commit date, as git itself prints it 8ms
+   × lastCommitDate > gives null outside a git repository instead of throwing 2ms
+AssertionError: expected 'stub' to be '2026-10-04' // Object.is equality
+AssertionError: expected 'stub' to be '2026-11-02' // Object.is equality
+AssertionError: expected 'stub' to be '2026-11-02' // Object.is equality
+AssertionError: expected 'stub' to be '2026-10-04' // Object.is equality
+AssertionError: expected 'stub' to be null
+      Tests  5 failed (5)
+```
+
+Green: `Tests  5 passed (5)`. The first commit attempt failed in the pre-commit hook: git sets `GIT_DIR` for hooks, so `git log` in `/` still found the repo (`AssertionError: expected '2026-10-04' to be null`); the test now runs that call in a fresh temporary folder with the `GIT_*` variables cleared, as a build has them. The dev server's footer then read `Revised <time dateTime="2026-10-04">4 October 2026</time>`, matching `git log -1 --format=%cs`.

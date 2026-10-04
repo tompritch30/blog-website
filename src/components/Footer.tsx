@@ -1,10 +1,12 @@
 import AlienTrigger from "@/components/invaders/AlienTrigger";
 import { formatDate } from "@/lib/dates";
+import { revisedDate } from "@/lib/revised";
 
 // The reference's footer row (who and a line on the left, links on the right), without the name,
 // which the header already carries: the faces the site is set in, the day it was last revised, the
 // feed, and on the right the pixel alien that starts the game.
-const REVISED = "2026-10-03";
+// The revised day is the last commit's, read once per build (src/lib/revised.ts).
+const REVISED = revisedDate();
 
 export default function Footer() {
   return (
