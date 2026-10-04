@@ -2,13 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Fragment } from "react";
 import ExternalLink from "@/components/ExternalLink";
-import PostList from "@/components/PostList";
 import EvalGateDiagram from "@/components/home/EvalGateDiagram";
 import OrgMark from "@/components/home/OrgMark";
-import { aboutShort, caseStudies, cv, headline, intro, links, motto, paperFigure, portrait, type CaseStudy } from "@/content/profile";
+import { aboutShort, caseStudies, cv, headline, intro, links, paperFigure, portrait, type CaseStudy } from "@/content/profile";
 import { careerEntries, educationRows } from "@/lib/career";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
-import { getAllPosts } from "@/lib/posts";
 
 export const metadata: Metadata = {
   alternates: { ...baseAlternates, canonical: "/" },
@@ -17,7 +15,8 @@ export const metadata: Metadata = {
 
 // The kb layout, in the reference's order: a two-column hero (who he is, then his photo), About with a
 // figure beside it, Work as a timeline of roles with their case studies, Outside work, Education and
-// research, Skills, and Writing. Each place is linked once on the page (owner review, 4 Oct 2026): the
+// research, and Skills. While every post is a draft (owner, 4 Oct 2026) there is no Writing section and
+// no line about writing; /writing says articles are coming. Each place is linked once on the page (owner review, 4 Oct 2026): the
 // nav carries Writing and About, the hero carries LinkedIn and GitHub, and the paper is linked from
 // its row in Education and research. There is no in-page section index.
 
@@ -53,7 +52,6 @@ function Study({ study }: { study: CaseStudy }) {
 }
 
 export default function Home() {
-  const posts = getAllPosts().slice(0, 3);
   const paper = cv.publication;
 
   return (
@@ -66,7 +64,6 @@ export default function Home() {
           <p className="lead">
             {intro[0]} {intro[1]}
           </p>
-          <p className="motto">{motto}</p>
           <p className="link-row">
             <ExternalLink href={links.linkedin}>LinkedIn</ExternalLink>
             <ExternalLink href={links.github}>GitHub</ExternalLink>
@@ -210,12 +207,6 @@ export default function Home() {
         </dl>
       </section>
 
-      <section id="writing" className="page section" aria-labelledby="writing-title">
-        <h2 id="writing-title" className="section-title">
-          Writing
-        </h2>
-        <PostList posts={posts} heading="h3" />
-      </section>
     </>
   );
 }

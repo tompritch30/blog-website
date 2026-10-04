@@ -290,19 +290,6 @@ h4 {
   height: auto;
 }
 
-/* The one italic line, in the heading face: the reference's motto slot, in his words. */
-.motto {
-  margin-block-start: 1.5rem;
-  max-width: 34rem;
-  font-family: var(--font-display);
-  font-optical-sizing: auto;
-  font-style: italic;
-  font-size: 1.25rem;
-  line-height: 1.45;
-  color: var(--secondary);
-  text-wrap: pretty;
-}
-
 /* The reference's row of pill buttons, as plain links. */
 .link-row {
   display: flex;

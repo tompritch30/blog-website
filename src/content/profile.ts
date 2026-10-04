@@ -96,7 +96,6 @@ export const intro: string[] = [
 ];
 
 // One line in his own words for the italic line under the intro: verbatim from src/content/about.mdx.
-export const motto = "I write here about building with LLMs: what works, what it costs, and the maths behind it.";
 
 export const caseStudies: CaseStudy[] = [
   {
