@@ -988,3 +988,7 @@ TypeError: (0 , readUnlocked) is not a function
 ```
 
 Green: `Tests  52 passed (52)` for `src/lib/invaders`. "unlock" is on the slop lint's marketing list, so the copy says "win a link"; "Unlocked:" (the owner's word) passes.
+
+#### The 404 page's second alien, and Pass and Fail on the diagram
+
+The 404 page lost its own alien button and the `.lost` CSS (the nav carries one on every page); its CONTROLS entry has no controls left. The evaluation diagram on the home page now branches out of the release gate: "Pass" to a "Production release" box, "Fail" to a "Regression stopped" box, the fail line and its box dashed (`.dg-dash`), in both drawings (across from 40rem, down below it, where the two outcomes sit side by side at 14px); the screen-reader title says the same. Checked on the owner's dev server at 1440 and 375: layout as intended, but that server's CSS had not picked up the new rule (no `.dg-dash` in its stylesheets), so the dashes are proven on the clone's production build below.

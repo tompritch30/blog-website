@@ -34,9 +34,7 @@
       ]
     },
     "/_not-found": {
-      "controls": [
-        { "kind": "button", "name": "Play space invaders", "job": "start the invaders game from the missing page, where a curious visitor has time" }
-      ]
+      "controls": []
     },
     "/_global-error": {
       "layout": false,

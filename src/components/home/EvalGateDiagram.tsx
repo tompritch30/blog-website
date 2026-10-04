@@ -1,11 +1,12 @@
 // The release evaluation system from the "release-evals" case study, drawn from its facts only:
 // synthetic client cases, agents drafting each report, rule checks and an LLM judge, and a gate
-// that lets a release through or stops a regression before it reaches clients.
+// that passes a release to production or fails it, stopping the regression before it reaches clients.
+// The fail branch and its box are dashed, so the two outcomes differ by more than their labels.
 // Two drawings of the same system: across for wide screens, down for phones, so the labels stay
 // at their real size (14px) instead of shrinking with the width. CSS shows one at a time.
 
 const LABEL =
-  "Synthetic client cases go to the agents, which draft each report. Rule checks and an LLM judge score every draft. The release gate passes a release to production and stops a regression.";
+  "Synthetic client cases go to the agents, which draft each report. Rule checks and an LLM judge score every draft. At the release gate, a pass goes to production release; a fail stops the regression before it reaches clients.";
 
 // A small filled arrowhead with its tip at (x, y).
 function Head({ x, y, dir }: { x: number; y: number; dir: "right" | "down" | "left" }) {
@@ -32,7 +33,7 @@ function Sheets({ x, y }: { x: number; y: number }) {
 
 function Wide() {
   return (
-    <svg className="diagram-wide" viewBox="0 0 740 172" role="img" aria-labelledby="eval-wide-title">
+    <svg className="diagram-wide" viewBox="0 -22 740 194" role="img" aria-labelledby="eval-wide-title">
       <title id="eval-wide-title">{LABEL}</title>
       <Sheets x={24} y={64} />
       <text className="dg-text" x={64} y={146} textAnchor="middle">
@@ -69,24 +70,37 @@ function Wide() {
       <path className="dg-line" d="M452,48 H470 M452,132 H470 M470,48 V132 M470,90 H534" />
       <Head x={540} y={90} dir="right" />
 
-      {/* A regression turns away before the gate. */}
-      <path className="dg-line" d="M496,90 V20 H580" />
-      <Head x={586} y={20} dir="right" />
-      <text className="dg-text dg-muted" x={594} y={25}>
-        Regression stopped
-      </text>
-
-      <path className="dg-line" d="M546,90 H580" />
       <path className="dg-line dg-gate" d="M546,58 V122" />
-      <Head x={586} y={90} dir="right" />
       <text className="dg-text dg-strong" x={546} y={146} textAnchor="middle">
         Release gate
       </text>
-      <text className="dg-text" x={594} y={95}>
+
+      {/* Pass: on to production. */}
+      <path className="dg-line" d="M546,90 H596" />
+      <Head x={602} y={90} dir="right" />
+      <text className="dg-text" x={572} y={83} textAnchor="middle">
+        Pass
+      </text>
+      <rect className="dg-box" x={606} y={64} width={122} height={52} />
+      <text className="dg-text" x={667} y={86} textAnchor="middle">
         Production
       </text>
-      <text className="dg-text" x={594} y={113}>
+      <text className="dg-text" x={667} y={104} textAnchor="middle">
         release
+      </text>
+
+      {/* Fail: dashed, up and away from production. */}
+      <path className="dg-line dg-dash" d="M546,58 V8 H596" />
+      <Head x={602} y={8} dir="right" />
+      <text className="dg-text" x={554} y={40}>
+        Fail
+      </text>
+      <rect className="dg-box dg-dash" x={606} y={-18} width={122} height={52} />
+      <text className="dg-text" x={667} y={4} textAnchor="middle">
+        Regression
+      </text>
+      <text className="dg-text" x={667} y={22} textAnchor="middle">
+        stopped
       </text>
     </svg>
   );
@@ -94,7 +108,7 @@ function Wide() {
 
 function Tall() {
   return (
-    <svg className="diagram-tall" viewBox="0 0 320 404" role="img" aria-labelledby="eval-tall-title">
+    <svg className="diagram-tall" viewBox="0 0 320 446" role="img" aria-labelledby="eval-tall-title">
       <title id="eval-tall-title">{LABEL}</title>
       <Sheets x={112} y={20} />
       <text className="dg-text" x={206} y={42}>
@@ -131,24 +145,37 @@ function Tall() {
       <path className="dg-line" d="M80,256 V272 M240,256 V272 M80,272 H240 M160,272 V318" />
       <Head x={160} y={324} dir="down" />
 
-      {/* A regression turns away before the gate. */}
-      <path className="dg-line" d="M160,294 H116" />
-      <Head x={110} y={294} dir="left" />
-      <text className="dg-text dg-muted" x={102} y={290} textAnchor="end">
-        Regression
-      </text>
-      <text className="dg-text dg-muted" x={102} y={308} textAnchor="end">
-        stopped
-      </text>
-
       <path className="dg-line dg-gate" d="M124,328 H196" />
       <text className="dg-text dg-strong" x={206} y={333}>
         Release gate
       </text>
-      <path className="dg-line" d="M160,328 V362" />
-      <Head x={160} y={368} dir="down" />
-      <text className="dg-text" x={160} y={392} textAnchor="middle">
-        Production release
+      <path className="dg-line" d="M160,328 V344" />
+
+      {/* Fail on the left, dashed; pass on the right, on to production. */}
+      <path className="dg-line dg-dash" d="M160,344 H78 V372" />
+      <Head x={78} y={378} dir="down" />
+      <text className="dg-text" x={86} y={366}>
+        Fail
+      </text>
+      <rect className="dg-box dg-dash" x={10} y={382} width={136} height={52} />
+      <text className="dg-text" x={78} y={404} textAnchor="middle">
+        Regression
+      </text>
+      <text className="dg-text" x={78} y={422} textAnchor="middle">
+        stopped
+      </text>
+
+      <path className="dg-line" d="M160,344 H242 V372" />
+      <Head x={242} y={378} dir="down" />
+      <text className="dg-text" x={250} y={366}>
+        Pass
+      </text>
+      <rect className="dg-box" x={174} y={382} width={136} height={52} />
+      <text className="dg-text" x={242} y={404} textAnchor="middle">
+        Production
+      </text>
+      <text className="dg-text" x={242} y={422} textAnchor="middle">
+        release
       </text>
     </svg>
   );

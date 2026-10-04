@@ -614,6 +614,11 @@ h4 {
   stroke-width: 3;
 }
 
+/* The fail branch and its box: dashed, so the outcome reads without its label. */
+.dg-dash {
+  stroke-dasharray: 5 4;
+}
+
 .dg-rule {
   fill: none;
   stroke: var(--secondary);
@@ -815,17 +820,6 @@ h4 {
     order: 0;
     width: auto;
   }
-}
-
-/* ---------- 404 ---------- */
-
-.lost {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  margin-block-start: 2rem;
-  color: var(--secondary);
 }
 
 /* ---------- the end of a page ---------- */
