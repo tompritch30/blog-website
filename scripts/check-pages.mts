@@ -15,6 +15,10 @@
 //       P must pause it with Resume focused and the three links listed as new-tab links, its dialog's
 //       controls are checked against "dialogs.invaders", and Escape must then close it and hand focus
 //       back to the alien;
+//   (b1) a mystery-ship hit, staged by the test-only `?invaders-test` query (stageHit in
+//       src/lib/invaders/hit.ts), must pause the game with "Open ForestVO paper" focused; Enter on it must
+//       open a new page at the paper's URL (answered locally, never fetched) while this page stays
+//       paused with the game showing; with --shots it saves game-hit-1440-light.png;
 //   (b2) the header nav: its links and the alien sit on one line, the alien's button is at least 28x28
 //       (WCAG 2.2 target size), and the page does not scroll sideways, at both widths;
 //   (c) with --shots, a full-page PNG per page and width, palette-reduced with sharp to under 300KB.
@@ -236,6 +240,69 @@ async function gameCheck(browser: Browser, problems: string[]): Promise<void> {
   }
 }
 
+/**
+ * A hit opens the link (owner, 4 Oct 2026): `?invaders-test` stages the mystery ship over the player
+ * with a shot just below it, so the first frames of play hit it. The game must pause with the
+ * "Open <paper>" link focused, Enter must open a new page at the paper's URL, and this page must stay
+ * paused with the game on screen. The paper's host is routed to a local stub, so nothing leaves the
+ * machine and only the new page's URL is read.
+ */
+async function hitCheck(browser: Browser, problems: string[]): Promise<void> {
+  const label = "/ 1440 with a staged mystery-ship hit";
+  const target = MYSTERY_TARGETS[0];
+  const ctx = await browser.newContext({ viewport: VIEWPORTS[1] });
+  await ctx.route(`${new URL(target.href).origin}/**`, (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<title>stub</title>" }));
+  const page = await ctx.newPage();
+  await page.goto(`${base}/?invaders-test`, { waitUntil: "networkidle" });
+  await page.locator("header nav").getByRole("button", { name: /play space invaders/i }).click();
+  const dialog = page.locator("dialog[open]");
+  const open = dialog.getByRole("link", { name: `Open ${target.label}` });
+  const offered = await open
+    .waitFor({ timeout: 5_000 })
+    .then(() => true)
+    .catch(() => false);
+  const screen = () =>
+    page.evaluate(() => {
+      const d = document.querySelector("dialog[open]");
+      const a = document.activeElement as HTMLAnchorElement | null;
+      const canvas = d?.querySelector("canvas")?.getBoundingClientRect();
+      return {
+        open: !!d,
+        text: d?.querySelector("div.absolute.left-1\\/2")?.textContent?.replace(/\s+/g, " ").trim() ?? "",
+        score: d?.querySelector("p.font-mono span")?.textContent ?? "",
+        canvas: canvas ? `${Math.round(canvas.width)}x${Math.round(canvas.height)}` : "none",
+        focus: a ? `${a.tagName} "${a.innerText.trim()}" ${a.getAttribute("href") ?? ""} ${a.getAttribute("target") ?? ""} ${a.getAttribute("rel") ?? ""}` : "none",
+      };
+    });
+  const before = await screen();
+  // the visible name, then the hidden "(opens in a new tab)", then where and how it opens
+  const focused = before.focus.startsWith(`A "Open ${target.label} ↗`) && before.focus.endsWith(`" ${target.href} _blank noopener noreferrer`);
+  console.log(`${offered && focused ? "pass" : "FAIL"}  hit ${label}: paused on "${before.text}", ${before.score}, focus on ${before.focus}`);
+  if (!offered || !focused) problems.push(`hit ${label}: no focused Open link after the hit (focus ${before.focus})`);
+  const dupes = lintControls(label, await dialog.evaluate((d) => d.outerHTML), budget.dialogs?.invaders ?? [], "the game dialog", { origins: [new URL(base).origin] });
+  console.log(`${dupes.length ? "FAIL" : "pass"}  controls ${label}: hit screen within the budget, each place linked once`);
+  for (const h of dupes) console.log(`        ${h.rule} ${h.message}`);
+  if (dupes.length) problems.push(`controls ${label}: ${dupes.length} hits`);
+  if (shots && offered) {
+    const file = path.join(outDir, shotFile("game-hit", VIEWPORTS[1].width));
+    const { out, note } = await shrink(await page.screenshot({ animations: "disabled" }), VIEWPORTS[1].width);
+    fs.writeFileSync(file, out);
+    console.log(`pass  shot ${file} ${(out.length / 1024).toFixed(0)} KB (${note})`);
+  }
+  if (offered) {
+    const [tab] = await Promise.all([ctx.waitForEvent("page", { timeout: 5_000 }), page.keyboard.press("Enter")]);
+    await tab.waitForURL((u) => u.href === target.href, { waitUntil: "commit", timeout: 5_000 }).catch(() => undefined);
+    const url = tab.url();
+    // still paused a moment later: the score has not moved and the game is on screen
+    await page.waitForTimeout(500);
+    const after = await screen();
+    const ok = url === target.href && after.open && after.score === before.score && after.text === before.text && after.canvas !== "none";
+    console.log(`${ok ? "pass" : "FAIL"}  hit ${label}: Enter opened a new page at ${url}; ${ctx.pages().length} pages; this page still paused (${after.score}, canvas ${after.canvas}, "${after.text}"), focus on ${after.focus}`);
+    if (!ok) problems.push(`hit ${label}: new page at ${url}, this page ${JSON.stringify(after)}`);
+  }
+  await ctx.close();
+}
+
 async function main(): Promise<number> {
   try {
     const res = await fetch(`${base}/writing`);
@@ -295,6 +362,7 @@ async function main(): Promise<number> {
   }
   console.log("");
   await gameCheck(browser, problems);
+  await hitCheck(browser, problems);
   console.log("");
   for (const row of axeRows) console.log(row);
   if (shotRows.length) {

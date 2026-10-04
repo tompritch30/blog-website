@@ -1105,3 +1105,36 @@ AssertionError: expected 'writing-prompt-caching-375-undefined.…' to be 'writi
 ```
 
 Green: `Tests  6 passed (6)`.
+
+#### A hit on the mystery ship opens its link
+
+The owner hit the gold ship and nothing opened; he wants a hit to open the link in a new tab. Finding: a hit cannot be resolved inside the keydown or pointer handler that fired the shot, because the bullet climbs `bulletSpeed * dt` per animation frame and `step()` finds the collision in a later `requestAnimationFrame` callback, often seconds after the key press, where `window.open` leans on the browser's short-lived transient activation and may be blocked as a pop-up.
+
+So a hit now pauses the game and focuses one prominent link, "Open ForestVO paper ↗" (a real `<a target="_blank" rel="noopener noreferrer">` with the hidden "(opens in a new tab)"), drawn as a solid claret block. One Enter or click opens it in a new tab while the game stays paused here; Resume (or P) carries on; Escape quits as before. Every hit offers its link, including once all three are won. The pause and game-over screens keep the Unlocked list and its `localStorage`; on the hit screen it reads "Also unlocked" and leaves out the offered link, so the screen links each place once. The 2-second "Unlocked" notice is gone: the pause screen does its job. Pure logic in `src/lib/invaders/hit.ts`: `afterFrame(events, status)` (paused with the offer, game over, or play on), `listedBeside(unlocked, offer)` and `stageHit(game)`.
+
+`stageHit` is the one test-only hook: the `?invaders-test` query puts the mystery ship over the player's ship with a shot just below it, above the formation, so the browser check can prove the flow without aiming. No control on the site leads to it, and a visitor who types it gets one free hit and nothing else. `design/CONTROLS.json` says what each dialog link is for on the hit screen. `ExternalLink` takes an optional `ref` so the game can focus it.
+
+Red, `npx vitest run src/lib/invaders/hit.test.ts` against a stub (`afterFrame` returns null, `listedBeside` [], `stageHit` the game unchanged):
+
+```
+   ✓ afterFrame: what a frame of play leads to > plays on when nothing happened 2ms
+   × afterFrame: what a frame of play leads to > pauses on a mystery-ship hit and offers the link it won, to open in a new tab 10ms
+   × afterFrame: what a frame of play leads to > offers the link on every hit, even once all three are won and the hit wins no new one 1ms
+   × afterFrame: what a frame of play leads to > ends the game when the last life goes in the same frame as a hit; the won link is on the game-over list 1ms
+   × listedBeside: the unlocked list under the offered link > leaves out the offered link, so the screen links each place once, and keeps the order won 3ms
+   × listedBeside: the unlocked list under the offered link > lists every won link when nothing is offered (a pause by hand, or game over) 1ms
+   × stageHit: the test-only hit behind ?invaders-test > puts the mystery ship over the player's ship with a shot just below it, above the formation 4ms
+   × stageHit: the test-only hit behind ?invaders-test > hits on the next frame of play: the first link not yet won, 100 points, the invader untouched 4ms
+   ✓ stageHit: the test-only hit behind ?invaders-test > never changes the game it is given 1ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected null to deeply equal { mode: 'paused', offer: { …(2) } }
+AssertionError: expected null to deeply equal { mode: 'paused', offer: { …(2) } }
+AssertionError: expected null to deeply equal { mode: 'over', offer: null }
+AssertionError: expected [] to deeply equal [ 'LinkedIn', 'GitHub' ]
+AssertionError: expected [] to deeply equal [ { …(2) }, { …(2) } ]
+AssertionError: expected null to match object { y: 60, w: 40, h: 12 }
+AssertionError: expected [] to deeply equal [ { type: 'mystery-hit', …(3) } ]
+      Tests  7 failed | 2 passed (9)
+```
+
+Green: `Tests  9 passed (9)`; all unit tests `Tests  236 passed (236)`.

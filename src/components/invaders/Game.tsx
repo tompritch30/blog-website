@@ -3,9 +3,12 @@
 // The hidden game. Loaded only by a dynamic import() from AlienTrigger, so it costs nothing
 // until a visitor finds the alien (or types the Konami code). It plays like the arcade
 // original: three invader types on a quickening heartbeat, four shields that erode, and a
-// golden mystery ship whose hits unlock the paper, GitHub and LinkedIn in turn. A hit never takes
-// the player out of the game: the link joins an Unlocked list that the pause and game-over screens
-// show as real links (owner, 4 Oct 2026). P or Escape pauses; Escape again, or Quit, closes the game.
+// golden mystery ship whose hits unlock the paper, GitHub and LinkedIn in turn. A hit pauses the
+// game and focuses an "Open <label>" link, so one Enter or click opens it in a new tab while this tab
+// stays paused (owner, 4 Oct 2026; see src/lib/invaders/hit.ts for why it is a link, not
+// window.open). Won links also join an Unlocked list on the pause and game-over screens. P or Escape
+// pauses; Escape again, or Quit, closes the game. `?invaders-test` stages a hit for the browser
+// check (stageHit); no control on the site leads to it.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -21,7 +24,8 @@ import {
 } from "@/lib/invaders/engine";
 import ExternalLink from "@/components/ExternalLink";
 import { keyInput, releasedInput, type HeldInput } from "@/lib/invaders/input";
-import { readUnlocked, saveUnlocked, unlockedTargets } from "@/lib/invaders/links";
+import { afterFrame, listedBeside, stageHit } from "@/lib/invaders/hit";
+import { readUnlocked, saveUnlocked, type MysteryTarget } from "@/lib/invaders/links";
 import { CREATURES, MYSTERY, SHIELD, SHIP, cells } from "./sprites";
 
 const BEST_KEY = "invaders-best";
@@ -248,7 +252,8 @@ export default function Game({ onClose }: { onClose: () => void }) {
   // links won from the mystery ship, kept across games and visits (storage inside try and catch)
   const [unlocked, setUnlocked] = useState<string[]>(() => readUnlocked(() => window.localStorage));
   const unlockedRef = useRef(unlocked);
-  const [notice, setNotice] = useState("");
+  // the link a mystery-ship hit offers on the pause screen; null for a pause by hand
+  const [offer, setOffer] = useState<MysteryTarget | null>(null);
   const closing = useRef(false);
   const [said, setSaid] = useState("");
 
@@ -310,6 +315,7 @@ export default function Game({ onClose }: { onClose: () => void }) {
     fit();
     coloursRef.current = readColours();
     newGame(readBest());
+    if (gameRef.current && new URLSearchParams(window.location.search).has("invaders-test")) gameRef.current = stageHit(gameRef.current);
     redraw();
 
     // A resize or a turned phone changes the play column, and every position in the game is in its
@@ -388,25 +394,24 @@ export default function Game({ onClose }: { onClose: () => void }) {
         shown = key;
         setHud({ score: g.score, best: g.highScore, wave: g.wave, lives: g.lives });
       }
-      for (const e of g.events) {
-        if (e.type !== "mystery-hit") continue;
-        // the game keeps running; a new link joins the Unlocked list and a notice shows for 2
-        // seconds; once every link is won, a hit only scores
-        if (!e.newLink) {
-          setNotice(`Mystery ship: ${e.points} points`);
-          setSaid(`Mystery ship, ${e.points} points.`);
-          continue;
-        }
+      // a new link joins the Unlocked list and is kept for later visits
+      if (g.events.some((e) => e.type === "mystery-hit" && e.newLink)) {
         unlockedRef.current = g.unlocked;
         setUnlocked(g.unlocked);
         saveUnlocked(() => window.localStorage, g.unlocked);
-        setNotice(`Unlocked: ${e.target.label}`);
-        setSaid(`Mystery ship, ${e.points} points. Unlocked ${e.target.label}; pause to open it.`);
       }
-      if (g.status === "over") {
+      const next = afterFrame(g.events, g.status);
+      if (next?.mode === "over") {
         saveBest(g.highScore);
         setSaid(`Game over. Score ${g.score}, best ${g.highScore}.`);
         setMode("over");
+        return;
+      }
+      if (next?.mode === "paused") {
+        // a hit pauses the game on its link, focused, so one Enter or click opens it in a new tab
+        setOffer(next.offer);
+        setSaid(`Mystery ship hit, ${next.offer.label} unlocked. Paused; press Enter to open it in a new tab.`);
+        setMode("paused");
         return;
       }
       frame = requestAnimationFrame(tick);
@@ -415,13 +420,6 @@ export default function Game({ onClose }: { onClose: () => void }) {
     return () => cancelAnimationFrame(frame);
   }, [mode, redraw]);
 
-  // The unlock notice goes after about 2 seconds; a second hit restarts the clock.
-  useEffect(() => {
-    if (!notice) return;
-    const t = window.setTimeout(() => setNotice(""), 2000);
-    return () => window.clearTimeout(t);
-  }, [notice]);
-
   // Keyboard: arrows or A and D to move, space to fire, P to pause or resume. A focused control keeps
   // its own keys.
   useEffect(() => {
@@ -429,7 +427,10 @@ export default function Game({ onClose }: { onClose: () => void }) {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (down && e.key.toLowerCase() === "p" && (modeRef.current === "play" || modeRef.current === "paused")) {
         e.preventDefault();
-        if (!e.repeat) setMode(modeRef.current === "play" ? "paused" : "play");
+        if (!e.repeat) {
+          setOffer(null);
+          setMode(modeRef.current === "play" ? "paused" : "play");
+        }
         return;
       }
       const playing = modeRef.current === "play";
@@ -481,11 +482,17 @@ export default function Game({ onClose }: { onClose: () => void }) {
     newGame(Math.max(hud.best, hud.score));
     setHud((h) => ({ ...h, score: 0, wave: 1, lives: gameRef.current?.lives ?? 3 }));
     setSaid("");
+    setOffer(null);
     setMode("play");
   };
 
-  const resume = () => setMode("play");
-  const won = unlockedTargets(unlocked);
+  const resume = () => {
+    setOffer(null);
+    setMode("play");
+  };
+  // the offered link stands on its own, so the list under it leaves it out (one link per place)
+  const shown = mode === "paused" ? offer : null;
+  const won = listedBeside(unlocked, shown);
 
   // Keep Tab inside the game: a modal dialog alone lets focus leave for the browser's own controls.
   const trapTab = (e: React.KeyboardEvent) => {
@@ -501,11 +508,13 @@ export default function Game({ onClose }: { onClose: () => void }) {
   const help = touch ? "Drag to move, tap to fire." : "Left and right or A and D to move, space to fire, P or Escape to pause.";
   const control = "border border-divider px-3 py-1.5 text-fg hover:border-fg";
   const bar = "min-h-6 px-2 py-1 text-sm text-fg underline decoration-divider underline-offset-4 hover:decoration-fg";
+  // the one prominent control on the site: a link drawn as a solid claret block, focused after a hit
+  const open = "inline-block border border-link bg-link px-4 py-2 font-medium text-bg no-underline hover:border-fg hover:bg-fg";
   // The unlocked links as real links (new tab, said so), on the pause and game-over screens.
   const wonList =
     won.length > 0 ? (
       <p className="mb-3 text-secondary">
-        Unlocked:{" "}
+        {shown ? "Also unlocked:" : "Unlocked:"}{" "}
         {won.map((t, i) => (
           <span key={t.href}>
             {i > 0 && ", "}
@@ -513,7 +522,7 @@ export default function Game({ onClose }: { onClose: () => void }) {
           </span>
         ))}
       </p>
-    ) : (
+    ) : shown ? null : (
       <p className="mb-3 text-secondary">Shoot the golden ship to win a link.</p>
     );
 
@@ -574,12 +583,29 @@ export default function Game({ onClose }: { onClose: () => void }) {
           <div className="absolute left-1/2 top-1/2 w-[min(22rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 border border-divider bg-bg px-5 py-4 text-center text-sm">
             {mode === "paused" ? (
               <>
-                <p className="mb-3 text-fg">Paused.</p>
+                <p className="mb-3 text-fg">{shown ? `Paused. The mystery ship unlocked ${shown.label}.` : "Paused."}</p>
+                {shown && (
+                  <p className="mb-4">
+                    <ExternalLink
+                      ref={(el) => {
+                        actionRef.current = el;
+                      }}
+                      href={shown.href}
+                      className={open}
+                    >
+                      Open {shown.label}{" "}
+                    </ExternalLink>
+                  </p>
+                )}
                 {wonList}
                 <button
-                  ref={(el) => {
-                    actionRef.current = el;
-                  }}
+                  ref={
+                    shown
+                      ? undefined
+                      : (el) => {
+                          actionRef.current = el;
+                        }
+                  }
                   type="button"
                   onClick={resume}
                   className={control}
@@ -608,12 +634,6 @@ export default function Game({ onClose }: { onClose: () => void }) {
               </>
             )}
           </div>
-        )}
-        {notice && mode === "play" && (
-          // shown for sighted players; the live region below says the same for screen readers
-          <p aria-hidden="true" className="absolute left-1/2 top-16 -translate-x-1/2 border border-divider bg-bg px-3 py-1.5 text-sm text-fg">
-            {notice}
-          </p>
         )}
         <p className="sr-only" aria-live="polite">
           {said}
