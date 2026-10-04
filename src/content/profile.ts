@@ -95,8 +95,6 @@ export const intro: string[] = [
   "Before that I was a data scientist at Fletchers Solicitors, a law firm, where I put LLM agents into production.",
 ];
 
-// One line in his own words for the italic line under the intro: verbatim from src/content/about.mdx.
-
 export const caseStudies: CaseStudy[] = [
   {
     slug: "advice-reports",

@@ -15,10 +15,10 @@ export const metadata: Metadata = {
 
 // The kb layout, in the reference's order: a two-column hero (who he is, then his photo), About with a
 // figure beside it, Work as a timeline of roles with their case studies, Outside work, Education and
-// research, and Skills. While every post is a draft (owner, 4 Oct 2026) there is no Writing section and
-// no line about writing; /writing says articles are coming. Each place is linked once on the page (owner review, 4 Oct 2026): the
-// nav carries Writing and About, the hero carries LinkedIn and GitHub, and the paper is linked from
-// its row in Education and research. There is no in-page section index.
+// research, and Skills. While every post is a draft (owner, 4 Oct 2026) there is no Writing section
+// and no line about writing; /writing says articles are coming. Each place is linked once on the page
+// (owner review, 4 Oct 2026): the nav carries Writing and About, the hero carries LinkedIn and GitHub,
+// and the paper is linked from its row in Education and research. There is no in-page section index.
 
 function Study({ study }: { study: CaseStudy }) {
   return (
@@ -206,7 +206,6 @@ export default function Home() {
           ))}
         </dl>
       </section>
-
     </>
   );
 }
