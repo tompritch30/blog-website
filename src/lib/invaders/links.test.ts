@@ -1,79 +1,67 @@
 import { describe, expect, it } from "vitest";
-import { MYSTERY_TARGETS, followTarget, isInternal, mysteryTarget } from "./links";
+import { MYSTERY_TARGETS, UNLOCKED_KEY, mysteryTarget, readUnlocked, saveUnlocked, unlock } from "./links";
+
+const PAPER = "https://doi.org/10.1109/lra.2025.3557738";
+const GITHUB = "https://github.com/tompritch30";
+const LINKEDIN = "https://www.linkedin.com/in/thomas-pritchard-01a/";
 
 describe("mystery ship link targets", () => {
-  it("are the paper, the CV and GitHub, each with a sentence-case link text", () => {
-    expect(MYSTERY_TARGETS.map((t) => [t.href, t.linkText])).toEqual([
-      ["https://doi.org/10.1109/lra.2025.3557738", "Open the paper"],
-      ["/cv", "Open my CV"],
-      ["https://github.com/tompritch30", "Open my GitHub"],
+  it("are the paper, GitHub and LinkedIn, each named in sentence case", () => {
+    expect(MYSTERY_TARGETS.map((t) => [t.href, t.label])).toEqual([
+      [PAPER, "ForestVO paper"],
+      [GITHUB, "GitHub"],
+      [LINKEDIN, "LinkedIn"],
     ]);
   });
 
-  it("rotate: the nth hit opens target n, wrapping round", () => {
-    expect([0, 1, 2, 3, 4].map((n) => mysteryTarget(n).linkText)).toEqual([
-      "Open the paper",
-      "Open my CV",
-      "Open my GitHub",
-      "Open the paper",
-      "Open my CV",
-    ]);
+  it("rotate: the nth hit wins target n, paper, GitHub, LinkedIn, then round again", () => {
+    expect([0, 1, 2, 3, 4].map((n) => mysteryTarget(n).href)).toEqual([PAPER, GITHUB, LINKEDIN, PAPER, GITHUB]);
   });
 });
 
-describe("isInternal", () => {
-  it("is true for a path on this site and false for another site, protocol-relative ones included", () => {
-    expect(["/cv", "/writing/a-post", "https://github.com/x", "http://example.org", "//example.org/cv"].map(isInternal)).toEqual([
-      true,
-      true,
-      false,
-      false,
-      false,
-    ]);
+describe("unlock", () => {
+  it("adds a hit's target to the unlocked list once, in the order they were won", () => {
+    const one = unlock([], PAPER);
+    expect(one).toEqual([PAPER]);
+    expect(unlock(one, PAPER)).toEqual([PAPER]);
+    expect(unlock(one, LINKEDIN)).toEqual([PAPER, LINKEDIN]);
+    expect(one).toEqual([PAPER]);
   });
 });
 
-// A stand-in browser that records what the game asked of it.
-function browser(tab: { opener: unknown } | null) {
-  const calls: string[] = [];
-  return {
-    calls,
-    env: {
-      open: (url: string, target: string) => {
-        calls.push(`open ${url} ${target}`);
-        return tab;
-      },
-      go: (href: string) => {
-        calls.push(`go ${href}`);
-      },
-    },
-  };
+// A stand-in for localStorage that keeps what it is given.
+function memory() {
+  const data = new Map<string, string>();
+  return { data, getItem: (k: string) => data.get(k) ?? null, setItem: (k: string, v: string) => void data.set(k, v) };
 }
 
-describe("followTarget", () => {
-  it("goes to a page on this site in the same tab, opening no new tab", () => {
-    const b = browser({ opener: {} });
-    expect(followTarget(b.env, "/cv")).toBe("same-tab");
-    expect(b.calls).toEqual(["go /cv"]);
+describe("the stored unlocked list", () => {
+  it("round-trips through storage, so it survives a replay or a reload", () => {
+    const s = memory();
+    saveUnlocked(() => s, [GITHUB, PAPER]);
+    expect(s.data.get(UNLOCKED_KEY)).toBe(JSON.stringify([GITHUB, PAPER]));
+    expect(readUnlocked(() => s)).toEqual([GITHUB, PAPER]);
   });
 
-  it("opens another site in a new tab, cuts the new tab's link back to this page, and reports it", () => {
-    const tab = { opener: {} as unknown };
-    const b = browser(tab);
-    expect(followTarget(b.env, "https://example.org/x")).toBe("new-tab");
-    expect(b.calls).toEqual(["open https://example.org/x _blank"]);
-    expect(tab.opener).toBeNull();
+  it("reads nothing from an empty, corrupt or foreign value, keeping only known targets once", () => {
+    const s = memory();
+    expect(readUnlocked(() => s)).toEqual([]);
+    s.data.set(UNLOCKED_KEY, "{not json");
+    expect(readUnlocked(() => s)).toEqual([]);
+    s.data.set(UNLOCKED_KEY, JSON.stringify({ a: 1 }));
+    expect(readUnlocked(() => s)).toEqual([]);
+    s.data.set(UNLOCKED_KEY, JSON.stringify(["https://evil.example/", LINKEDIN, 7, LINKEDIN]));
+    expect(readUnlocked(() => s)).toEqual([LINKEDIN]);
   });
 
-  it("reports a blocked popup when the browser returns null for another site", () => {
-    const b = browser(null);
-    expect(followTarget(b.env, "https://github.com/tompritch30")).toBe("blocked");
-    expect(b.calls).toEqual(["open https://github.com/tompritch30 _blank"]);
-  });
-
-  it("treats a protocol-relative address as another site", () => {
-    const b = browser({ opener: {} });
-    expect(followTarget(b.env, "//example.org/cv")).toBe("new-tab");
-    expect(b.calls).toEqual(["open //example.org/cv _blank"]);
+  it("survives storage that throws, on reaching it, reading or writing", () => {
+    const gone = () => {
+      throw new Error("SecurityError");
+    };
+    expect(readUnlocked(gone)).toEqual([]);
+    expect(() => saveUnlocked(gone, [PAPER])).not.toThrow();
+    const broken = { getItem: gone, setItem: gone };
+    expect(readUnlocked(() => broken)).toEqual([]);
+    expect(() => saveUnlocked(() => broken, [PAPER])).not.toThrow();
   });
 });

@@ -964,3 +964,27 @@ Green: `slop: 0 hits in 0 of 71 files` and `Tests  76 passed (76)`.
 #### The web CV dropped (owner decision, 4 Oct)
 
 Mid-round the owner dropped `/cv`, so items 4 (print headroom) and 5 (the Charis italic) are void: a red test for the Letter headroom (`printBox`, `printHeadroom`) had been written and was discarded with them. Removed: the route, its CSS and the CV rules in the print block (the generic print rules stay: no nav, links print their address), the sheet colour tokens and their contrast tests, the Charis SIL font and its MANIFEST entry, the nav's CV link and the CONTROLS entries, `/cv` in the sitemap and in check-pages' routes, the print check and the colour and PDF helpers only it used (with their tests), `src/lib/cv.ts` and its tests, `scripts/cv-compare.mts` and the four `design/shots/cv-*.png`. `next.config.ts` redirects `/cv` to `/` permanently. The `cv` data in the profile stays: the home page reads every field of it. The `.gitignore` line for the cv-compare images stays, since those private images are still on the owner's disk. SYSTEM.md, CONTEXT.md and README follow; the README also loses the `tags:` line, the search line and the stale `/blog` path, and its configuration row now names what `src/lib/site.ts` holds, since `site.github` (unused) is gone.
+
+#### The mystery ship keeps the player in the game (owner, 4 Oct)
+
+A hit no longer calls `window.open` or leaves the page, and the blocked-popup panel is gone with `followTarget` and `isInternal`. Instead the target joins an Unlocked list (`unlock`, no duplicates, in the order won), a notice "Unlocked: GitHub" shows for about 2 seconds (aria-hidden; the polite live region says the same), and the game runs on. P pauses and resumes; Escape pauses a running game and quits from any other screen; the top bar has Pause (a phone has no P key) and Quit (was Close). The pause and game-over screens list the unlocked links through `ExternalLink` (new tab, said so). The list lives in `localStorage` under `invaders-unlocked` (`readUnlocked`, `saveUnlocked`, both inside try and catch, reading only known targets). The rotation is the paper, GitHub, LinkedIn, taken from the profile. CONTROLS.json's dialog entries are Pause, Quit, Resume, Play again, Play anyway and the three links. check-pages seeds all three as won, presses P, wants "Paused.", Resume focused and the three new-tab links, then Escape closes and focus is back on the alien; the dialog's links are compared with each other for the duplicate rules, since the page behind a modal dialog is inert. Red, `npx vitest run src/lib/invaders/links.test.ts`:
+
+```
+   × mystery ship link targets > are the paper, GitHub and LinkedIn, each named in sentence case 8ms
+   × mystery ship link targets > rotate: the nth hit unlocks target n, paper, GitHub, LinkedIn, then round again 1ms
+   × unlock > adds a hit's target to the unlocked list once, in the order they were won 0ms
+   × the stored unlocked list > round-trips through storage, so it survives a replay or a reload 0ms
+   × the stored unlocked list > reads nothing from an empty, corrupt or foreign value, keeping only known targets once 0ms
+   × the stored unlocked list > survives storage that throws, on reaching it, reading or writing 0ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected [ [ …(2) ], [ '/cv', 'my CV' ], …(1) ] to deeply equal [ [ …(2) ], [ …(2) ], [ …(2) ] ]
+AssertionError: expected [ …(5) ] to deeply equal [ …(5) ]
+TypeError: (0 , unlock) is not a function
+TypeError: (0 , saveUnlocked) is not a function
+TypeError: (0 , readUnlocked) is not a function
+TypeError: (0 , readUnlocked) is not a function
+     59|       throw new Error("SecurityError");
+      Tests  6 failed (6)
+```
+
+Green: `Tests  52 passed (52)` for `src/lib/invaders`. "unlock" is on the slop lint's marketing list, so the copy says "win a link"; "Unlocked:" (the owner's word) passes.

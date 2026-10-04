@@ -117,7 +117,7 @@ Hairlines are decoration, not text or a control edge: `--divider` is 1.32:1 on t
 ### Focus
 
 - `:focus-visible` draws a 2px solid outline in `--link`, offset 2px, never animated. It meets 3:1 against the paper in both themes (the link colour's ratios above).
-- A skip link is the first control on every page. The game is a modal dialog: Tab cycles its buttons, Escape closes it and focus returns to the alien that opened it.
+- A skip link is the first control on every page. The game is a modal dialog: Tab cycles its buttons and links. P or Escape pauses a running game; Escape on the pause screen, or Quit, closes it and focus returns to the alien that opened it.
 
 ### Images
 
@@ -131,7 +131,8 @@ Hairlines are decoration, not text or a control edge: `--divider` is 1.32:1 on t
 - A pixel alien in the header nav, next to About, on every page, a 28px square button (above WCAG 2.2's 24px target size), in pencil grey; on hover or focus it turns to ink and looks aside. It is a real button whose one job is to start the game, listed in the controls budget. The Konami code is a second way in. On a 375px phone the nav's links and the alien still sit on one line under the name, with no sideways scroll; `npm run check:pages` measures it on every page at both widths.
 - The game (ADR 0004) loads only when asked. It draws in the page's own ink and paper; all its art is original pixel grids in code, apart from the Palindrome mark.
 - **The one glow.** The golden mystery ship carries the only soft shadow on the site (an 8px blur in its own gold), because it is the one thing worth chasing. Under reduced motion it has none.
-- No sound. The high score lives in `localStorage` inside try and catch.
+- **A hit keeps you in the game.** A hit on the mystery ship never opens a tab or leaves the page (owner, 4 October 2026): a small notice says "Unlocked: GitHub" for about 2 seconds, the link joins the Unlocked list and the game runs on. The pause and game-over screens list the unlocked links as ordinary new-tab links; the rotation is the paper, GitHub, then LinkedIn.
+- No sound. The high score and the Unlocked list live in `localStorage` inside try and catch.
 
 ## Gates
 

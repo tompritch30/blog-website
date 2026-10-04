@@ -47,12 +47,14 @@
   },
   "dialogs": {
     "invaders": [
-      { "kind": "button", "name": "Close", "job": "quit the game and put the page back as it was" },
+      { "kind": "button", "name": "Pause", "job": "pause a running game and see the unlocked links (a phone has no P or Escape key)" },
+      { "kind": "button", "name": "Quit", "job": "close the game and put the page back as it was, focus on the alien" },
+      { "kind": "button", "name": "Resume", "job": "carry on playing from the pause screen" },
       { "kind": "button", "name": "Play again", "job": "start a new game after game over" },
       { "kind": "button", "name": "Play anyway", "job": "play when the device asks for reduced motion (the game opens on a still frame)" },
-      { "kind": "button", "name": "Resume", "job": "carry on playing after the browser blocked a mystery ship's new tab" },
-      { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "job": "open the paper by hand when the browser blocked the mystery ship's new tab" },
-      { "kind": "link", "href": "https://github.com/tompritch30", "job": "open GitHub by hand when the browser blocked the mystery ship's new tab" }
+      { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "job": "open the ForestVO paper (new tab) once a mystery ship has unlocked it, from the pause or game-over screen" },
+      { "kind": "link", "href": "https://github.com/tompritch30", "job": "open GitHub (new tab) once a mystery ship has unlocked it, from the pause or game-over screen" },
+      { "kind": "link", "href": "https://www.linkedin.com/in/thomas-pritchard-01a/", "job": "open LinkedIn (new tab) once a mystery ship has unlocked it, from the pause or game-over screen" }
     ]
   }
 }

@@ -3,7 +3,9 @@
 // The hidden game. Loaded only by a dynamic import() from AlienTrigger, so it costs nothing
 // until a visitor finds the alien (or types the Konami code). It plays like the arcade
 // original: three invader types on a quickening heartbeat, four shields that erode, and a
-// golden mystery ship whose hits open the paper, the CV or GitHub in turn.
+// golden mystery ship whose hits unlock the paper, GitHub and LinkedIn in turn. A hit never takes
+// the player out of the game: the link joins an Unlocked list that the pause and game-over screens
+// show as real links (owner, 4 Oct 2026). P or Escape pauses; Escape again, or Quit, closes the game.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -17,7 +19,8 @@ import {
   type GameState,
   type InvaderType,
 } from "@/lib/invaders/engine";
-import { followTarget, isInternal, type MysteryTarget } from "@/lib/invaders/links";
+import ExternalLink from "@/components/ExternalLink";
+import { readUnlocked, saveUnlocked, unlock, unlockedTargets } from "@/lib/invaders/links";
 import { CREATURES, MYSTERY, SHIELD, SHIP, cells } from "./sprites";
 
 const BEST_KEY = "invaders-best";
@@ -242,7 +245,10 @@ export default function Game({ onClose }: { onClose: () => void }) {
   const modeRef = useRef(mode);
   const [touch] = useState(() => window.matchMedia("(pointer: coarse)").matches);
   const [hud, setHud] = useState<Hud>(() => ({ score: 0, best: readBest(), wave: 1, lives: 3 }));
-  const [blocked, setBlocked] = useState<MysteryTarget | null>(null);
+  // links won from the mystery ship, kept across games and visits (storage inside try and catch)
+  const [unlocked, setUnlocked] = useState<string[]>(() => readUnlocked(() => window.localStorage));
+  const unlockedRef = useRef(unlocked);
+  const [notice, setNotice] = useState("");
   const closing = useRef(false);
   const [said, setSaid] = useState("");
 
@@ -379,27 +385,13 @@ export default function Game({ onClose }: { onClose: () => void }) {
       }
       for (const e of g.events) {
         if (e.type !== "mystery-hit") continue;
-        const outcome = followTarget(
-          {
-            open: (url, target) => window.open(url, target),
-            // the site's own page loads in this tab, so the game closes first and puts the page back
-            go: (href) => {
-              onClose();
-              window.location.assign(href);
-            },
-          },
-          e.target.href,
-        );
-        if (outcome === "same-tab") return;
-        if (outcome === "new-tab") {
-          setSaid(`Mystery ship, ${e.points} points. Opened ${e.target.label} in a new tab.`);
-        } else {
-          // the browser blocked the tab: pause and offer a real link instead
-          setSaid(`Mystery ship, ${e.points} points.`);
-          setBlocked(e.target);
-          setMode("paused");
-          return;
-        }
+        // the game keeps running: the link joins the Unlocked list and a notice shows for 2 seconds
+        const next = unlock(unlockedRef.current, e.target.href);
+        unlockedRef.current = next;
+        setUnlocked(next);
+        saveUnlocked(() => window.localStorage, next);
+        setNotice(`Unlocked: ${e.target.label}`);
+        setSaid(`Mystery ship, ${e.points} points. Unlocked ${e.target.label}; pause to open it.`);
       }
       if (g.status === "over") {
         saveBest(g.highScore);
@@ -411,12 +403,26 @@ export default function Game({ onClose }: { onClose: () => void }) {
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [mode, redraw, onClose]);
+  }, [mode, redraw]);
 
-  // Keyboard: arrows or A and D to move, space to fire. A focused control keeps its own keys.
+  // The unlock notice goes after about 2 seconds; a second hit restarts the clock.
+  useEffect(() => {
+    if (!notice) return;
+    const t = window.setTimeout(() => setNotice(""), 2000);
+    return () => window.clearTimeout(t);
+  }, [notice]);
+
+  // Keyboard: arrows or A and D to move, space to fire, P to pause or resume. A focused control keeps
+  // its own keys.
   useEffect(() => {
     const onKey = (down: boolean) => (e: KeyboardEvent) => {
-      if (modeRef.current !== "play" || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (down && e.key.toLowerCase() === "p" && (modeRef.current === "play" || modeRef.current === "paused")) {
+        e.preventDefault();
+        if (!e.repeat) setMode(modeRef.current === "play" ? "paused" : "play");
+        return;
+      }
+      if (modeRef.current !== "play") return;
       const onControl = e.target instanceof HTMLElement && (e.target.tagName === "BUTTON" || e.target.tagName === "A");
       const k = e.key.toLowerCase();
       const i = input.current;
@@ -471,10 +477,8 @@ export default function Game({ onClose }: { onClose: () => void }) {
     setMode("play");
   };
 
-  const resume = () => {
-    setBlocked(null);
-    setMode("play");
-  };
+  const resume = () => setMode("play");
+  const won = unlockedTargets(unlocked);
 
   // Keep Tab inside the game: a modal dialog alone lets focus leave for the browser's own controls.
   const trapTab = (e: React.KeyboardEvent) => {
@@ -487,17 +491,35 @@ export default function Game({ onClose }: { onClose: () => void }) {
     stops[next].focus();
   };
 
-  const help = touch ? "Drag to move, tap to fire." : "Left and right or A and D to move, space to fire, Escape to quit.";
+  const help = touch ? "Drag to move, tap to fire." : "Left and right or A and D to move, space to fire, P or Escape to pause.";
   const control = "border border-divider px-3 py-1.5 text-fg hover:border-fg";
+  const bar = "min-h-6 px-2 py-1 text-sm text-fg underline decoration-divider underline-offset-4 hover:decoration-fg";
+  // The unlocked links as real links (new tab, said so), on the pause and game-over screens.
+  const wonList =
+    won.length > 0 ? (
+      <p className="mb-3 text-secondary">
+        Unlocked:{" "}
+        {won.map((t, i) => (
+          <span key={t.href}>
+            {i > 0 && ", "}
+            <ExternalLink href={t.href}>{t.label}</ExternalLink>
+          </span>
+        ))}
+      </p>
+    ) : (
+      <p className="mb-3 text-secondary">Shoot the golden ship to win a link.</p>
+    );
 
   return createPortal(
     <dialog
       ref={dialogRef}
       aria-label={TITLE}
       onKeyDown={trapTab}
+      // Escape pauses a running game; on any other screen it quits
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        if (modeRef.current === "play") setMode("paused");
+        else onClose();
       }}
       // a browser can close a modal dialog itself (repeated Escape); treat that as quitting
       onClose={() => {
@@ -523,13 +545,17 @@ export default function Game({ onClose }: { onClose: () => void }) {
             <span>Wave {hud.wave}</span>
             <span>Lives {hud.lives}</span>
           </p>
-          <button
-            type="button"
-            onClick={onClose}
-            className="min-h-6 px-2 py-1 text-sm text-fg underline decoration-divider underline-offset-4 hover:decoration-fg"
-          >
-            Close
-          </button>
+          <p className="flex gap-1">
+            {mode === "play" && (
+              // a phone has no P or Escape key
+              <button type="button" onClick={() => setMode("paused")} className={bar}>
+                Pause
+              </button>
+            )}
+            <button type="button" onClick={onClose} className={bar}>
+              Quit
+            </button>
+          </p>
         </div>
         <p
           id="invaders-help"
@@ -539,33 +565,20 @@ export default function Game({ onClose }: { onClose: () => void }) {
         </p>
         {mode !== "play" && (
           <div className="absolute left-1/2 top-1/2 w-[min(22rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 border border-divider bg-bg px-5 py-4 text-center text-sm">
-            {mode === "paused" && blocked ? (
+            {mode === "paused" ? (
               <>
-                <p className="mb-3 text-fg">Your browser blocked the new tab.</p>
-                <p className="flex items-center justify-center gap-3">
-                  <a
-                    ref={(el) => {
-                      actionRef.current = el;
-                    }}
-                    href={blocked.href}
-                    // only another site's tab can be blocked; the site's own pages open in this tab
-                    {...(isInternal(blocked.href) ? {} : { target: "_blank", rel: "noopener noreferrer" })}
-                    className="text-fg underline underline-offset-4"
-                  >
-                    {blocked.linkText}
-                    {!isInternal(blocked.href) && (
-                      <>
-                        <span className="ext" aria-hidden="true">
-                          {"↗"}
-                        </span>
-                        <span className="sr-only"> (opens in a new tab)</span>
-                      </>
-                    )}
-                  </a>
-                  <button type="button" onClick={resume} className={control}>
-                    Resume
-                  </button>
-                </p>
+                <p className="mb-3 text-fg">Paused.</p>
+                {wonList}
+                <button
+                  ref={(el) => {
+                    actionRef.current = el;
+                  }}
+                  type="button"
+                  onClick={resume}
+                  className={control}
+                >
+                  Resume
+                </button>
               </>
             ) : (
               <>
@@ -574,6 +587,7 @@ export default function Game({ onClose }: { onClose: () => void }) {
                     ? "Motion is reduced on this device, so this is a still of the game."
                     : `Game over. Score ${hud.score}, best ${Math.max(hud.best, hud.score)}.`}
                 </p>
+                {mode === "over" && wonList}
                 <button
                   ref={(el) => {
                     actionRef.current = el;
@@ -587,6 +601,12 @@ export default function Game({ onClose }: { onClose: () => void }) {
               </>
             )}
           </div>
+        )}
+        {notice && mode === "play" && (
+          // shown for sighted players; the live region below says the same for screen readers
+          <p aria-hidden="true" className="absolute left-1/2 top-16 -translate-x-1/2 border border-divider bg-bg px-3 py-1.5 text-sm text-fg">
+            {notice}
+          </p>
         )}
         <p className="sr-only" aria-live="polite">
           {said}

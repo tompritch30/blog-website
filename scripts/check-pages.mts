@@ -11,8 +11,10 @@
 //       or any colour-contrast one fails;
 //   (b) the rendered DOM's controls against design/CONTROLS.json, with the same counting code as
 //       `npm run lint:slop -- --built` (findControls and lintControls in src/lib/slop.ts); on / the
-//       invaders game is also opened from the alien in the header, its dialog's controls checked against
-//       "dialogs.invaders", and Escape must hand focus back to the alien;
+//       invaders game is also opened from the alien in the header with every mystery link already won;
+//       P must pause it with Resume focused and the three links listed as new-tab links, its dialog's
+//       controls are checked against "dialogs.invaders", and Escape must then close it and hand focus
+//       back to the alien;
 //   (b2) the header nav: its links and the alien sit on one line, the alien's button is at least 28x28
 //       (WCAG 2.2 target size), and the page does not scroll sideways, at both widths;
 //   (c) with --shots, a full-page PNG per page, width and theme, palette-reduced with sharp to under 300KB.
@@ -37,6 +39,8 @@ const VIEWPORTS = [
 const THEMES = ["light", "dark"] as const;
 const MAX_SHOT = 300 * 1024;
 const MISSING = "/check-pages-missing-page";
+// The mystery ship's links in rotation (src/lib/invaders/links.ts), seeded as already won.
+const UNLOCKED = ["https://doi.org/10.1109/lra.2025.3557738", "https://github.com/tompritch30", "https://www.linkedin.com/in/thomas-pritchard-01a/"];
 // WCAG 2.2 target size asks for 24x24; the alien's button is drawn at 28x28.
 const ALIEN_MIN = 28;
 
@@ -108,8 +112,9 @@ async function shrink(png: Buffer, width: number): Promise<{ out: Buffer; note: 
 }
 
 /**
- * The header nav on the page as rendered: every item (the page links, the alien, GitHub) on one line,
- * the alien's button at least ALIEN_MIN square, and nothing wider than the viewport.
+ * The header nav on the page as rendered: its list items (Writing, About and the alien) on one line,
+ * the alien's button at least ALIEN_MIN square, and nothing wider than the viewport. Only the li items
+ * are measured: at 375 the name sits on its own line above them by design.
  */
 async function navCheck(page: Page, label: string, problems: string[]): Promise<void> {
   const nav = await page.evaluate(() => {
@@ -138,15 +143,18 @@ async function navCheck(page: Page, label: string, problems: string[]): Promise<
 
 /**
  * Opens the invaders game from the alien in the header nav on / (grill item 7), once with motion and once with reduced
- * motion (which opens on a still frame with a "Play anyway" button), and checks the rendered controls
- * against the layout, the home page and CONTROLS.json's "dialogs.invaders" entries; then Escape must
- * close the game and put focus back on the alien.
+ * motion (which opens on a still frame with a "Play anyway" button). With motion, P pauses it and the
+ * pause screen must list the won links. The rendered controls are checked against the layout, the home
+ * page and CONTROLS.json's "dialogs.invaders" entries; then Escape (from the pause screen or the still
+ * frame) must close the game and put focus back on the alien.
  */
 async function gameCheck(browser: Browser, problems: string[]): Promise<void> {
   const entries = [...(entriesFor(budget, "/") ?? []), ...(budget.dialogs?.invaders ?? [])];
   for (const reducedMotion of ["no-preference", "reduce"] as const) {
     const label = `/ 1440 with the game open (reduced motion: ${reducedMotion})`;
     const ctx = await browser.newContext({ viewport: VIEWPORTS[1], reducedMotion });
+    // A returning player: every mystery-ship link already won, so the pause screen lists all three.
+    await ctx.addInitScript((list) => window.localStorage.setItem("invaders-unlocked", JSON.stringify(list)), UNLOCKED);
     const page = await ctx.newPage();
     await page.goto(`${base}/`, { waitUntil: "networkidle" });
     const alien = page.locator("header nav").getByRole("button", { name: /play space invaders/i });
@@ -163,10 +171,33 @@ async function gameCheck(browser: Browser, problems: string[]): Promise<void> {
     const dialog = page.locator("dialog[open]");
     await dialog.waitFor({ state: "visible", timeout: 10_000 });
     if (reducedMotion === "reduce") await dialog.getByRole("button", { name: "Play anyway" }).waitFor({ timeout: 5_000 });
+    else {
+      // P pauses: the pause screen shows, Resume takes focus, and the unlocked links are real new-tab links.
+      await page.keyboard.press("p");
+      const paused = await dialog
+        .getByText("Paused.")
+        .waitFor({ timeout: 5_000 })
+        .then(() => true)
+        .catch(() => false);
+      const state = await dialog.evaluate((d) => ({
+        focus: document.activeElement?.textContent?.trim() ?? "",
+        links: [...d.querySelectorAll("a[href]")].map((a) => `${a.getAttribute("href")} ${a.getAttribute("target")} ${a.getAttribute("rel")}`),
+      }));
+      const want = UNLOCKED.map((href) => `${href} _blank noopener noreferrer`);
+      const ok = paused && state.focus === "Resume" && JSON.stringify(state.links) === JSON.stringify(want);
+      console.log(`${ok ? "pass" : "FAIL"}  game ${label}: P pauses, focus on "${state.focus}", ${state.links.length} unlocked links in new tabs`);
+      if (!ok) problems.push(`game ${label}: pause screen wrong (paused ${paused}, focus "${state.focus}", links ${state.links.join("; ")})`);
+    }
     const names = await dialog.evaluate((d) =>
       [...d.querySelectorAll("a[href], button, input, select, textarea, [tabindex='0']")].map((el) => (el as HTMLElement).innerText.trim() || el.getAttribute("aria-label") || el.tagName),
     );
-    const hits = lintControls(label, await page.content(), entries, "/ (game open)", { origins: [new URL(base).origin] });
+    // The modal dialog sits over an inert page, so its links are compared with each other for the
+    // duplicate rules, not with the page behind it; every control is still checked against the budget.
+    const origins = [new URL(base).origin];
+    const hits = [
+      ...lintControls(label, await page.content(), entries, "/ (game open)", { origins }).filter((h) => !h.rule.startsWith("duplicate-")),
+      ...lintControls(label, await dialog.evaluate((d) => d.outerHTML), budget.dialogs?.invaders ?? [], "the game dialog", { origins }).filter((h) => h.rule.startsWith("duplicate-")),
+    ];
     console.log(`${hits.length ? "FAIL" : "pass"}  controls ${label}: dialog has ${names.map((n) => `"${n}"`).join(", ")}`);
     for (const h of hits) console.log(`        ${h.rule} ${h.message}`);
     if (hits.length) problems.push(`controls ${label}: ${hits.length} hits`);

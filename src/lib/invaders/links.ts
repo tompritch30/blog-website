@@ -1,11 +1,14 @@
-// Where a hit on the mystery ship takes the visitor. Pure apart from the browser functions the
-// caller passes in, so the rotation and the tab handling are tested without a browser.
-export type MysteryTarget = { href: string; label: string; linkText: string };
+// What a hit on the mystery ship wins: a link added to the game's Unlocked list. The game never
+// leaves the page or opens a tab on a hit (owner, 4 Oct 2026); the pause and game-over screens list
+// the unlocked links for the player to open. Pure apart from the storage the caller passes in.
+import { cv, links } from "@/content/profile";
+
+export type MysteryTarget = { href: string; label: string };
 
 export const MYSTERY_TARGETS: MysteryTarget[] = [
-  { href: "https://doi.org/10.1109/lra.2025.3557738", label: "the ForestVO paper", linkText: "Open the paper" },
-  { href: "/cv", label: "my CV", linkText: "Open my CV" },
-  { href: "https://github.com/tompritch30", label: "my GitHub", linkText: "Open my GitHub" },
+  { href: cv.publication.url, label: "ForestVO paper" },
+  { href: links.github, label: "GitHub" },
+  { href: links.linkedin, label: "LinkedIn" },
 ];
 
 /** The target for the nth mystery hit (0-based), in rotation. */
@@ -14,37 +17,36 @@ export function mysteryTarget(n: number): MysteryTarget {
   return MYSTERY_TARGETS[((n % len) + len) % len];
 }
 
-/** A path on this site. "//host/path" is another site, whatever it looks like. */
-export const isInternal = (href: string): boolean => href.startsWith("/") && !href.startsWith("//");
+/** The unlocked list with href added once, in the order the links were won. */
+export const unlock = (list: readonly string[], href: string): string[] => (list.includes(href) ? [...list] : [...list, href]);
 
-type Opened = { opener: unknown } | null;
+export const UNLOCKED_KEY = "invaders-unlocked";
 
-export type Browser = {
-  /** window.open */
-  open: (url: string, target: string) => Opened;
-  /** Leaves the game and loads href in this tab. */
-  go: (href: string) => void;
-};
-
-export type Outcome = "same-tab" | "new-tab" | "blocked";
+type Store = { getItem: (key: string) => string | null; setItem: (key: string, value: string) => void };
 
 /**
- * The site's link rule: its own pages open in the same tab, other sites in a new one. "blocked"
- * means the browser refused the new tab.
- * Not "noopener" in the window.open features: with it, window.open returns null even on success,
- * so a blocked popup could not be told apart. The opener is cut by hand instead.
+ * The unlocked list kept from earlier games. Storage can throw on reaching it as well as on reading
+ * (private windows, blocked site data), so the caller passes a getter; any failure reads as empty.
  */
-export function followTarget(browser: Browser, href: string): Outcome {
-  if (isInternal(href)) {
-    browser.go(href);
-    return "same-tab";
-  }
-  const tab = browser.open(href, "_blank");
-  if (!tab) return "blocked";
+export function readUnlocked(storage: () => Pick<Store, "getItem">): string[] {
   try {
-    tab.opener = null;
+    const parsed: unknown = JSON.parse(storage().getItem(UNLOCKED_KEY) ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+    const known = new Set(MYSTERY_TARGETS.map((t) => t.href));
+    return parsed.reduce<string[]>((list, href) => (typeof href === "string" && known.has(href) ? unlock(list, href) : list), []);
   } catch {
-    // a cross-origin tab may refuse; it has already loaded with no reason to call back
+    return [];
   }
-  return "new-tab";
 }
+
+export function saveUnlocked(storage: () => Pick<Store, "setItem">, list: readonly string[]): void {
+  try {
+    storage().setItem(UNLOCKED_KEY, JSON.stringify(list));
+  } catch {
+    // nothing to do: the list lasts for this visit only
+  }
+}
+
+/** The targets for an unlocked list, in its order. */
+export const unlockedTargets = (list: readonly string[]): MysteryTarget[] =>
+  list.map((href) => MYSTERY_TARGETS.find((t) => t.href === href)).filter((t): t is MysteryTarget => t !== undefined);
