@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from "next/font/google";
-import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
 import { site } from "@/lib/site";
@@ -44,11 +43,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         >
           Skip to content
         </a>
-        <Nav name={site.name} github={site.github} />
-        <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
+        <Nav name={site.name} />
+        <main id="main" tabIndex={-1} className="site-main flex-1 focus:outline-none">
           {children}
         </main>
-        <Footer />
       </body>
     </html>
   );

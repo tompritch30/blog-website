@@ -211,8 +211,16 @@ h4 {
 .site-links {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   column-gap: 1.75rem;
   font-size: var(--text-nav);
+}
+
+/* The alien's 28px button sits on the links' line; pulled in so its own padding does not read as a
+   wider gap than the links have between them. */
+.site-alien {
+  display: flex;
+  margin-inline-start: -0.25rem;
 }
 
 .site-links a {
@@ -901,25 +909,20 @@ h4 {
   color: var(--secondary);
 }
 
-/* ---------- footer ---------- */
+/* ---------- the end of a page ---------- */
 
-.site-foot {
-  margin-block-start: var(--section-gap);
-  border-top: 1px solid var(--divider);
+/* No footer: the page ends a section's gap below its last line. */
+.site-main {
+  padding-block-end: var(--section-gap);
 }
 
-.site-foot-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-block: 1.75rem 2.5rem;
+/* The feed link under the post list: there for whoever looks, in pencil grey at the meta size. */
+.feed {
+  margin-block-start: 1.75rem;
   font-size: var(--text-meta);
-  color: var(--secondary);
 }
 
-.site-foot a {
+.quiet-link {
   color: var(--secondary);
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
@@ -928,7 +931,7 @@ h4 {
   transition: color var(--dur-quick) var(--ease-out);
 }
 
-.site-foot a:hover {
+.quiet-link:hover {
   color: var(--text);
 }
 

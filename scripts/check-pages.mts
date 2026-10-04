@@ -11,11 +11,14 @@
 //       or any colour-contrast one fails;
 //   (b) the rendered DOM's controls against design/CONTROLS.json, with the same counting code as
 //       `npm run lint:slop -- --built` (findControls and lintControls in src/lib/slop.ts); on / the
-//       invaders game is also opened from the alien, its dialog's controls checked against
+//       invaders game is also opened from the alien in the header, its dialog's controls checked against
 //       "dialogs.invaders", and Escape must hand focus back to the alien;
+//   (b2) the header nav: its links and the alien sit on one line, the alien's button is at least 28x28
+//       (WCAG 2.2 target size), and the page does not scroll sideways, at both widths;
 //   (c) with --shots, a full-page PNG per page, width and theme, palette-reduced with sharp to under 300KB;
-//   (d) /cv printed while the system theme is dark: PDFs at A4 and Letter (into a temporary folder), at
-//       most 2 pages each, no nav or footer on the page, and all text dark on light paper.
+//   (d) /cv printed while the system theme is dark: PDFs at A4 and Letter (into a temporary folder), each
+//       exactly as many pages as the PDF CV it recreates (one), no nav or footer on the page, and all text
+//       dark on light paper.
 //
 // Browser: CHECK_PAGES_CHROMIUM if set, else the build playwright-core expects, else the newest Chromium
 // in the Playwright cache (PLAYWRIGHT_BROWSERS_PATH or ~/.cache/ms-playwright). Nothing is downloaded.
@@ -38,6 +41,10 @@ const THEMES = ["light", "dark"] as const;
 const MAX_SHOT = 300 * 1024;
 const MISSING = "/check-pages-missing-page";
 const PAPER = "rgb(255, 255, 255)";
+// The PDF CV that /cv recreates is one page; the printed /cv must be too, on A4 and on Letter.
+const CV_PAGES = 1;
+// WCAG 2.2 target size asks for 24x24; the alien's button is drawn at 28x28.
+const ALIEN_MIN = 28;
 
 type AxeViolation = { id: string; impact: string | null; help: string; targets: string[]; count: number };
 type AxeWindow = { axe: { run: (ctx: Document, opts: object) => Promise<{ violations: { id: string; impact: string | null; help: string; nodes: { target: unknown[] }[] }[] }> } };
@@ -117,9 +124,9 @@ async function printCheck(browser: Browser, problems: string[]): Promise<void> {
     // printBackground false is the browser's own default ("Background graphics" off): the paper is white.
     const pdf = await page.pdf({ format, printBackground: false, path: path.join(dir, `cv-${format}.pdf`) });
     const pages = pdfPageCount(pdf);
-    const ok = pages >= 1 && pages <= 2;
-    console.log(`${ok ? "pass" : "FAIL"}  print /cv ${format}: ${pages} page${pages === 1 ? "" : "s"} (${(pdf.length / 1024).toFixed(0)} KB, ${path.join(dir, `cv-${format}.pdf`)})`);
-    if (!ok) problems.push(`print /cv ${format}: ${pages} pages, at most 2 allowed`);
+    const ok = pages === CV_PAGES;
+    console.log(`${ok ? "pass" : "FAIL"}  print /cv ${format}: ${pages} page${pages === 1 ? "" : "s"}, want ${CV_PAGES} (${(pdf.length / 1024).toFixed(0)} KB, ${path.join(dir, `cv-${format}.pdf`)})`);
+    if (!ok) problems.push(`print /cv ${format}: ${pages} pages, want ${CV_PAGES} like the PDF CV`);
   }
   const chrome = await page.evaluate(() =>
     [...document.querySelectorAll("nav, footer, [role=navigation], [role=contentinfo]")]
@@ -160,7 +167,36 @@ async function printCheck(browser: Browser, problems: string[]): Promise<void> {
 }
 
 /**
- * Opens the invaders game from the alien on / (grill item 7), once with motion and once with reduced
+ * The header nav on the page as rendered: every item (the page links, the alien, GitHub) on one line,
+ * the alien's button at least ALIEN_MIN square, and nothing wider than the viewport.
+ */
+async function navCheck(page: Page, label: string, problems: string[]): Promise<void> {
+  const nav = await page.evaluate(() => {
+    const items = [...document.querySelectorAll("header nav li")].map((li) => li.getBoundingClientRect());
+    const alien = document.querySelector("header nav button[aria-label='Play space invaders']")?.getBoundingClientRect();
+    return {
+      items: items.length,
+      // one line when every item overlaps every other vertically
+      oneLine: items.length > 0 && Math.max(...items.map((r) => r.top)) < Math.min(...items.map((r) => r.bottom)),
+      right: Math.round(Math.max(...items.map((r) => r.right))),
+      scrollWidth: document.documentElement.scrollWidth,
+      width: innerWidth,
+      alien: alien ? { w: Math.round(alien.width), h: Math.round(alien.height) } : null,
+    };
+  });
+  const why: string[] = [];
+  if (!nav.oneLine) why.push("items wrap onto more than one line");
+  if (nav.right > nav.width) why.push(`items reach ${nav.right}px in a ${nav.width}px viewport`);
+  if (nav.scrollWidth > nav.width) why.push(`page scrolls sideways (${nav.scrollWidth}px wide)`);
+  if (!nav.alien) why.push("no alien button in the header nav");
+  else if (nav.alien.w < ALIEN_MIN || nav.alien.h < ALIEN_MIN) why.push(`alien target ${nav.alien.w}x${nav.alien.h}, under ${ALIEN_MIN}x${ALIEN_MIN}`);
+  const alien = nav.alien ? `alien ${nav.alien.w}x${nav.alien.h}` : "no alien";
+  console.log(`${why.length ? "FAIL" : "pass"}  nav ${label}: ${nav.items} items, ${nav.oneLine ? "one line" : "wrapped"}, right edge ${nav.right}/${nav.width}px, ${alien}${why.length ? ` (${why.join("; ")})` : ""}`);
+  if (why.length) problems.push(`nav ${label}: ${why.join("; ")}`);
+}
+
+/**
+ * Opens the invaders game from the alien in the header nav on / (grill item 7), once with motion and once with reduced
  * motion (which opens on a still frame with a "Play anyway" button), and checks the rendered controls
  * against the layout, the home page and CONTROLS.json's "dialogs.invaders" entries; then Escape must
  * close the game and put focus back on the alien.
@@ -172,8 +208,17 @@ async function gameCheck(browser: Browser, problems: string[]): Promise<void> {
     const ctx = await browser.newContext({ viewport: VIEWPORTS[1], reducedMotion });
     const page = await ctx.newPage();
     await page.goto(`${base}/`, { waitUntil: "networkidle" });
-    const alien = page.locator("footer").getByRole("button", { name: /play space invaders/i });
-    await alien.click();
+    const alien = page.locator("header nav").getByRole("button", { name: /play space invaders/i });
+    const opened = await alien
+      .click({ timeout: 5_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!opened) {
+      console.log(`FAIL  game ${label}: no alien button in the header nav to open the game from`);
+      problems.push(`game ${label}: no alien in the header nav`);
+      await ctx.close();
+      continue;
+    }
     const dialog = page.locator("dialog[open]");
     await dialog.waitFor({ state: "visible", timeout: 10_000 });
     if (reducedMotion === "reduce") await dialog.getByRole("button", { name: "Play anyway" }).waitFor({ timeout: 5_000 });
@@ -210,7 +255,7 @@ async function gameCheck(browser: Browser, problems: string[]): Promise<void> {
     await dialog.waitFor({ state: "detached", timeout: 5_000 });
     // The game hands focus back on the next animation frame, after it unmounts; wait for it, up to 2s.
     const back = await page
-      .waitForFunction(() => document.activeElement?.tagName === "BUTTON" && document.activeElement.closest("footer") !== null, null, { timeout: 2_000 })
+      .waitForFunction(() => document.activeElement?.tagName === "BUTTON" && document.activeElement.closest("header nav") !== null, null, { timeout: 2_000 })
       .then(() => true)
       .catch(() => false);
     console.log(`${back ? "pass" : "FAIL"}  game ${label}: Escape closes it and focus is back on the alien`);
@@ -265,6 +310,7 @@ async function main(): Promise<number> {
           console.log(`${hits.length ? "FAIL" : "pass"}  controls ${route.path} ${viewport.width} (${route.pattern})`);
           for (const h of hits) console.log(`        ${h.rule} ${h.message}`);
           if (hits.length) problems.push(`controls ${route.path} ${viewport.width}: ${hits.length} hits`);
+          await navCheck(page, `${route.path} ${viewport.width}`, problems);
         }
 
         if (shots) {

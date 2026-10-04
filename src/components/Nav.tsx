@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import ExternalLink from "@/components/ExternalLink";
+import AlienTrigger from "@/components/invaders/AlienTrigger";
 import { WRITING_PATH } from "@/lib/paths";
 
 const PAGES = [
@@ -11,10 +11,12 @@ const PAGES = [
   { href: "/about", label: "About" },
 ];
 
-// The name on the left, a few text links on the right; the current section in the accent colour
-// with a rule under it (a post counts as Writing). Client component for aria-current, so the server
-// layout passes the site fields in. Not sticky: the home page has its own section bar.
-export default function Nav({ name, github }: { name: string; github: string }) {
+// The name on the left, the site's pages on the right and, next to About, the pixel alien that opens
+// the arcade (the Konami code works on every page through this one). The current section is in the
+// accent colour with a rule under it (a post counts as Writing). GitHub and LinkedIn are not here: each
+// page that needs them links them once (the home hero, the CV header, the end of About). Client
+// component for aria-current. Not sticky.
+export default function Nav({ name }: { name: string }) {
   const pathname = usePathname();
   const current = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   return (
@@ -31,10 +33,8 @@ export default function Nav({ name, github }: { name: string; github: string }) 
               </Link>
             </li>
           ))}
-          <li>
-            <ExternalLink href={github} className="">
-              GitHub
-            </ExternalLink>
+          <li className="site-alien">
+            <AlienTrigger konami />
           </li>
         </ul>
       </nav>

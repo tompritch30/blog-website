@@ -63,7 +63,7 @@ Every page (home, CV, writing, each post, About and a missing page) is opened at
 | Setting | Where | Default | Purpose |
 |---|---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | environment variable | Vercel's production domain, else `http://localhost:3000` | Origin for canonical URLs, the sitemap, the RSS feed and share images. Set it once there is a custom domain. |
-| Name, tagline, GitHub link | `src/lib/site.ts` | Thomas Pritchard, his role at Palindrome | Shown in the header, home page, footer, metadata and share images. |
+| Name, tagline, GitHub link | `src/lib/site.ts` | Thomas Pritchard, his role at Palindrome | Shown in the header, home page, metadata and share images. |
 | Colours | `src/app/globals.css` | Warm off-white and near-black, with a dark mode | A test checks every text colour meets WCAG AA contrast. |
 | Node version | `.nvmrc`, `package.json` `engines` | 22 | Vercel builds with the `engines` version. |
 | `CHECK_PAGES_CHROMIUM` | environment variable | the Chromium build `playwright-core` expects, else the newest headless shell or Chromium in `PLAYWRIGHT_BROWSERS_PATH` (default `~/.cache/ms-playwright`) | Path to the Chromium or Chrome binary `npm run check:pages` and `npm run shots` drive. Set it when no Playwright browser is cached (`npx playwright-core install chromium-headless-shell` downloads one). |

@@ -6,9 +6,7 @@
     { "kind": "link", "href": "/writing", "job": "open the list of posts" },
     { "kind": "link", "href": "/cv", "job": "open the web CV" },
     { "kind": "link", "href": "/about", "job": "open the About page" },
-    { "kind": "link", "href": "https://github.com/tompritch30", "job": "see his code on GitHub" },
-    { "kind": "link", "href": "/feed.xml", "job": "follow new posts by RSS" },
-    { "kind": "button", "name": "Play space invaders", "job": "start the hidden invaders game (the pixel alien in the colophon)" }
+    { "kind": "button", "name": "Play space invaders", "job": "start the hidden invaders game (the pixel alien in the header nav, next to About)" }
   ],
   "routes": {
     "/": {
@@ -30,7 +28,8 @@
     },
     "/writing": {
       "controls": [
-        { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post" }
+        { "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post" },
+        { "kind": "link", "href": "/feed.xml", "job": "follow new posts by RSS (a quiet link under the list; feed readers use the head's link rel=alternate)" }
       ]
     },
     "/writing/[slug]": {

@@ -1,5 +1,5 @@
 // The alien trigger's pixel art and the grid helpers. Kept apart from sprites.ts so the
-// footer's eager bundle carries only the alien, not the game's sprites.
+// header nav's eager bundle carries only the alien, not the game's sprites.
 
 // A round-headed alien with a bent antenna and four short legs. Its eyes are the gaps in row 4.
 export const ALIEN = [

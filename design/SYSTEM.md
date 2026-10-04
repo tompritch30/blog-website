@@ -39,7 +39,8 @@ Each of the reference's patterns either became something the owner's rules allow
 - Eyebrow plus slogan heading on each section, grey subtitle under it: one plain sentence-case heading.
 - Career cards, emoji bullets, bold keywords, chips: no cards; each case study is a title, the problem, what he built and one large figure.
 - Chip clouds of skills: one comma-separated line per group.
-- Newsletter box: a Writing section with recent posts and an "All writing" link; RSS stays in the footer.
+- Newsletter box: a Writing section with recent posts. The feed is a quiet "RSS" link under the list on `/writing`, and every page's head carries the feed's `<link rel="alternate">` for feed readers.
+- Footer with a name, a motto and icon buttons: no footer at all. A colophon line (the faces and a revised date) stood there until the owner's review of 4 October 2026 called it filler; with the feed link moved to `/writing`, nothing was left for a footer to hold, and each page ends a section's gap below its last line.
 - Theme toggle: none; both themes follow the system.
 - Content revealed on scroll: everything renders on load.
 
@@ -126,7 +127,7 @@ Hairlines are decoration, not text or a control edge: `--divider` is 1.32:1 on t
 
 ### The easter egg
 
-- A pixel alien in the footer (and on the 404 page), 28px square, in pencil grey; on hover or focus it turns to ink and looks aside. It is a real button whose one job is to start the game, listed in the controls budget. The Konami code is a second way in.
+- A pixel alien in the header nav, next to About, on every page (and a second one on the 404 page), a 28px square button (above WCAG 2.2's 24px target size), in pencil grey; on hover or focus it turns to ink and looks aside. It is a real button whose one job is to start the game, listed in the controls budget. The Konami code is a second way in. On a 375px phone the nav's links and the alien still sit on one line under the name, with no sideways scroll; `npm run check:pages` measures it on every page at both widths.
 - The game (ADR 0004) loads only when asked. It draws in the page's own ink and paper; all its art is original pixel grids in code, apart from the Palindrome mark.
 - **The one glow.** The golden mystery ship carries the only soft shadow on the site (an 8px blur in its own gold), because it is the one thing worth chasing. Under reduced motion it has none.
 - No sound. The high score lives in `localStorage` inside try and catch.
