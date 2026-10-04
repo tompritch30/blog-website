@@ -61,19 +61,22 @@ function readColours(): Colours {
  * its left and currentColor is set to the ink, in memory only (the file stays as published).
  */
 async function loadMark(ink: string): Promise<HTMLImageElement | null> {
+  let url = "";
   try {
     const text = await (await fetch(MARK_SRC)).text();
     const svg = text
       .replace(/viewBox="[^"]*"/, 'viewBox="0 0 26 26" width="104" height="104"')
       .replace(/currentColor/g, ink);
-    const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+    url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
     const image = new Image();
     image.src = url;
     await image.decode();
-    URL.revokeObjectURL(url);
     return image;
   } catch {
     return null;
+  } finally {
+    // freed whether or not the image decoded; a decoded image keeps its pixels
+    if (url) URL.revokeObjectURL(url);
   }
 }
 
