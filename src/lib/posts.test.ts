@@ -9,14 +9,21 @@ describe("getAllPosts", () => {
   it("lists published posts newest first and leaves drafts out", () => {
     const posts = getAllPosts({ dir, includeDrafts: false });
     expect(posts.map((p) => p.slug)).toEqual(["newer-post", "older-post"]);
-    expect(posts[1]).toMatchObject({
+    expect(posts[1]).toEqual({
+      slug: "older-post",
       title: "An older post",
       date: "2026-01-05",
       description: "Written first.",
-      tags: ["notes"],
       draft: false,
+      readingTime: "1 min read",
     });
-    expect(posts[0].tags).toEqual([]);
+  });
+
+  it("ignores frontmatter keys it does not read, such as an old tags line, instead of carrying them onto the page", () => {
+    // older-post.mdx still has `tags: ["notes"]`; tags are no longer shown anywhere (owner review, 4 Oct 2026).
+    const older = getAllPosts({ dir, includeDrafts: false }).find((p) => p.slug === "older-post");
+    expect(older).toBeDefined();
+    expect(Object.keys(older!).sort()).toEqual(["date", "description", "draft", "readingTime", "slug", "title"]);
   });
 
   it("includes drafts when asked", () => {

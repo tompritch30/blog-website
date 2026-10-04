@@ -20,7 +20,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = getPost((await params).slug);
   if (!post) return {};
-  const { slug, title, description, date, tags } = post.meta;
+  const { slug, title, description, date } = post.meta;
   return {
     title,
     description,
@@ -32,7 +32,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       publishedTime: date,
-      tags,
     },
   };
 }
@@ -53,7 +52,6 @@ export default async function PostPage({ params }: Props) {
         <div className="article-head">
           <p className="post-meta">
             <time dateTime={meta.date}>{formatDate(meta.date)}</time> · {meta.readingTime}
-            {meta.tags.length > 0 ? ` · ${meta.tags.join(", ")}` : null}
           </p>
           <h1 className="article-title">{meta.title}</h1>
         </div>

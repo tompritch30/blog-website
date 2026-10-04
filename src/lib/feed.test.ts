@@ -7,7 +7,6 @@ const post = (over: Partial<PostMeta>): PostMeta => ({
   title: "A post",
   date: "2026-03-30",
   description: "About a post.",
-  tags: [],
   draft: false,
   readingTime: "1 min read",
   ...over,

@@ -8,7 +8,6 @@ export type PostMeta = {
   title: string;
   date: string;
   description: string;
-  tags: string[];
   draft: boolean;
   readingTime: string;
 };
@@ -38,17 +37,16 @@ function invalid(file: string, problem: string): never {
   throw new Error(`${file}: ${problem}`);
 }
 
+// Reads only the keys it knows; any other key (an old `tags` line, say) is left behind, not carried onto
+// the page.
 function parseFrontmatter(data: Record<string, unknown>, file: string): Omit<PostMeta, "slug" | "readingTime"> {
-  const { title, date, description, tags = [], draft = false } = data;
+  const { title, date, description, draft = false } = data;
   if (typeof title !== "string" || !title.trim()) invalid(file, "frontmatter needs a non-empty title");
   if (date instanceof Date) invalid(file, 'frontmatter date must be quoted, e.g. date: "2026-03-30"');
   if (typeof date !== "string" || !ISO_DATE.test(date)) invalid(file, "frontmatter date must be YYYY-MM-DD");
   if (typeof description !== "string") invalid(file, "frontmatter needs a description");
-  if (!Array.isArray(tags) || !tags.every((t): t is string => typeof t === "string")) {
-    invalid(file, "frontmatter tags must be a list of strings");
-  }
   if (typeof draft !== "boolean") invalid(file, "frontmatter draft must be true or false");
-  return { title, date, description, tags, draft };
+  return { title, date, description, draft };
 }
 
 function readPost(dir: string, slug: string): Post {

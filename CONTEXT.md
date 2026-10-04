@@ -4,7 +4,7 @@ Words used in code, tests and plans. Use these names; add a line when a new term
 
 - **Post**: one MDX file in `src/content/posts/`. Its file name is its **slug**.
 - **Post URL**: `/writing/<slug>` (`postPath` in `src/lib/paths.ts`); `/writing` lists the published posts. The old `/blog` and `/blog/<slug>` URLs redirect there permanently (308, `next.config.ts`).
-- **Frontmatter**: the YAML block at the top of a post: `title`, `date` (quoted `YYYY-MM-DD`), `description`, optional `tags` and `draft`. Validated once, in `src/lib/posts.ts`.
+- **Frontmatter**: the YAML block at the top of a post: `title`, `date` (quoted `YYYY-MM-DD`), `description` and optional `draft`. Validated once, in `src/lib/posts.ts`; any other key (an old `tags` line, say) is ignored. Posts have no tags: the site shows none.
 - **Draft**: a post with `draft: true`. Shown by `next dev` only; never built, listed, put in the sitemap or the feed.
 - **Published post**: any post that is not a draft.
 - **Profile**: `src/content/profile.ts`, the facts about Thomas the pages render: the intro, the case studies, the CV data and his profile links. Sources and limits in ADR 0003.
