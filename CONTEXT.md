@@ -5,7 +5,7 @@ Words used in code, tests and plans. Use these names; add a line when a new term
 - **Post**: one MDX file in `src/content/posts/`. Its file name is its **slug**.
 - **Post URL**: `/writing/<slug>` (`postPath` in `src/lib/paths.ts`); `/writing` lists the published posts, or says "Articles coming soon." when there are none. The old `/blog` and `/blog/<slug>` URLs redirect there permanently (308, `next.config.ts`).
 - **Frontmatter**: the YAML block at the top of a post: `title`, `date` (quoted `YYYY-MM-DD`), `description` and optional `draft`. Validated once, in `src/lib/posts.ts`; any other key (an old `tags` line, say) is ignored. Posts have no tags: the site shows none.
-- **Draft**: a post with `draft: true`. Shown by `next dev` only; never built, listed, put in the sitemap or the feed. Both posts are drafts for now (owner, 4 Oct 2026): writing is hidden until he publishes real articles.
+- **Draft**: a post with `draft: true`. Never listed anywhere, in `next dev` either; its own URL renders in `next dev` only (under the Draft banner); never built or put in the sitemap or the feed. Both posts are drafts for now (owner, 4 Oct 2026): writing is hidden until he publishes real articles.
 - **Draft banner**: the claret line at the top of a draft in `next dev` (`draftBanner` in `src/lib/draft.ts`), so a preview is never taken for the live post.
 - **Published post**: any post that is not a draft.
 - **Profile**: `src/content/profile.ts`, the facts about Thomas the pages render: the intro, the case studies, his roles, education, paper and skills (`cv`, which the home page reads; the web CV page was dropped on 4 Oct 2026 and `/cv` redirects home) and his profile links. Sources and limits in ADR 0003.

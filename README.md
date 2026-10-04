@@ -22,7 +22,7 @@ npm run build
 npm start
 ```
 
-Open http://localhost:3000. For writing, use `npm run dev` instead of build and start: it serves http://localhost:3005, reloads on save and shows draft posts.
+Open http://localhost:3000. For writing, use `npm run dev` instead of build and start: it serves http://localhost:3005, reloads on save and renders a draft post at its own URL (never listed).
 
 `npm ci` also installs this repo's git hooks through lefthook: lint, type check and tests before each commit, and a Conventional Commits check on the message.
 
@@ -44,7 +44,7 @@ Markdown, GitHub tables and code blocks, and React components.
 ```
 
 - `date` must be quoted `YYYY-MM-DD`; the build fails with the file name if it is not.
-- `draft: true` shows the post in `npm run dev` only, under a "Draft" banner. Production builds, the sitemap and the feed leave it out, and its URL is a 404. Delete the line to publish. The MDX file is still in the repo, so anyone can read a draft on GitHub if the repo is public.
+- `draft: true` renders the post at its own URL in `npm run dev` only, under a "Draft" banner; no page lists it. Production builds, the sitemap and the feed leave it out, and its URL is a 404. Delete the line to publish. The MDX file is still in the repo, so anyone can read a draft on GitHub if the repo is public.
 - The About page is `src/content/about.mdx`.
 
 ## Checking pages

@@ -5,6 +5,6 @@ import { site } from "@/lib/site";
 export const dynamic = "force-static";
 
 export function GET() {
-  const xml = renderRss({ title: site.name, description: site.description, url: site.url, posts: getAllPosts() });
+  const xml = renderRss({ title: site.name, description: site.description, url: site.url, posts: getAllPosts({ includeDrafts: false }) });
   return new Response(xml, { headers: { "Content-Type": "application/rss+xml; charset=utf-8" } });
 }

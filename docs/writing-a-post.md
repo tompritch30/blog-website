@@ -33,7 +33,7 @@ npm run dev               # http://localhost:3005
 npx next dev -p 3006      # or on 3006, as the kb worktree is served
 ```
 
-The dev server shows drafts with a "Draft" banner at the top of the post, and lists them on `/writing`. A production build never builds, lists or feeds a draft: its URL is a 404.
+The dev server renders a draft at its own URL, `http://localhost:3006/writing/<slug>`, with a "Draft" banner at the top. Nothing links to it: drafts are never listed on `/writing`, in dev either, so dev looks like the live site. A production build never builds, lists or feeds a draft: its URL is a 404.
 
 ## 4. Check it
 
