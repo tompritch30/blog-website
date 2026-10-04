@@ -73,14 +73,20 @@ describe("the real posts folder", () => {
     expect(getAllPosts({ includeDrafts: true }).length).toBeGreaterThan(0);
   });
 
-  // Writing is hidden until the owner publishes real articles (4 Oct 2026): both posts are drafts, so a
-  // production build lists, routes and feeds none of them, and `next dev` still shows them.
-  it("keeps every post a draft for now: production lists none, dev still has both", () => {
-    const slugs = ["claude-code-workflow", "what-prompt-caching-actually-saves"];
-    expect(getAllPosts({ includeDrafts: false })).toEqual([]);
-    for (const slug of slugs) {
-      expect(getPost(slug, { includeDrafts: false })).toBeNull();
-      expect(getPost(slug, { includeDrafts: true })?.meta.draft).toBe(true);
+  // Checks the rule, not today's content, so publishing a post (draft: false, docs/writing-a-post.md)
+  // keeps CI green: production lists and routes every non-draft, and a draft only in `next dev`.
+  it("publishes exactly the non-drafts, each routable, and keeps every draft previewable only", () => {
+    const published = getAllPosts({ includeDrafts: false });
+    const all = getAllPosts({ includeDrafts: true });
+    for (const meta of published) {
+      expect(meta.draft).toBe(false);
+      expect(getPost(meta.slug, { includeDrafts: false })?.meta).toEqual(meta);
     }
+    const drafts = all.filter((meta) => meta.draft);
+    for (const meta of drafts) {
+      expect(getPost(meta.slug, { includeDrafts: false })).toBeNull();
+      expect(getPost(meta.slug, { includeDrafts: true })?.meta).toEqual(meta);
+    }
+    expect(published.length + drafts.length).toBe(all.length);
   });
 });
