@@ -789,3 +789,97 @@ check-pages: 6 pages x 2 widths x 2 themes, 0 problems
 ```
 
 axe: 24 of 24 runs pass. `npm run shots` refreshed the 24 screenshots in `design/shots/` (11 KB to 211 KB): the committed ones still showed the CV lines removed above, the old portrait text and the old footer date.
+
+### 2026-10-04 owner review
+
+Four owner changes, then two more from the same review (via the lead): links once per page, and a Title Case comparison that does not change the site. A fresh agent reviews; the builder does not review its own work.
+
+#### Tags out of post meta
+
+The meta line on `/writing`, the home list and post pages is now the date and reading time. The feed never emitted `<category>`, so its golden test was untouched; nothing else read tags, so `tags` left the `Post` type, the frontmatter validation and the post page's Open Graph `article:tag`. Decision: the parser reads only the keys it knows and ignores the rest, so a stale `tags:` line is harmless; the two real posts lose theirs, and the `older-post.mdx` fixture keeps one to prove it is ignored. CONTEXT.md's Frontmatter entry says so. Red, `npx vitest run src/lib/posts.test.ts`:
+
+```
+   × getAllPosts > lists published posts newest first and leaves drafts out 28ms
+   × getAllPosts > ignores frontmatter keys it does not read, such as an old tags line, instead of carrying them onto the page 2ms
+AssertionError: expected { slug: 'older-post', …(6) } to deeply equal { slug: 'older-post', …(5) }
+AssertionError: expected [ Array(7) ] to deeply equal [ Array(6) ]
+      Tests  2 failed | 9 passed (11)
+```
+
+Green: `Tests  13 passed (13)` with the feed test.
+
+#### Footer gone, alien in the nav, GitHub out of the nav
+
+The colophon line went, and with it `src/lib/revised.ts` and its tests (nothing else used them). Choice for RSS: a quiet "RSS" link under the post list on `/writing`, not a footer link, because with the colophon and the alien gone a footer would have held one word; the people who look for a feed look where the posts are, and feed readers find it from the `<link rel="alternate">` that every page's head still carries. The footer element is deleted and `main` ends a section's gap below its last line.
+
+The alien moved into the nav next to About (Writing, CV, About, alien), with the Konami listener; the 404 page keeps its second alien. GitHub left the nav (owner item A). `scripts/check-pages.mts` opens the game from the nav's alien, expects focus back there after Escape, measures the nav on every page at both widths (items on one line, alien at least 28x28, no sideways scroll), and wants the printed CV on exactly one page like the PDF. Red, `npm run check:pages -- http://localhost:3006` (the owner's dev server, read only) before the move:
+
+```
+FAIL  nav / 375: 4 items, one line, right edge 268/375px, no alien (no alien button in the header nav)
+FAIL  nav / 1440: 4 items, one line, right edge 1228/1440px, no alien (no alien button in the header nav)
+FAIL  game / 1440 with the game open (reduced motion: no-preference): no alien button in the header nav to open the game from
+FAIL  game / 1440 with the game open (reduced motion: reduce): no alien button in the header nav to open the game from
+FAIL  print /cv A4: 2 pages, want 1 (110 KB, /tmp/check-pages-print-kkf8E8/cv-A4.pdf)
+FAIL  print /cv Letter: 2 pages, want 1 (110 KB, /tmp/check-pages-print-kkf8E8/cv-Letter.pdf)
+check-pages: 7 pages x 2 widths x 2 themes, 18 problems
+```
+
+(14 nav lines in all, one per page and width.) Green in the gate run below. At 375 the nav row ends at 233px of 375 with the alien's button 28x28.
+
+#### Links once per page
+
+The home page had three overlapping sets of links, and its section index used "About" and "Writing" for other places than the nav. Removed: the section index (and its CSS), the hero's CV link, the "longer version", "every role" and "all writing" links, the About paragraph's paper link (its row in Education and research links it), the post page's back link and the 404 page's two links. Two rules in `lintControls` keep it so, on built pages and in check-pages: `duplicate-href` (a second link to the same address, trailing slash ignored; same-page anchors exempt, since they move within the page and the skip link and footnote references need them) and `duplicate-label` (one visible label, read without aria-hidden glyphs and sr-only hints, on links to two places; anchors count here, so an "About" anchor beside the nav's About fails). The page did not feel too long without the index, so no section was cut. Red, `npx vitest run src/lib/slop.test.ts`:
+
+```
+   × controls budget > fails a second control beyond an entry's count, and every control on an unbudgeted route 13ms
+   × links appear once per page > fails a second link to the same address, a trailing slash or not, but not same-page anchors 2ms
+   × links appear once per page > fails two links with the same visible label that lead to different places, reading only the visible text 1ms
+   × lint-slop CLI > --built fails each planted control page and the planted CSS 752ms
+AssertionError: expected [ [ 'control-unlisted', 2 ] ] to deeply equal [ [ 'control-unlisted', 2 ], …(1) ]
+AssertionError: expected [] to deeply equal [ [ 'duplicate-href', 2 ], …(1) ]
+AssertionError: expected [] to deeply equal [ [ 'duplicate-label', 2 ], …(1) ]
+      Tests  4 failed | 60 passed (64)
+```
+
+Green: `Tests  64 passed (64)`. The `feat(pages)` commit's body was cut short by shell quoting; the next commit says so rather than rewriting history.
+
+#### /cv like the PDF CV
+
+Prior art: the PDF's own template and stylesheet (his CV build) give the layout and measures; Charis SIL, its face, is OFL and on Google Fonts, so it is adopted through `next/font/google`, loaded by `/cv` only (MANIFEST.yaml, SYSTEM.md). The page is a US Letter sheet of paper in both themes (in dark a step dimmer, `#e6e9e3`, with the colour tokens redefined inside it so links and focus are drawn for paper); in print it takes the PDF's margins and fits one page on A4 and Letter. Small line helpers in `src/lib/cv.ts`. Red, `npx vitest run src/lib/cv.test.ts` against stubs:
+
+```
+   × displayUrl > shows a profile address the way a printed CV does: no scheme, no www, no trailing slash 10ms
+   × displayUrl > gives the profile's own links as the CV header prints them 4ms
+   × educationLine > puts the credential after the institution and the note after the credential 2ms
+   × educationLine > leaves the note out when there is none 1ms
+   × elsewhereLine > joins the items into sentences, each head with its note after a comma 1ms
+   × elsewhereLine > is empty when there is nothing outside work 1ms
+   × elsewhereLine > sets the profile's three items on one line 1ms
+      Tests  7 failed (7)
+```
+
+Green: 7 passed. The sheet's tokens went into `contrast.test.ts` first (6 failing: the tokens did not exist), then green at 25 of 25.
+
+Differences from the PDF that remain, and why: no summary (the public `cv` has none); no phone, email or address, GitHub and LinkedIn only (ADR 0003); clients described and money figures off, so several bullets read differently and one is absent; a Stark role and an Elsewhere line the PDF does not have; headings in sentence case at 12pt instead of spaced capitals (owner rule); the name not letter-spaced; skills items keep the profile's capitals; the BSc line runs to two lines because of its Dean's List note; Google's build of Charis SIL sets bold a touch wider than the desktop font the PDF used; on screen, links are claret with the new-tab arrow.
+
+`scripts/cv-compare.mts` makes `design/shots/cv-compare-1440.png` and `cv-compare-print.png` (the sheet beside the PDF's first page at 96 dpi; the PDF's contact line painted over). They carry the private PDF, so `.gitignore` keeps them out of the repo; they are on the owner's disk only.
+
+#### Heading case as a setting
+
+`design/slop-allow.json` gains `headingCase` ("sentence", the default, or "title"). In title mode `sentenceCaseWords` names the words a Title Case heading gets wrong (small words lower case unless first or after a colon) and the rule is `sentence-case`. The site stays sentence case. Red:
+
+```
+   × sentenceCaseWords (Title Case mode) > names the words a Title Case heading leaves in lower case, small words apart 14ms
+   × sentenceCaseWords (Title Case mode) > names a small word capitalised in the middle, but not one that opens the heading or follows a colon 1ms
+   × heading case setting > in title mode passes Title Case headings and fails sentence-case ones 2ms
+   × heading case setting > in title mode reads the planted heading fixture the other way round 2ms
+   × heading case setting > applies to built pages too 2ms
+   × lint-slop CLI > refuses an allowlist whose headingCase is neither sentence nor title 641ms
+      Tests  6 failed | 66 passed (72)
+```
+
+Green: 72 passed (one proper-noun case added after green, as a guard). `design/shots/case-compare-1440.png` and `case-compare-375.png` put the home page in sentence case beside a throwaway Title Case variant (section headings and case-study titles only), built in a copy of the gate clone and never committed. On the judge criteria, sentence case wins: the brief's own list asks for sentence-case headings, and "reads as made by a person" and "restraint and hierarchy" favour it, since Title Case on every heading reads as a template; Title Case only helps the case-study titles scan as titles.
+
+#### Gates
+
+From a fresh `git clone --local` of `site-v2-kb` at 094cecb in a `mktemp -d` folder (`npm ci --prefer-offline`, `scripts/setup-dev.sh`), so the owner's dev server on 3006 kept its `.next`: `scripts/ci.sh` ends `slop: 0 hits in 0 of 8 files` and `ci: all gates green`. Then `npx next start -p 3016`, `npm run check:pages -- http://localhost:3016` (exit 0): controls and nav pass on all 6 routes at 375 and 1440, axe 24 of 24 runs pass, the game opens from the nav alien and gives focus back to it, `print /cv A4: 1 page, want 1` and `print /cv Letter: 1 page, want 1`, `0 problems`. `npm run shots` refreshed the 24 screenshots (8 KB to 204 KB, 256 colours).
