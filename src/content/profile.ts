@@ -77,12 +77,16 @@ export type SkillGroup = {
   items: string[];
 };
 
+// One thing outside work: what it is, and an optional note (when, or how often). The CV prints
+// them as "head, note"; the home page sets the note beside the head.
+export type Elsewhere = { head: string; note?: string };
+
 export type Cv = {
   roles: Role[];
   education: Education[];
   publication: Publication;
   skills: SkillGroup[];
-  elsewhere: string[];
+  elsewhere: Elsewhere[];
 };
 
 export const intro: string[] = [
@@ -234,9 +238,9 @@ export const cv: Cv = {
     },
   ],
   elsewhere: [
-    "Airbnb Superhost, hosting weekly alongside work",
-    "Ball boy at Wimbledon, 2015",
-    "Volunteered in Malawi and Cambodia",
+    { head: "Airbnb Superhost", note: "hosting weekly alongside work" },
+    { head: "Ball boy at Wimbledon", note: "2015" },
+    { head: "Volunteered in Malawi and Cambodia" },
   ],
 };
 

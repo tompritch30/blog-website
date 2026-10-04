@@ -180,15 +180,12 @@ export default function Home() {
           Outside work
         </h2>
         <ul className="pairs">
-          {cv.elsewhere.map((item) => {
-            const [head, ...rest] = item.split(", ");
-            return (
-              <li key={item}>
-                <span className="pair-head">{head}</span>
-                {rest.length > 0 ? <span className="note">{rest.join(", ")}</span> : null}
-              </li>
-            );
-          })}
+          {cv.elsewhere.map(({ head, note }) => (
+            <li key={head}>
+              <span className="pair-head">{head}</span>
+              {note ? <span className="note">{note}</span> : null}
+            </li>
+          ))}
         </ul>
       </section>
 

@@ -121,8 +121,8 @@ export default function CvPage() {
           Elsewhere
         </h2>
         <ul className="bullets">
-          {elsewhere.map((item) => (
-            <li key={item}>{item}</li>
+          {elsewhere.map(({ head, note }) => (
+            <li key={head}>{note ? `${head}, ${note}` : head}</li>
           ))}
         </ul>
       </section>
