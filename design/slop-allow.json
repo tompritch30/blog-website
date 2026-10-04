@@ -2,7 +2,7 @@
   "$comment": "Exemptions for the slop lint (src/lib/slop.ts, npm run lint:slop). acronyms: capital words allowed in prose (acronyms and format tokens such as YYYY). properNouns: words and phrases that keep their capitals in sentence-case headings. radius: {component, class?, reason} where a radius over 4px means something. money: {file?, texts, reason}, exact currency strings allowed in src/content (ADR 0003 item 3). Keep each list short; every radius and money entry needs a reason.",
   "acronyms": [
     "ADR", "API", "CEO", "CLI", "CSS", "CTO", "EBITDA", "FCA", "FDE", "GMT", "GPT", "GPU", "HTML", "IBM", "IEEE", "ISO",
-    "JSON", "LLM", "MDX", "MIT", "PDF", "RAG", "RSS", "SDK", "SEO", "SQL", "SVG", "URL", "UTC", "UTF", "WCAG",
+    "JSON", "LLM", "MDX", "MIT", "PDF", "RAG", "RSS", "SDK", "SEO", "SIL", "SQL", "SVG", "URL", "UTC", "UTF", "WCAG",
     "XML", "YAML", "YYYY"
   ],
   "properNouns": [

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import Container from "@/components/Container";
+import { Charis_SIL } from "next/font/google";
+import { Fragment } from "react";
 import ExternalLink from "@/components/ExternalLink";
-import OrgMark from "@/components/home/OrgMark";
 import { cv, links } from "@/content/profile";
 import { careerEntries, educationRows } from "@/lib/career";
+import { displayUrl, educationLine, elsewhereLine } from "@/lib/cv";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
 import { site } from "@/lib/site";
 
@@ -14,118 +15,109 @@ export const metadata: Metadata = {
   openGraph: { ...baseOpenGraph, type: "website", url: "/cv" },
 };
 
-// The web CV in the home page's shapes: Experience as the same timeline of marks and roles, the rest
-// as two-column rows. On paper (globals.css, @media print) the header, section bar and footer drop
-// away, the name prints at the top, links print their addresses and the page is black on white.
+// Charis SIL (SIL Open Font License 1.1), the face his PDF CV is set in, loaded on this page only.
+const charis = Charis_SIL({
+  variable: "--font-charis",
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+// The web CV laid out like his PDF CV (owner review, 4 Oct 2026): a US Letter sheet with the name, a
+// line of profile links, then Experience, Education, Publication, Skills and Elsewhere, each under a
+// bold heading with a rule; "Title, Company" in bold with the dates to the right, the descriptor
+// under it, bullets that run to two lines, and skills as label and items in two columns. On screen
+// it is a paper sheet in both themes; on paper (globals.css, @media print) the site's header drops
+// away and the sheet's margins become the page's. The content is the public-safe `cv` in
+// src/content/profile.ts: no phone, email or address, clients described, no employer money figures.
 export default function CvPage() {
-  const { roles, publication, skills, elsewhere } = cv;
+  const { roles, education, publication, skills, elsewhere } = cv;
   return (
-    <Container>
-      <div className="page-head">
-        <h1 className="display no-print">CV</h1>
-        {/* On paper the name heads the page (the header does not print); on screen the header carries it. */}
-        <p className="print-only cv-name">{site.name}</p>
-        <p className="lead">
-          Code on <ExternalLink href={links.github}>GitHub</ExternalLink>, profile on <ExternalLink href={links.linkedin}>LinkedIn</ExternalLink>.
-        </p>
-      </div>
+    <div className={`page cv-page ${charis.variable}`}>
+      <article className="cv-sheet" aria-labelledby="cv-name">
+        <div className="cv-head">
+          <h1 id="cv-name" className="cv-name">
+            {site.name}
+          </h1>
+          <p className="cv-contact">
+            <ExternalLink href={links.github}>{displayUrl(links.github)}</ExternalLink>
+            <span className="cv-sep" aria-hidden="true">
+              |
+            </span>
+            <ExternalLink href={links.linkedin}>{displayUrl(links.linkedin)}</ExternalLink>
+          </p>
+        </div>
 
-      <section className="cv-section" aria-labelledby="experience">
-        <h2 id="experience" className="cv-title">
-          Experience
-        </h2>
-        <ol className="timeline">
+        <section className="cv-section" aria-labelledby="experience">
+          <h2 id="experience" className="cv-heading">
+            Experience
+          </h2>
           {careerEntries(roles, []).map(({ id, role }) => (
-            <li key={id} className="tl-entry">
-              <div className="tl-mark">
-                <OrgMark name={role.company} />
+            <div key={id} className="cv-role">
+              <div className="cv-role-head">
+                <h3 id={id} className="cv-role-title">
+                  {role.title}, {role.company}
+                </h3>
+                <p className="cv-dates">{role.dates}</p>
               </div>
-              <div>
-                <div className="role-head">
-                  <h3 id={id} className="role-title">
-                    {role.title}
-                    <span className="print-only-inline">, {role.company}</span>
-                  </h3>
-                  <p className="dates">{role.dates}</p>
-                </div>
-                <p className="role-where">{role.descriptor}</p>
-                <ul className="bullets">
-                  {role.bullets.map((b) => (
-                    <li key={b}>{b}</li>
-                  ))}
-                </ul>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className="cv-section" aria-labelledby="education">
-        <h2 id="education" className="cv-title">
-          Education
-        </h2>
-        <div className="rows">
-          {educationRows(cv.education).map(({ key, institution, year, degree }) => (
-            <div key={key}>
-              <div>
-                <h3 className="row-title">{institution}</h3>
-                <p className="row-sub dates">{year}</p>
-              </div>
-              <p className="row-items">
-                <span>
-                  <strong>{degree.credential}</strong>
-                  {degree.note ? <span className="note">{degree.note}</span> : null}
-                </span>
-              </p>
+              <p className="cv-descriptor">{role.descriptor}</p>
+              <ul className="cv-bullets">
+                {role.bullets.map((b) => (
+                  <li key={b}>{b}</li>
+                ))}
+              </ul>
             </div>
           ))}
-        </div>
-      </section>
+        </section>
 
-      <section className="cv-section" aria-labelledby="publication">
-        <h2 id="publication" className="cv-title">
-          Publication
-        </h2>
-        <div className="rows">
-          <div>
-            <div>
-              <h3 className="row-title">{publication.venue}</h3>
-              <p className="row-sub dates">{publication.year}</p>
-            </div>
-            <p className="row-items">
-              <span>
-                <ExternalLink href={publication.url}>{publication.title}</ExternalLink>
-                <span className="note">{publication.note}</span>
-              </span>
-            </p>
-          </div>
-        </div>
-      </section>
+        <section className="cv-section" aria-labelledby="education">
+          <h2 id="education" className="cv-heading">
+            Education
+          </h2>
+          {educationRows(education).map(({ key, year, degree }) => {
+            const line = educationLine(degree);
+            return (
+              <div key={key} className="cv-line">
+                <p>
+                  <strong>{line.institution}</strong>, {line.rest}
+                </p>
+                <p className="cv-dates">{year}</p>
+              </div>
+            );
+          })}
+        </section>
 
-      <section className="cv-section" aria-labelledby="skills">
-        <h2 id="skills" className="cv-title">
-          Skills
-        </h2>
-        <dl className="rows">
-          {skills.map((group) => (
-            <div key={group.label}>
-              <dt className="row-title">{group.label}</dt>
-              <dd>{group.items.join(", ")}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+        <section className="cv-section" aria-labelledby="publication">
+          <h2 id="publication" className="cv-heading">
+            Publication
+          </h2>
+          <p>
+            <ExternalLink href={publication.url}>{publication.title}</ExternalLink>. {publication.venue}, {publication.year}. {publication.note}
+          </p>
+        </section>
 
-      <section className="cv-section" aria-labelledby="elsewhere">
-        <h2 id="elsewhere" className="cv-title">
-          Elsewhere
-        </h2>
-        <ul className="bullets">
-          {elsewhere.map(({ head, note }) => (
-            <li key={head}>{note ? `${head}, ${note}` : head}</li>
-          ))}
-        </ul>
-      </section>
-    </Container>
+        <section className="cv-section" aria-labelledby="skills">
+          <h2 id="skills" className="cv-heading">
+            Skills
+          </h2>
+          <dl className="cv-skills">
+            {skills.map((group) => (
+              <Fragment key={group.label}>
+                <dt>{group.label}</dt>
+                <dd>{group.items.join(", ")}</dd>
+              </Fragment>
+            ))}
+          </dl>
+        </section>
+
+        <section className="cv-section" aria-labelledby="elsewhere">
+          <h2 id="elsewhere" className="cv-heading">
+            Elsewhere
+          </h2>
+          <p>{elsewhereLine(elsewhere)}</p>
+        </section>
+      </article>
+    </div>
   );
 }

@@ -37,5 +37,11 @@ describe("colour tokens", () => {
         });
       }
     }
+    // The CV sheet is paper in both themes, with its own ink, pencil and link.
+    for (const fg of ["sheet-ink", "sheet-pencil", "sheet-link"]) {
+      it(`${theme}: --${fg} on --sheet meets WCAG AA (4.5:1)`, () => {
+        expect(contrast(t[fg], t.sheet)).toBeGreaterThanOrEqual(4.5);
+      });
+    }
   }
 });

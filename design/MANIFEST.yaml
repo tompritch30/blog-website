@@ -22,6 +22,15 @@ fonts:
     styles: normal, italic
     subsets: latin
     display: swap
+  - name: Charis SIL
+    use: the /cv sheet only (the face his PDF CV is set in); loaded by src/app/cv/page.tsx
+    files: next/font/google (Charis_SIL), CSS variable --font-charis
+    upstream: https://software.sil.org/charis/
+    licence: SIL Open Font License 1.1
+    weights: 400, 700
+    styles: normal, italic
+    subsets: latin
+    display: swap
   - name: IBM Plex Mono
     use: code in posts
     files: next/font/google (IBM_Plex_Mono), CSS variable --font-plex-mono
