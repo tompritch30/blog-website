@@ -8,7 +8,7 @@
     { "kind": "link", "href": "/about", "job": "open the About page" },
     { "kind": "link", "href": "https://github.com/tompritch30", "job": "see his code on GitHub" },
     { "kind": "link", "href": "/feed.xml", "job": "follow new posts by RSS" },
-    { "kind": "button", "name": "Play a game: shoot down the things I build with", "job": "start the hidden invaders game (the pixel alien in the colophon)" }
+    { "kind": "button", "name": "Play space invaders", "job": "start the hidden invaders game (the pixel alien in the colophon)" }
   ],
   "routes": {
     "/": {
@@ -56,7 +56,7 @@
       "controls": [
         { "kind": "link", "href": "/", "job": "leave a missing page for the home page" },
         { "kind": "link", "href": "/writing", "job": "leave a missing page for the list of posts" },
-        { "kind": "button", "name": "Play a game: shoot down the things I build with", "job": "start the invaders game from the missing page, where a curious visitor has time" }
+        { "kind": "button", "name": "Play space invaders", "job": "start the invaders game from the missing page, where a curious visitor has time" }
       ]
     },
     "/_global-error": {

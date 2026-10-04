@@ -23,7 +23,7 @@ import { CREATURES, MYSTERY, SHIELD, SHIP, cells } from "./sprites";
 const BEST_KEY = "invaders-best";
 const MARK_SRC = "/logos/palindrome.svg";
 const TOP = 56; // below the 48px score bar
-const TITLE = "A game: shoot down the things I build with";
+const TITLE = "A game of space invaders";
 
 type Mode = "still" | "play" | "paused" | "over";
 type Colours = { bg: string; text: string; secondary: string; divider: string; gold: string };
@@ -453,9 +453,7 @@ export default function Game({ onClose }: { onClose: () => void }) {
     stops[next].focus();
   };
 
-  const help = `Shoot down the things I build with. ${
-    touch ? "Drag to move, tap to fire." : "Left and right or A and D to move, space to fire, Escape to quit."
-  }`;
+  const help = touch ? "Drag to move, tap to fire." : "Left and right or A and D to move, space to fire, Escape to quit.";
   const control = "border border-divider px-3 py-1.5 text-fg hover:border-fg";
 
   return createPortal(

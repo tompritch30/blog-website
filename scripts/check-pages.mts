@@ -170,7 +170,7 @@ async function gameCheck(browser: Browser, problems: string[]): Promise<void> {
     const ctx = await browser.newContext({ viewport: VIEWPORTS[1], reducedMotion });
     const page = await ctx.newPage();
     await page.goto(`${base}/`, { waitUntil: "networkidle" });
-    const alien = page.locator("footer").getByRole("button", { name: /play a game/i });
+    const alien = page.locator("footer").getByRole("button", { name: /play space invaders/i });
     await alien.click();
     const dialog = page.locator("dialog[open]");
     await dialog.waitFor({ state: "visible", timeout: 10_000 });
