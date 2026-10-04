@@ -250,5 +250,6 @@ export const portrait = {
   src: "/me/thomas.jpg",
   width: 400,
   height: 400,
-  alt: "Thomas Pritchard",
+  // Not his name: the site name in the header already says it, so a screen reader would hear it twice.
+  alt: "Portrait photo",
 } as const;
