@@ -3,7 +3,7 @@ import Container from "@/components/Container";
 import ExternalLink from "@/components/ExternalLink";
 import OrgMark from "@/components/home/OrgMark";
 import { cv, links } from "@/content/profile";
-import { careerEntries, educationGroups } from "@/lib/career";
+import { careerEntries, educationRows } from "@/lib/career";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
 import { site } from "@/lib/site";
 
@@ -65,19 +65,18 @@ export default function CvPage() {
           Education
         </h2>
         <div className="rows">
-          {educationGroups(cv.education).map((group) => (
-            <div key={group.institution}>
+          {educationRows(cv.education).map(({ key, institution, year, degree }) => (
+            <div key={key}>
               <div>
-                <h3 className="row-title">{group.institution}</h3>
+                <h3 className="row-title">{institution}</h3>
+                <p className="row-sub dates">{year}</p>
               </div>
-              <ul className="row-items">
-                {group.degrees.map((d) => (
-                  <li key={d.credential}>
-                    <strong>{d.credential}</strong>, {d.year}
-                    {d.note ? <span className="note">{d.note}</span> : null}
-                  </li>
-                ))}
-              </ul>
+              <p className="row-items">
+                <span>
+                  <strong>{degree.credential}</strong>
+                  {degree.note ? <span className="note">{degree.note}</span> : null}
+                </span>
+              </p>
             </div>
           ))}
         </div>

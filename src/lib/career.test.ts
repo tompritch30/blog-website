@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { careerEntries, educationGroups } from "./career";
+import { cv } from "@/content/profile";
+import { careerEntries, educationRows } from "./career";
 
 const roles = [
   { company: "Acme Labs", title: "Engineer", dates: "Apr 2026 – Present", descriptor: "d1", bullets: ["a1", "a2"] },
@@ -36,28 +37,42 @@ describe("careerEntries", () => {
   });
 });
 
-describe("educationGroups", () => {
-  it("groups degrees by institution, keeping the first-seen order of both", () => {
-    const groups = educationGroups([
+describe("educationRows", () => {
+  it("gives each degree its own row with its own year, so two degrees at one place never read as one course", () => {
+    const rows = educationRows([
+      { institution: "Imperial College London", credential: "MSc Computer Science (Distinction)", year: "2024" },
+      { institution: "Imperial College London", credential: "BSc Biological Sciences (First Class Honours)", year: "2021" },
+    ]);
+    expect(rows.map((r) => [r.institution, r.year, r.degree.credential])).toEqual([
+      ["Imperial College London", "2024", "MSc Computer Science (Distinction)"],
+      ["Imperial College London", "2021", "BSc Biological Sciences (First Class Honours)"],
+    ]);
+    expect(JSON.stringify(rows)).not.toContain("2021–2024");
+  });
+
+  it("keeps the order given (the CV's, newest first) and carries each degree's note", () => {
+    const rows = educationRows([
       { institution: "North University", credential: "MSc Physics", year: "2024" },
       { institution: "South College", credential: "Diploma", year: "2022" },
       { institution: "North University", credential: "BSc Biology", year: "2021", note: "Prize" },
     ]);
-    expect(groups.map((g) => [g.institution, g.degrees.map((d) => d.credential)])).toEqual([
-      ["North University", ["MSc Physics", "BSc Biology"]],
-      ["South College", ["Diploma"]],
+    expect(rows.map((r) => [r.institution, r.year, r.degree.note])).toEqual([
+      ["North University", "2024", undefined],
+      ["South College", "2022", undefined],
+      ["North University", "2021", "Prize"],
     ]);
   });
 
-  it("spans the years from the earliest degree to the latest", () => {
-    const [north] = educationGroups([
-      { institution: "North University", credential: "MSc", year: "2024" },
-      { institution: "North University", credential: "BSc", year: "2021" },
-    ]);
-    expect(north.years).toBe("2021–2024");
+  it("gives each row a key that differs between two degrees at the same place", () => {
+    const keys = educationRows(cv.education).map((r) => r.key);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it("shows a single year when there is one degree", () => {
-    expect(educationGroups([{ institution: "South College", credential: "Diploma", year: "2022" }])[0].years).toBe("2022");
+  it("shows the profile's Imperial degrees as the CV states them: MSc 2024 and BSc 2021, no span", () => {
+    const imperial = educationRows(cv.education).filter((r) => r.institution === "Imperial College London");
+    expect(imperial.map((r) => [r.degree.credential, r.year])).toEqual([
+      ["MSc Computer Science (Distinction)", "2024"],
+      ["BSc Biological Sciences (First Class Honours)", "2021"],
+    ]);
   });
 });

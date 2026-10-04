@@ -1,12 +1,10 @@
 import type { CaseStudy, Education, Role } from "@/content/profile";
 
-// The home page's career timeline: each role with the case studies done there, and education
-// grouped by institution (one entry per place, its degrees inside), as the layout reads them.
+// The home page's career timeline: each role with the case studies done there, and education as
+// one row per degree, as the CV lists it.
 
 export type CareerEntry = { id: string; role: Role; studies: CaseStudy[] };
-export type EducationGroup = { institution: string; years: string; degrees: Education[] };
-
-const EN_DASH = "–";
+export type EducationRow = { key: string; institution: string; year: string; degree: Education };
 
 const slug = (text: string) =>
   text
@@ -28,22 +26,15 @@ export function careerEntries(roles: Role[], studies: CaseStudy[]): CareerEntry[
   }));
 }
 
-/** One group per institution, in first-seen order, with the span of its degrees' years. */
-export function educationGroups(education: Education[]): EducationGroup[] {
-  const groups: EducationGroup[] = [];
-  for (const degree of education) {
-    let group = groups.find((g) => g.institution === degree.institution);
-    if (!group) {
-      group = { institution: degree.institution, years: "", degrees: [] };
-      groups.push(group);
-    }
-    group.degrees.push(degree);
-  }
-  for (const group of groups) {
-    const years = group.degrees.map((d) => Number(d.year)).sort((a, b) => a - b);
-    const first = years[0];
-    const last = years[years.length - 1];
-    group.years = first === last ? String(first) : `${first}${EN_DASH}${last}`;
-  }
-  return groups;
+/**
+ * One row per degree, in the order given, each with its own year. Two degrees at one place stay
+ * two rows: a span such as "2021–2024" would read as one course.
+ */
+export function educationRows(education: Education[]): EducationRow[] {
+  return education.map((degree) => ({
+    key: `${slug(degree.institution)}-${slug(degree.credential)}-${degree.year}`,
+    institution: degree.institution,
+    year: degree.year,
+    degree,
+  }));
 }

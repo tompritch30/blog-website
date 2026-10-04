@@ -185,12 +185,12 @@ export const cv: Cv = {
   education: [
     {
       institution: "Imperial College London",
-      credential: "MSc Computer Science, Distinction",
+      credential: "MSc Computer Science (Distinction)",
       year: "2024",
     },
     {
       institution: "Imperial College London",
-      credential: "BSc Biological Sciences, First Class Honours",
+      credential: "BSc Biological Sciences (First Class Honours)",
       year: "2021",
       note: "Dean's List, Years 1 and 2",
     },

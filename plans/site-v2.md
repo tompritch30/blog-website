@@ -591,3 +591,28 @@ pass  print /cv: 1 text colour on white paper, all dark on light
 check-pages: 6 pages x 2 widths x 2 themes, 0 problems
 axe: 24 of 24 runs with 0 violations; controls: 14 passes; shots: 24 files
 ```
+
+### 2026-10-04 polish
+
+#### Education as one row per degree
+
+The home page grouped degrees by institution and showed "2021–2024" beside Imperial, which reads as one course. The CV lists two degrees, each with its own year: "Imperial College London: MSc Computer Science (Distinction), 2024" and "Imperial College London: BSc Biological Sciences (First Class Honours), 2021". `educationGroups` is replaced by `educationRows` in `src/lib/career.ts` (one row per degree, in the CV's order, with its own year and a unique key), used by both `/` and `/cv`; the credentials in `src/content/profile.ts` now use the CV's wording. `/about` already says 2021 and 2024 separately.
+
+Red, `npx vitest run src/lib/career.test.ts` against a stub returning no rows:
+
+```
+ ✓ careerEntries > puts each case study under the role it was done in, in the order given, newest role first 2ms
+ ✓ careerEntries > gives each role an id for its heading, from the company name 0ms
+ ✓ careerEntries > refuses a case study whose workplace is not one of the roles, so a typo cannot hide it 1ms
+ × educationRows > gives each degree its own row with its own year, so two degrees at one place never read as one course 10ms
+ × educationRows > keeps the order given (the CV's, newest first) and carries each degree's note 2ms
+ ✓ educationRows > gives each row a key that differs between two degrees at the same place 0ms
+ × educationRows > shows the profile's Imperial degrees as the CV states them: MSc 2024 and BSc 2021, no span 1ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+AssertionError: expected [] to deeply equal [ [ …(3) ], [ …(3) ] ]
+AssertionError: expected [] to deeply equal [ [ 'North University', …(2) ], …(2) ]
+AssertionError: expected [] to deeply equal [ [ …(2) ], [ …(2) ] ]
+      Tests  3 failed | 4 passed (7)
+```
+
+The key test passes against the stub (no rows, no clashes); it gained meaning once rows existed. Green: `Tests  7 passed (7)`. Rendered on the dev server, `/` and `/cv` now read "Imperial College London, 2024, MSc Computer Science (Distinction)" and "Imperial College London, 2021, BSc Biological Sciences (First Class Honours), Dean's List, Years 1 and 2".
