@@ -55,7 +55,7 @@ npm run check:pages -- http://localhost:3119   # default base URL: http://localh
 npm run shots -- http://localhost:3119         # the same checks, plus screenshots in design/shots/
 ```
 
-Every page (home, writing, each post, About and a missing page) is opened at 375 and 1440 pixels wide in the light and dark themes. The check runs axe (WCAG 2.2 AA) and fails on any serious, critical or colour-contrast violation; checks the rendered page's links and buttons against `design/CONTROLS.json` with the same code as `npm run lint:slop -- --built` with the invaders game open as well. It also measures the header nav on every page (one line, the alien's button at least 28x28, no sideways scroll). `--shots` saves `<page>-<width>-<theme>.png` full-page screenshots, palette-reduced to under 300KB; `--out <dir>` puts them elsewhere. Nothing is downloaded: it uses a Chromium that Playwright has already cached.
+Every page (home, writing, each post, About and a missing page) is opened at 375 and 1440 pixels wide in the light and dark themes. The check runs axe (WCAG 2.2 AA) and fails on any serious, critical or colour-contrast violation; checks the rendered page's links and buttons against `design/CONTROLS.json` with the same code as `npm run lint:slop -- --built`, and again on the home page with the invaders game open and paused. It also measures the header nav on every page (one line, the alien's button at least 28x28, no sideways scroll). `--shots` saves `<page>-<width>-<theme>.png` full-page screenshots, palette-reduced to under 300KB; `--out <dir>` puts them elsewhere. Nothing is downloaded: it uses a Chromium that Playwright has already cached.
 
 ## Configuration
 
