@@ -1,21 +1,82 @@
-# Origin and licence of every design asset on the site. One entry per asset.
-# Fonts are added by the design-system slice.
+# Origin and licence of every design asset on the site. One entry per asset; an asset that leaves
+# the repo leaves this file in the same commit. Why each is used: design/SYSTEM.md.
 
 fonts:
-  # The kb variant (branch site-v2-kb). All three are fetched by next/font/google at build time and
-  # self-hosted with the site; the browser makes no request to Google.
+  # Every font the built site loads. The three page faces are fetched by next/font/google at build
+  # time and self-hosted with the site (src/app/layout.tsx); the browser makes no request to Google.
   - name: Newsreader
     use: headings, the name, case-study figures and the one italic line
-    source: Google Fonts via next/font/google (variable, wght and opsz axes)
+    files: next/font/google (Newsreader), CSS variable --font-newsreader
+    upstream: https://github.com/productiontype/Newsreader
     licence: SIL Open Font License 1.1
+    weights: variable (wght 200 to 800), with the opsz axis (6 to 72) requested
+    styles: normal, italic
+    subsets: latin
+    display: swap
   - name: IBM Plex Sans
     use: reading text, navigation, meta lines
-    source: Google Fonts via next/font/google (400, 500, 600; normal and italic)
+    files: next/font/google (IBM_Plex_Sans), CSS variable --font-plex-sans
+    upstream: https://github.com/IBM/plex
     licence: SIL Open Font License 1.1
+    weights: 400, 500, 600
+    styles: normal, italic
+    subsets: latin
+    display: swap
   - name: IBM Plex Mono
     use: code in posts
-    source: Google Fonts via next/font/google (400, 500)
+    files: next/font/google (IBM_Plex_Mono), CSS variable --font-plex-mono
+    upstream: https://github.com/IBM/plex
     licence: SIL Open Font License 1.1
+    weights: 400, 500
+    styles: normal
+    subsets: latin
+    display: swap
+  - name: Geist
+    use: the favicon and the share cards (src/app/icon.tsx, src/lib/og.tsx), which pass no font to next/og, so it falls back to the one it bundles; drawn into PNGs at build time, never sent to the browser as a font
+    files: node_modules/next/dist/compiled/@vercel/og/Geist-Regular.ttf (bundled with next 16.3.8, @vercel/og 0.11.1)
+    upstream: https://github.com/vercel/geist-font
+    licence: SIL Open Font License 1.1
+    weights: 400 (the only file bundled)
+    styles: normal
+    subsets: latin, as bundled
+    note: open item in design/SYSTEM.md (Learnings), to set the cards in Newsreader
+
+images:
+  - name: portrait
+    path: public/me/thomas.jpg (src/content/profile.ts, portrait)
+    kind: 400 x 400 JPEG, progressive, no EXIF, ICC, XMP or IPTC metadata (checked with sharp, 4 Oct 2026); sha256 87829ad999e17a5ea99197b0de20e9579a3cca93281a0550bcb3f853045b543b
+    origin: his GitHub avatar, https://github.com/tompritch30.png?size=460, re-encoded at 400px without metadata (3 Oct 2026) and stored locally so the page makes no call to GitHub
+    licence: his own photo, used on his own site at his request
+  - name: Palindrome logo
+    path: public/logos/palindrome.svg (inlined by src/components/home/OrgMark.tsx beside the Palindrome role on / and /cv; also invader type 1, below)
+    kind: monochrome SVG, fill currentColor, 215 x 26; sha256 007da003b4959e1fb8ff28a5a8c93558899ff31a60e2d7a673a3f15f71d073bc; inlined with only its XML prolog, editor comment and layer id dropped, shape untouched
+    origin: Palindrome's own logo, from https://cdn.prod.website-files.com/6820781f3dc65fa89a62baf1/6947facd0f5989009c2de55c_Logo_Palindrome_BW.svg (made monochrome by the lead, 3 Oct 2026)
+    terms: https://www.palindrome.co/terms.html
+    licence: used with the owner's employer's permission pending, listed for confirmation
+  - name: ForestVO trajectory plot
+    path: public/paper/forestvo-trajectory.png (src/content/profile.ts, paperFigure; shown in About on /)
+    kind: 1253 x 480 PNG, RGBA, no metadata; sha256 25ca114f6df83ab8a410fcecadda300f500e921c7cadeac6c7e87afd6f0a8fe5; shown on a light plate in both themes
+    origin: 'one figure from his own paper, Pritchard et al., "ForestVO: Enhancing Visual Odometry in Forest Environments through ForestGlue", IEEE Robotics and Automation Letters 2025 (https://doi.org/10.1109/lra.2025.3557738), taken from the accepted version on arXiv, https://arxiv.org/abs/2504.01261'
+    licence: © 2025 IEEE, reused under IEEE's author reuse terms, which let an author reuse a figure from their own paper with a full credit line
+    credit: "© 2025 IEEE. From Pritchard et al., ForestVO, IEEE RA-L 2025."
+    credit_shown: beside the plot, as its caption (src/content/profile.ts, paperFigure.credit)
+  - name: organisation wordmarks
+    path: src/components/home/OrgMark.tsx (names from src/content/profile.ts, organisations)
+    kind: text in the heading face, no image
+    origin: Fletchers, Stark, Imperial and IEEE RA-L set as plain words, because their logos' terms forbid reuse without consent
+    licence: not applicable (no logo used)
+
+generated:
+  - name: favicon
+    path: src/app/icon.tsx
+    kind: 32 x 32 PNG drawn by next/og at build time, the initials in paper on ink, 4px radius
+    origin: written for this site
+    licence: the repo's own LICENSE
+  - name: share cards
+    path: src/app/opengraph-image.tsx, src/app/writing/[slug]/opengraph-image.tsx, src/lib/og.tsx
+    kind: 1200 x 630 PNGs drawn by next/og at build time, a heading and a line in the light theme's colours
+    origin: written for this site
+    licence: the repo's own LICENSE
 
 easter_egg:
   decision: docs/adr/0004-easter-egg-prior-art.md
@@ -31,6 +92,12 @@ easter_egg:
       origin: written for this site, 3 Oct 2026
       licence: the repo's own LICENSE
     - path: src/components/invaders/Game.tsx
+      origin: written for this site, 3 Oct 2026
+      licence: the repo's own LICENSE
+    - path: src/components/invaders/AlienTrigger.tsx
+      origin: written for this site, 3 Oct 2026
+      licence: the repo's own LICENSE
+    - path: src/components/arcade/games.ts
       origin: written for this site, 3 Oct 2026
       licence: the repo's own LICENSE
   art:
@@ -67,7 +134,7 @@ easter_egg:
       licence: the repo's own LICENSE
     - name: mystery ship
       path: src/components/invaders/sprites.ts (MYSTERY)
-      kind: 18 x 7 pixel grid in code, drawn in gold with one soft shadow (none when motion is reduced)
+      kind: 18 x 7 pixel grid in code, drawn in gold (#9a6f00 on the light theme, #e3b341 on the dark) with one soft shadow, an 8px blur in the same gold and the only glow on the site (none when motion is reduced)
       origin: original, drawn by the builder 3 Oct 2026; a golden airship with tail fins and a gondola, not the arcade saucer
       licence: the repo's own LICENSE
   not_used:
