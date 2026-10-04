@@ -575,6 +575,8 @@ Slop allowlist (for the owner): acronym `IBM` (the font's name in the colophon);
 
 Cherry-picked from `site-v2`: `0dc3e04 feat(arcade)` (clean), and the script half of `e975bb7 fix(proof)` (the focus check raced the game's next-frame focus return on this branch; its plan lines stay on `site-v2`).
 
+The arcade registry (`src/components/arcade/games.ts`, the alien opening the one game directly) stays: the owner asked for it on 3 Oct, so a review finding that it is more structure than one game needs is noted and left as is (2026-10-04 review).
+
 Gates: `scripts/ci.sh` (tail) and `npm run shots` against `npm start -p 3122` (screenshots not committed):
 
 ```
@@ -754,4 +756,21 @@ AssertionError: expected 'stub' to be null
       Tests  5 failed (5)
 ```
 
-Green: `Tests  5 passed (5)`. The first commit attempt failed in the pre-commit hook: git sets `GIT_DIR` for hooks, so `git log` in `/` still found the repo (`AssertionError: expected '2026-10-04' to be null`); the test now runs that call in a fresh temporary folder with the `GIT_*` variables cleared, as a build has them. The dev server's footer then read `Revised <time dateTime="2026-10-04">4 October 2026</time>`, matching `git log -1 --format=%cs`.
+Green: `Tests  5 passed (5)`. Commit attempt one failed in the pre-commit hook: git sets `GIT_DIR` for hooks, so `git log` in `/` still found the repo (`AssertionError: expected '2026-10-04' to be null`); the test now runs that call in a fresh temporary folder with the `GIT_*` variables cleared, as a build has them. The dev server's footer then read `Revised <time dateTime="2026-10-04">4 October 2026</time>`, matching `git log -1 --format=%cs`.
+
+#### Smaller review items
+
+- `check-pages.mts`: the header said to start the site on 3119 while the default base URL was 3005. 3005 is `npm run dev` (ADR 0002 item 8), so the default stays and the header and the "nothing answers" message now say so.
+- `loadMark` in the game revokes its object URL in a `finally`, so a failed decode no longer leaks it.
+- `Chart`'s data table keys its rows by index and x value, so two equal x labels cannot share a key.
+- `careerEntries` gives a second role at the same company `-2` (then `-3`), so heading ids stay unique after a promotion. Red, `npx vitest run src/lib/career.test.ts`:
+
+```
+   × careerEntries > keeps the ids unique when two roles share a company (a promotion), so each heading has its own anchor 9ms
+AssertionError: expected [ 'role-acme-labs', …(3) ] to deeply equal [ 'role-acme-labs', …(3) ]
+      Tests  1 failed | 7 passed (8)
+```
+
+  Green: `Tests  8 passed (8)`.
+- The arcade registry stays as the owner asked on 3 Oct (noted in the kb section above).
+- For the owner: the evaluation diagram on the home page (`src/components/home/EvalGateDiagram.tsx`, under the release-evals case study) is new visual content drawn from that case study's facts; it needs his confirmation like any new copy.

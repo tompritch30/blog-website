@@ -19,11 +19,18 @@ export function careerEntries(roles: Role[], studies: CaseStudy[]): CareerEntry[
       throw new Error(`case study "${s.slug}" names "${s.where}", which is not a role's company`);
     }
   }
-  return roles.map((role) => ({
-    id: `role-${slug(role.company)}`,
-    role,
-    studies: studies.filter((s) => s.where === role.company),
-  }));
+  // Two roles can share a company (or a slug): later ones get -2, -3, so every heading's id is unique.
+  const seen = new Map<string, number>();
+  return roles.map((role) => {
+    const base = `role-${slug(role.company)}`;
+    const n = (seen.get(base) ?? 0) + 1;
+    seen.set(base, n);
+    return {
+      id: n === 1 ? base : `${base}-${n}`,
+      role,
+      studies: studies.filter((s) => s.where === role.company),
+    };
+  });
 }
 
 /**

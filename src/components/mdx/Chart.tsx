@@ -156,7 +156,7 @@ export default function Chart({ type, title, description, x, series, xLabel, yLa
         </thead>
         <tbody>
           {x.map((v, j) => (
-            <tr key={String(v)}>
+            <tr key={`${j}-${String(v)}`}>
               <th scope="row">{typeof v === "number" ? value(v) : v}</th>
               {series.map((s) => (
                 <td key={s.name}>{value(s.values[j], unit)}</td>

@@ -32,6 +32,16 @@ describe("careerEntries", () => {
     expect(careerEntries(roles, []).map((e) => e.id)).toEqual(["role-acme-labs", "role-brook-co", "role-cedar"]);
   });
 
+  it("keeps the ids unique when two roles share a company (a promotion), so each heading has its own anchor", () => {
+    const promoted = [
+      { ...roles[0], title: "Lead engineer" },
+      { ...roles[0], title: "Engineer", dates: "Jan 2025 – Apr 2026" },
+      roles[1],
+      { ...roles[1], company: "Brook Co" },
+    ];
+    expect(careerEntries(promoted, []).map((e) => e.id)).toEqual(["role-acme-labs", "role-acme-labs-2", "role-brook-co", "role-brook-co-2"]);
+  });
+
   it("refuses a case study whose workplace is not one of the roles, so a typo cannot hide it", () => {
     expect(() => careerEntries(roles, [study("lost", "Acme")])).toThrow(/lost.*Acme/);
   });
