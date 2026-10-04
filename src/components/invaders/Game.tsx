@@ -20,6 +20,7 @@ import {
   type InvaderType,
 } from "@/lib/invaders/engine";
 import ExternalLink from "@/components/ExternalLink";
+import { keyInput, releasedInput, type HeldInput } from "@/lib/invaders/input";
 import { readUnlocked, saveUnlocked, unlock, unlockedTargets } from "@/lib/invaders/links";
 import { CREATURES, MYSTERY, SHIELD, SHIP, cells } from "./sprites";
 
@@ -236,7 +237,7 @@ export default function Game({ onClose }: { onClose: () => void }) {
   const markRef = useRef<HTMLImageElement | null>(null);
   const coloursRef = useRef<Colours>({ bg: "", text: "", secondary: "", divider: "", gold: "" });
   const dprRef = useRef(1);
-  const input = useRef({ left: false, right: false, fire: false, tap: false, targetX: null as number | null });
+  const input = useRef<HeldInput>(releasedInput());
   const pointer = useRef<{ id: number; x: number; t: number; moved: boolean } | null>(null);
 
   const [mode, setMode] = useState<Mode>(() =>
@@ -353,9 +354,14 @@ export default function Game({ onClose }: { onClose: () => void }) {
     };
   }, [newGame, redraw]);
 
-  // Focus goes to the stage while playing, else to the one action on offer.
+  // Focus goes to the stage while playing, else to the one action on offer. Leaving play lets go of
+  // every held key, tap, drag target and pointer, so nothing is still held on resume.
   useEffect(() => {
     modeRef.current = mode;
+    if (mode !== "play") {
+      input.current = releasedInput();
+      pointer.current = null;
+    }
     if (mode === "play") stageRef.current?.focus();
     else actionRef.current?.focus();
     if (mode === "still") redraw();
@@ -422,24 +428,21 @@ export default function Game({ onClose }: { onClose: () => void }) {
         if (!e.repeat) setMode(modeRef.current === "play" ? "paused" : "play");
         return;
       }
-      if (modeRef.current !== "play") return;
+      const playing = modeRef.current === "play";
       const onControl = e.target instanceof HTMLElement && (e.target.tagName === "BUTTON" || e.target.tagName === "A");
-      const k = e.key.toLowerCase();
-      const i = input.current;
-      if (k === "arrowleft" || k === "a") {
-        i.left = down;
-        i.targetX = null;
-      } else if (k === "arrowright" || k === "d") {
-        i.right = down;
-        i.targetX = null;
-      } else if (k === " " && !onControl) {
-        i.fire = down;
-      } else return;
-      e.preventDefault();
+      // releases count in any mode, so a key let go while paused is not still held on resume
+      const next = keyInput(input.current, e.key, down, { playing, onControl });
+      if (!next) return;
+      input.current = next;
+      // outside play, and for space on a focused control, the control keeps its own keys (a button
+      // clicks on space's keyup)
+      if (playing && !(onControl && e.key === " ")) e.preventDefault();
     };
     const keydown = onKey(true);
     const keyup = onKey(false);
-    const release = () => Object.assign(input.current, { left: false, right: false, fire: false });
+    const release = () => {
+      input.current = releasedInput();
+    };
     window.addEventListener("keydown", keydown);
     window.addEventListener("keyup", keyup);
     window.addEventListener("blur", release);
