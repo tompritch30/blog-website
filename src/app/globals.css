@@ -814,6 +814,18 @@ h4 {
   padding-block-end: var(--section-gap);
 }
 
+/* The line over a draft, which only `next dev` renders: claret on the inline-code grey, so a preview is
+   never taken for the live post. */
+.draft-banner {
+  margin-block-end: 2rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--link);
+  border-radius: 3px;
+  background: var(--surface-soft);
+  color: var(--link);
+  font-size: var(--text-meta);
+}
+
 /* The feed link under the post list: there for whoever looks, in pencil grey at the meta size. */
 .feed {
   margin-block-start: 1.75rem;

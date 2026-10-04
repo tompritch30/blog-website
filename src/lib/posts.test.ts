@@ -73,10 +73,14 @@ describe("the real posts folder", () => {
     expect(getAllPosts({ includeDrafts: true }).length).toBeGreaterThan(0);
   });
 
-  it("keeps the prompt caching draft out of production listings", () => {
-    const slug = "what-prompt-caching-actually-saves";
-    expect(getAllPosts({ includeDrafts: false }).map((p) => p.slug)).not.toContain(slug);
-    expect(getPost(slug, { includeDrafts: false })).toBeNull();
-    expect(getPost(slug, { includeDrafts: true })?.meta.draft).toBe(true);
+  // Writing is hidden until the owner publishes real articles (4 Oct 2026): both posts are drafts, so a
+  // production build lists, routes and feeds none of them, and `next dev` still shows them.
+  it("keeps every post a draft for now: production lists none, dev still has both", () => {
+    const slugs = ["claude-code-workflow", "what-prompt-caching-actually-saves"];
+    expect(getAllPosts({ includeDrafts: false })).toEqual([]);
+    for (const slug of slugs) {
+      expect(getPost(slug, { includeDrafts: false })).toBeNull();
+      expect(getPost(slug, { includeDrafts: true })?.meta.draft).toBe(true);
+    }
   });
 });

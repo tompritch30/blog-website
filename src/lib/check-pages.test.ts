@@ -12,6 +12,10 @@ describe("pageRoutes", () => {
       { path: "/no-such-page", pattern: "/_not-found", name: "404" },
     ]);
   });
+
+  it("visits no post page when /writing links none (every post a draft) and still checks the 404", () => {
+    expect(pageRoutes([], "/no-such-page").map((r) => r.path)).toEqual(["/", "/writing", "/about", "/no-such-page"]);
+  });
 });
 
 describe("shotFile", () => {

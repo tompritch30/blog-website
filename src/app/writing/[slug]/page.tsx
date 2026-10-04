@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Container from "@/components/Container";
 import Mdx from "@/components/Mdx";
 import { formatDate } from "@/lib/dates";
+import { draftBanner } from "@/lib/draft";
 import { baseAlternates, baseOpenGraph } from "@/lib/metadata";
 import { postPath } from "@/lib/paths";
 import { getAllPosts, getPost } from "@/lib/posts";
@@ -41,9 +42,11 @@ export default async function PostPage({ params }: Props) {
   const post = getPost((await params).slug);
   if (!post) notFound();
   const { meta, content } = post;
+  const banner = draftBanner(meta);
 
   return (
     <Container>
+      {banner ? <p className="draft-banner">{banner}</p> : null}
       <article className="article">
         <div className="article-head">
           <p className="post-meta">

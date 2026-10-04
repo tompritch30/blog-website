@@ -42,9 +42,22 @@ describe("renderRss", () => {
     );
   });
 
-  it("renders an empty channel when there are no posts", () => {
-    const xml = renderRss({ title: "T", description: "D", url: "https://t.example", posts: [] });
-    expect(xml).not.toContain("<item>");
-    expect(xml).toContain("</channel>");
+  // Every post is a draft for now (owner, 4 Oct 2026), so production serves this. RSS 2.0 needs only a
+  // channel's title, link and description; items are optional, so the empty channel is a valid feed.
+  it("renders a valid RSS 2.0 channel with no items when there are no posts", () => {
+    const xml = renderRss({ title: "Casey Example", description: "Notes & sums", url: "https://casey.example", posts: [] });
+    expect(xml).toBe(
+      `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<title>Casey Example</title>
+<link>https://casey.example</link>
+<description>Notes &amp; sums</description>
+<language>en-gb</language>
+<atom:link href="https://casey.example/feed.xml" rel="self" type="application/rss+xml"/>
+</channel>
+</rss>
+`,
+    );
   });
 });
