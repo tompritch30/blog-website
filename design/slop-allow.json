@@ -1,5 +1,5 @@
 {
-  "$comment": "Exemptions for the slop lint (src/lib/slop.ts, npm run lint:slop). acronyms: capital words allowed in prose (acronyms and format tokens such as YYYY). properNouns: words and phrases that keep their capitals in sentence-case headings. radius: {component, class?, reason} where a radius over 4px means something. money: {file?, texts, reason}, exact currency strings allowed in src/content (ADR 0003 item 3). Keep each list short; every radius and money entry needs a reason.",
+  "$comment": "headingCase: \"sentence\" (the default and the owner's rule) or \"title\" (Title Case with lower-case small words, kept for comparing the two; owner review 4 Oct 2026). Exemptions for the slop lint (src/lib/slop.ts, npm run lint:slop). acronyms: capital words allowed in prose (acronyms and format tokens such as YYYY). properNouns: words and phrases that keep their capitals in sentence-case headings. radius: {component, class?, reason} where a radius over 4px means something. money: {file?, texts, reason}, exact currency strings allowed in src/content (ADR 0003 item 3). Keep each list short; every radius and money entry needs a reason.",
   "acronyms": [
     "ADR", "API", "CEO", "CLI", "CSS", "CTO", "EBITDA", "FCA", "FDE", "GMT", "GPT", "GPU", "HTML", "IBM", "IEEE", "ISO",
     "JSON", "LLM", "MDX", "MIT", "PDF", "RAG", "RSS", "SDK", "SEO", "SIL", "SQL", "SVG", "URL", "UTC", "UTF", "WCAG",
@@ -10,6 +10,7 @@
     "ForestVO", "GitHub", "Google", "IEEE Robotics and Automation Letters", "Imperial College London", "Imperial", "LinkedIn", "London", "Malawi", "OpenAI",
     "Palindrome", "PydanticAI", "Salesforce", "Stark Software Group", "Superhost", "Thomas Pritchard", "Vercel", "WhatsApp", "Wimbledon"
   ],
+  "headingCase": "sentence",
   "radius": [],
   "money": [
     {

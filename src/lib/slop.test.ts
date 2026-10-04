@@ -13,6 +13,7 @@ import {
   lintFile,
   lintHtml,
   lintText,
+  sentenceCaseWords,
   titleCaseWords,
 } from "./slop";
 
@@ -125,6 +126,52 @@ describe("titleCaseWords", () => {
     expect(titleCaseWords("Public prices, as of 3 October 2026")).toEqual([]);
     expect(titleCaseWords("Example A: a steady support assistant")).toEqual([]);
     expect(titleCaseWords("Example B: Two users")).toEqual([]);
+  });
+});
+
+// Owner review, 4 Oct 2026: heading case is a setting (design/slop-allow.json "headingCase"), so a
+// Title Case variant can be judged beside the shipped sentence case. Title Case here is the common
+// headline style: every word capitalised except the small words (articles, short conjunctions and
+// prepositions), which stay lower case unless they open the heading or follow a colon.
+describe("sentenceCaseWords (Title Case mode)", () => {
+  it("names the words a Title Case heading leaves in lower case, small words apart", () => {
+    expect(sentenceCaseWords("AI advice reports in production for wealth managers")).toEqual(["advice", "reports", "production", "wealth", "managers"]);
+    expect(sentenceCaseWords("AI Advice Reports in Production for Wealth Managers")).toEqual([]);
+  });
+
+  it("names a small word capitalised in the middle, but not one that opens the heading or follows a colon", () => {
+    expect(sentenceCaseWords("Cutting Costs With Prompt Caching")).toEqual(["With"]);
+    expect(sentenceCaseWords("The Paper: Of Forests and Keypoints")).toEqual([]);
+    expect(sentenceCaseWords("an Evaluation System")).toEqual(["an"]);
+  });
+
+  it("leaves acronyms, mixed-case names, numbers and file names alone", () => {
+    expect(sentenceCaseWords("A WhatsApp Agent for 10x More LLM Calls")).toEqual([]);
+    expect(sentenceCaseWords("The `CLAUDE.md` File and iOS")).toEqual([]);
+    expect(sentenceCaseWords("Imperial College London in 2024", allow)).toEqual([]);
+  });
+});
+
+describe("heading case setting", () => {
+  const mdx = (...headings: string[]) => ['---', 'title: "A Post About Caching"', 'date: "2026-01-01"', 'description: "x"', "---", "", ...headings.map((h) => `## ${h}`)].join("\n");
+  const title: Allow = { ...allow, headingCase: "title" };
+
+  it("in sentence mode (the default) fails Title Case headings and passes sentence case", () => {
+    expect(pairs(lintFile("p.mdx", mdx("What prompt caching saves", "What Prompt Caching Saves"), allow))).toEqual([["title-case", 2], ["title-case", 8]]);
+  });
+
+  it("in title mode passes Title Case headings and fails sentence-case ones", () => {
+    expect(pairs(lintFile("p.mdx", mdx("What prompt caching saves", "What Prompt Caching Saves"), title))).toEqual([["sentence-case", 7]]);
+  });
+
+  it("in title mode reads the planted heading fixture the other way round", () => {
+    expect(pairs(lintFile(`${FIX}/heading.mdx`, read("heading.mdx"), title))).toEqual([["emoji-heading", 7], ["sentence-case", 7]]);
+  });
+
+  it("applies to built pages too", () => {
+    const html = "<main><h2>Outside work</h2><h2>Education and Research</h2></main>";
+    expect(pairs(lintHtml("p.html", html, { allow: title, built: true }))).toEqual([["sentence-case", 1]]);
+    expect(pairs(lintHtml("p.html", html, { allow, built: true }))).toEqual([["title-case", 1]]);
   });
 });
 
@@ -388,6 +435,12 @@ describe("lint-slop CLI", { timeout: 30_000 }, () => {
     const out = run("--built", dir, "--controls", `${dir}/CONTROLS.json`);
     expect(out.stdout).toMatch(/^skip +\S+\/server\/app\/_global-error\.html +Next's built-in static 500 page/m);
     expect(out.status).toBe(0);
+  });
+
+  it("refuses an allowlist whose headingCase is neither sentence nor title", () => {
+    const out = run(`${FIX}/clean`, "--allow", `${FIX}/allow-bad-case.json`);
+    expect(out.status).toBe(2);
+    expect(out.stderr).toContain('headingCase must be "sentence" or "title"');
   });
 
   it("--built with no build output exits 2 and says so", () => {

@@ -48,7 +48,9 @@ function loadAllow(file: string): Allow {
     properNouns: raw.properNouns ?? [],
     radius: raw.radius ?? [],
     money: raw.money ?? [],
+    headingCase: raw.headingCase ?? "sentence",
   };
+  if (allow.headingCase !== "sentence" && allow.headingCase !== "title") fail(`${file}: headingCase must be "sentence" or "title"`);
   for (const e of allow.radius) if (!e.component || !e.reason) fail(`${file}: every radius entry needs a component and a reason`);
   for (const e of allow.money) if (!Array.isArray(e.texts) || !e.reason) fail(`${file}: every money entry needs texts and a reason`);
   return allow;

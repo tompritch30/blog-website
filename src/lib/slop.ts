@@ -11,7 +11,8 @@ import ts from "typescript";
 export type Hit = { file: string; line: number; rule: string; message: string; excerpt: string };
 export type RadiusAllow = { component: string; class?: string; reason: string };
 export type MoneyAllow = { file?: string; texts: string[]; reason: string };
-export type Allow = { acronyms: string[]; properNouns: string[]; radius: RadiusAllow[]; money: MoneyAllow[] };
+export type HeadingCase = "sentence" | "title";
+export type Allow = { acronyms: string[]; properNouns: string[]; radius: RadiusAllow[]; money: MoneyAllow[]; headingCase?: HeadingCase };
 export type TextOptions = { allow?: Allow; content?: boolean; where?: string };
 export type CssOptions = { allow?: Allow; built?: boolean; line?: number };
 
@@ -161,14 +162,53 @@ export function titleCaseWords(text: string, allow: Allow = NO_ALLOW): string[] 
   return titled;
 }
 
+// Title Case's small words: articles, short conjunctions and short prepositions, lower case unless
+// they open the heading or follow a colon (the common headline style).
+const SMALL_WORDS = new Set(["a", "an", "the", "and", "but", "or", "nor", "for", "so", "yet", "as", "at", "by", "in", "of", "off", "on", "per", "to", "up", "via", "vs", "with", "from", "into"]);
+
+/**
+ * For headingCase "title": the words a Title Case heading gets wrong. A word that opens the heading or
+ * follows a colon must be capitalised; any other word must be capitalised unless it is a small word,
+ * and a small word there must be lower case. Words with a capital after the first letter (acronyms,
+ * WhatsApp, iOS), digits or no leading letter are left alone, as are proper nouns on the allowlist.
+ */
+export function sentenceCaseWords(text: string, allow: Allow = NO_ALLOW): string[] {
+  // A proper noun becomes a capitalised stand-in, so the word after it never reads as the opening one.
+  let t = text;
+  for (const noun of [...allow.properNouns].sort((a, b) => b.length - a.length)) {
+    t = t.replace(new RegExp(`(?<![\\p{L}\\p{N}])${escapeRe(noun)}(?![\\p{L}\\p{N}])`, "gu"), " Proper ");
+  }
+  const wrong: string[] = [];
+  let opening = true;
+  for (const raw of t.split(/\s+/)) {
+    if (!raw) continue;
+    const w = raw.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
+    const first = opening;
+    opening = /:$/.test(raw);
+    if (!w || !/^\p{L}/u.test(w) || /\d/.test(w) || /\p{Lu}/u.test(w.slice(1)) || raw.includes("`")) continue;
+    const upper = /^\p{Lu}/u.test(w);
+    if (first) {
+      if (!upper) wrong.push(w);
+    } else if (SMALL_WORDS.has(w.toLowerCase())) {
+      if (upper) wrong.push(w);
+    } else if (!upper) wrong.push(w);
+  }
+  return wrong;
+}
+
 function headingHits(file: string, text: string, line: number, allow: Allow): Hit[] {
   const out: Hit[] = [];
   const t = decodeEntities(text).replace(/\s+/g, " ").trim();
   if (!t) return out;
   if (EMOJI_RE.test(t)) out.push(hit(file, line, "emoji-heading", "emoji in a heading", t));
-  const titled = titleCaseWords(t, allow);
-  if (titled.length) {
-    out.push(hit(file, line, "title-case", `Title Case heading (${titled.join(", ")}); use sentence case`, t));
+  if (allow.headingCase === "title") {
+    const wrong = sentenceCaseWords(t, allow);
+    if (wrong.length) out.push(hit(file, line, "sentence-case", `heading not in Title Case (${wrong.join(", ")}); headingCase is "title"`, t));
+  } else {
+    const titled = titleCaseWords(t, allow);
+    if (titled.length) {
+      out.push(hit(file, line, "title-case", `Title Case heading (${titled.join(", ")}); use sentence case`, t));
+    }
   }
   if (TESTIMONIAL_HEADING_RE.test(t)) out.push(hit(file, line, "testimonial", "testimonial section", t));
   return out;
