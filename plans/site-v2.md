@@ -1071,3 +1071,9 @@ AssertionError: expected [ [ 'duplicate-label', 2 ], …(3) ] to deeply equal [ 
 ```
 
 Green: `Tests  77 passed (77)`.
+
+#### Smaller fixes and gates
+
+README: a current home page screenshot (the top 1440x900 of `design/shots/home-1440-light.png` at 1200px, 58 KB JPEG) with alt text saying what it shows, `/writing/<slug>` and `src/app/writing/[slug]/page.tsx` for the old `/blog` paths, the gate list as `scripts/ci.sh` runs it, and "CMS" spelt out (the slop lint's all-caps hit). MANIFEST.yaml: the Palindrome logo is on `/` only. `scripts/check-pages.mts` takes `MYSTERY_TARGETS` and `UNLOCKED_KEY` from `src/lib/invaders/links.ts`, which now imports the profile by a relative path with its extension so plain Node loads it. The duplicate-href fixture uses `/about` for the gone `/cv`; the `.gitignore` comment says only what the comparison images are.
+
+Gates from one fresh `git clone --local` at 7e4a68f in a `mktemp -d` folder (`npm ci --prefer-offline`, `scripts/setup-dev.sh`): `scripts/ci.sh` ends `slop: 0 hits in 0 of 6 files` and `ci: all gates green` (`Tests  235 passed (235)`). `npx next start -p 3016` and `npm run check:pages -- http://localhost:3016` exit 0: the game pauses on P with Resume focused and the three won links, resizes, and gives focus back to the alien on Escape; `check-pages: 5 pages x 2 widths x 2 themes, 0 problems`. The server was stopped by PID and the clone removed; the dev server on 3006 was left alone.
