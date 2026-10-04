@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import ExternalLink from "@/components/ExternalLink";
 import { formatDate } from "@/lib/dates";
 
 // A post on X quoted as plain HTML: the words, who wrote them and when, and a link to the original.
@@ -16,13 +17,9 @@ export default function Quote({ author, handle, date, href, children }: Props) {
       </blockquote>
       <figcaption>
         {author} <span>@{handle}</span>,{" "}
-        <a href={href} target="_blank" rel="noopener noreferrer">
+        <ExternalLink href={href}>
           <time dateTime={date}>{formatDate(date)}</time> on X
-          <span className="ext" aria-hidden="true">
-            {"↗"}
-          </span>
-          <span className="sr-only"> (opens in a new tab)</span>
-        </a>
+        </ExternalLink>
       </figcaption>
     </figure>
   );
