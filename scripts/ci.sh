@@ -20,6 +20,9 @@ npm run lint
 step "slop lint (source)"
 npm run lint:slop
 
+step "slop lint (design system)"
+npm run lint:slop -- design/SYSTEM.md
+
 step "typecheck"
 npm run typecheck
 
