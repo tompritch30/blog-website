@@ -774,3 +774,18 @@ AssertionError: expected [ 'role-acme-labs', …(3) ] to deeply equal [ 'role-ac
   Green: `Tests  8 passed (8)`.
 - The arcade registry stays as the owner asked on 3 Oct (noted in the kb section above).
 - For the owner: the evaluation diagram on the home page (`src/components/home/EvalGateDiagram.tsx`, under the release-evals case study) is new visual content drawn from that case study's facts; it needs his confirmation like any new copy.
+
+#### Gates after the review fixes
+
+From a fresh `git clone --local` of `site-v2-kb` at c1b3028 in a `mktemp -d` folder (`npm ci --prefer-offline`, hooks as `scripts/setup-dev.sh` installs them), so the owner's dev server on 3006 kept its `.next`. `scripts/ci.sh` exit 0: built pages `slop: 0 hits in 0 of 7 files` with the money and external-link rules on (every off-site anchor in the build carries `target="_blank" rel="noopener noreferrer"` and the hint), `ci: all gates green`. The built home page's About paragraphs and both Outside work lists are byte-identical to the dev server's render before the moves. Then `npx next start -p 3016` from the clone, `npm run check:pages -- http://localhost:3016` (exit 0):
+
+```
+pass  game / 1440 with the game open (reduced motion: no-preference): resized to 375x812, canvas 375x812
+pass  game / 1440 with the game open (reduced motion: no-preference): Escape closes it and focus is back on the alien
+pass  game / 1440 with the game open (reduced motion: reduce): Escape closes it and focus is back on the alien
+pass  print /cv A4: 2 pages (110 KB)
+pass  print /cv Letter: 2 pages (110 KB)
+check-pages: 6 pages x 2 widths x 2 themes, 0 problems
+```
+
+axe: 24 of 24 runs pass. `npm run shots` refreshed the 24 screenshots in `design/shots/` (11 KB to 211 KB): the committed ones still showed the CV lines removed above, the old portrait text and the old footer date.
