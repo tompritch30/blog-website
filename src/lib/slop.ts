@@ -90,12 +90,14 @@ const HI_IM_RE = /(^|[.!?]\s+)(hi|hello|hey)\s*[,!]?\s+(i['’]m|i am|my name is
 const EXCLAIM_RE = /!(?=\s|$|["'”’)\]*_])/;
 const MONEY_RE = /[£$€]\s?\d[\d,]*(?:\.\d+)?(?:\s?(?:bn|m|k|billion|million|thousand)\b)?\+?/g;
 
-function moneyHits(file: string, text: string, line: number, allow: Allow): Hit[] {
+// byText: match allowlist entries by their text alone. A built page is not the source file an
+// entry's `file` names, so built pages use this.
+function moneyHits(file: string, text: string, line: number, allow: Allow, byText = false): Hit[] {
   const lineOf = lineFinder(text);
   const out: Hit[] = [];
   for (const m of text.matchAll(MONEY_RE)) {
     const token = m[0].trim();
-    const allowed = allow.money.some((e) => (!e.file || file.endsWith(e.file)) && e.texts.includes(token));
+    const allowed = allow.money.some((e) => (byText || !e.file || file.endsWith(e.file)) && e.texts.includes(token));
     if (!allowed) {
       const at = line + lineOf(m.index) - 1;
       const lineText = text.split("\n")[lineOf(m.index) - 1];
@@ -928,13 +930,31 @@ export function lintHtml(file: string, html: string, opts: HtmlOptions = {}): Hi
         if (/testimonial/i.test(c.attrs.id ?? "")) out.push(hit(file, line, "testimonial", "testimonial markup", c.attrs.id));
         const shown = visible && !invisible(c) && !verbatim(c);
         if (shown) {
-          for (const a of HTML_TEXT_ATTRS) if (c.attrs[a]) out.push(...lintText(file, c.attrs[a], line, { allow, where: a }));
+          for (const a of HTML_TEXT_ATTRS) {
+            if (!c.attrs[a]) continue;
+            out.push(...lintText(file, c.attrs[a], line, { allow, where: a }));
+            if (built) out.push(...moneyHits(file, c.attrs[a], line, allow, true));
+          }
           if (/^h[1-6]$/.test(c.tag)) out.push(...headingHits(file, textOf(c).text, line, allow));
         }
       }
       walk(c, visible && !invisible(c) && !verbatim(c), head);
     }
     if (visible) siblings(el);
+    // Money on built pages: React splits text around expressions with <!-- --> ("$<!-- -->40k"),
+    // so each run of adjacent text nodes is joined before the rule runs.
+    if (visible && built) {
+      let run: TextNode[] = [];
+      const flush = () => {
+        if (run.length) out.push(...moneyHits(file, run.map((t) => t.text).join(""), lineOf(run[0].start), allow, true));
+        run = [];
+      };
+      for (const c of el.children) {
+        if (isEl(c)) flush();
+        else run.push(c);
+      }
+      flush();
+    }
   };
   walk(parseHtml(html), true, false);
   return sortHits([...out, ...classAggregateHits(file, tokens)]);

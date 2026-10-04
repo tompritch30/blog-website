@@ -699,3 +699,18 @@ check-pages: 7 pages x 2 widths x 2 themes, 1 problem
 ```
 
 Green after: `pass  game / 1440 with the game open (reduced motion: no-preference): resized to 375x812, canvas 375x812` and `0 problems` (7 pages there because `next dev` lists drafts).
+
+#### Money rule on built pages
+
+The money rule ran on source content only, so a figure reaching a page from anywhere else (a component, a prop) went unchecked. `lintHtml` with `built` now runs it over visible text and the alt, title, placeholder and aria-label attributes. A built page is not the source file an allowlist entry's `file` names, so on built pages entries match by text alone. React splits text around expressions with `<!-- -->` ("$<!-- -->40k"), so each run of adjacent text nodes is joined first. Fixtures: `built-money.html` (allowlisted "£2bn+" with a `file` key, "$5m", the split "$40k", "€6m" in an alt, and figures in a script, code, hidden and verbatim text that must not count) and a planted `built-planted/server/app/money.html` for the CLI; the clean build's post gained "$2.50", allowlisted for the caching post, which passes by its text.
+
+Red, `npx vitest run src/lib/slop.test.ts` (one run with the external-link tests below; these are the money lines):
+
+```
+   × lintHtml (built pages) > applies the money rule to a built page's visible text and alt text, matching the allowlist by text alone 3ms
+   × lint-slop CLI > --built fails each planted control page and the planted CSS 638ms
+AssertionError: expected [] to deeply equal [ Array(3) ]
+AssertionError: expected 'src/lib/__fixtures__/slop/built-plant…' to contain 'src/lib/__fixtures__/slop/built-plant…'
+```
+
+Green: `Tests  59 passed (59)`.

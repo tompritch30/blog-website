@@ -205,6 +205,22 @@ describe("lintHtml (built pages)", () => {
     const rel = "built-regression/claude-code-workflow-after-slice-4.html";
     expect(lintHtml(`${FIX}/${rel}`, read(rel), { allow: real, built: true })).toEqual([]);
   });
+
+  // The allowlist's file key names a source file, which a built page is not, so on built pages an
+  // entry is matched by its text alone.
+  const keyed: Allow = { ...allow, money: [{ file: "src/content/profile.ts", texts: ["£2bn+"], reason: "clients' size" }] };
+
+  it("applies the money rule to a built page's visible text and alt text, matching the allowlist by text alone", () => {
+    const hits = lintHtml(`${FIX}/built-money.html`, read("built-money.html"), { allow: keyed, built: true });
+    // line 3 "$5m", line 4 "$40k" (React split it with a comment), line 5 "€6m" in an alt; not the
+    // allowlisted "£2bn+" on line 2, nor the script, code, hidden or verbatim text
+    expect(pairs(hits)).toEqual([["money", 3], ["money", 4], ["money", 5]]);
+    expect(hits.map((h) => /"([^"]+)"/.exec(h.message)?.[1])).toEqual(["$5m", "$40k", "€6m"]);
+  });
+
+  it("leaves money in an HTML file alone unless it is a built page (source content has its own rule)", () => {
+    expect(lintHtml(`${FIX}/built-money.html`, read("built-money.html"), { allow: keyed }).filter((h) => h.rule === "money")).toEqual([]);
+  });
 });
 
 describe("controls budget", () => {
@@ -293,7 +309,9 @@ describe("lint-slop CLI", { timeout: 30_000 }, () => {
     expect(out.stdout).toContain(`${app}/role-button.html:3 role-button-link `);
     expect(out.stdout).toContain(`${app}/no-job.html:3 control-no-job `);
     expect(out.stdout).toContain(`${dir}/static/chunks/site.css:1 radius `);
-    expect(out.stdout.match(/^\S+:\d+ /gm)).toHaveLength(5);
+    // the real allowlist: "£2bn+" passes by its text, the split "$75k" does not
+    expect(out.stdout).toContain(`${app}/money.html:3 money currency figure "$75k"`);
+    expect(out.stdout.match(/^\S+:\d+ /gm)).toHaveLength(6);
   });
 
   it("--built passes a clean build, vendored CSS selectors included", () => {
