@@ -21,6 +21,8 @@ Words used in code, tests and plans. Use these names; add a line when a new term
 - **Invader types**: 1 the Palindrome mark (bottom rows, 10 points), 2 the drifter marked IC (middle rows, 20), 3 the beetle marked VO (top row, 30).
 - **Heartbeat**: the march interval, slowest with the full formation and fastest with one invader left (`marchInterval`).
 - **Shield**: one of four eroding pixel bunkers above the ship.
-- **Mystery ship**: the golden airship crossing the top; each hit unlocks the next link in rotation (the paper, GitHub, LinkedIn) without leaving the game (`src/lib/invaders/links.ts`).
+- **Mystery ship**: the golden airship crossing the top; each hit pauses the game and offers the next link in rotation (the paper, GitHub, LinkedIn) as a focused "Open ..." link to a new tab (`src/lib/invaders/links.ts`, `src/lib/invaders/hit.ts`).
 - **Unlocked list**: the links won from the mystery ship, kept in `localStorage` and shown as new-tab links on the game's pause and game-over screens.
+- **Offer**: the link a mystery-ship hit pauses the game on, shown as "Open <label>" with focus; the Unlocked list under it leaves it out (`afterFrame`, `listedBeside`).
+- **Staged hit**: `?invaders-test`, the test-only query that sets up one mystery-ship hit for the browser check (`stageHit`).
 - **Alien trigger**: the small pixel-alien button (`AlienTrigger.tsx`) that starts the invaders game; the Konami code is a second way in.

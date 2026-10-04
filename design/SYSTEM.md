@@ -119,7 +119,7 @@ Hairlines are decoration, not text or a control edge: `--divider` is 1.32:1 on t
 ### Focus
 
 - `:focus-visible` draws a 2px solid outline in `--link`, offset 2px, never animated. It meets 3:1 against the paper (the link colour's ratios above).
-- A skip link is the first control on every page. The game is a modal dialog: Tab cycles its buttons and links. P or Escape pauses a running game; Escape on the pause screen, or Quit, closes it and focus returns to the alien that opened it.
+- A skip link is the first control on every page. The game is a modal dialog: Tab cycles its buttons and links. P or Escape pauses a running game; Escape on the pause screen, or Quit, closes it and focus returns to the alien that opened it. A mystery-ship hit pauses it with focus on the "Open ..." link.
 
 ### Images
 
@@ -133,7 +133,8 @@ Hairlines are decoration, not text or a control edge: `--divider` is 1.32:1 on t
 - A pixel alien in the header nav, next to About, on every page, a 28px square button (above WCAG 2.2's 24px target size), in pencil grey; on hover or focus it turns to ink and looks aside. It is a real button whose one job is to start the game, listed in the controls budget. The Konami code is a second way in. On a 375px phone the nav's links and the alien still sit on one line under the name, with no sideways scroll; `npm run check:pages` measures it on every page at both widths.
 - The game (ADR 0004) loads only when asked. It draws in the page's own ink and paper; all its art is original pixel grids in code, apart from the Palindrome mark.
 - **The one glow.** The golden mystery ship carries the only soft shadow on the site (an 8px blur in its own gold), because it is the one thing worth chasing. Under reduced motion it has none.
-- **A hit keeps you in the game.** A hit on the mystery ship never opens a tab or leaves the page (owner, 4 October 2026): a small notice says "Unlocked: GitHub" for about 2 seconds, the link joins the Unlocked list and the game runs on. The pause and game-over screens list the unlocked links as ordinary new-tab links; the rotation is the paper, GitHub, then LinkedIn.
+- **A hit opens the link.** The owner hit the gold ship and nothing opened (4 October 2026); a hit should open its link in a new tab. A browser may block `window.open` outside a user gesture, and the hit is found in the animation loop, frames after the key or tap that fired the shot, so the game cannot open the tab itself. Instead a hit pauses the game and focuses one prominent link, "Open ForestVO paper ↗", a solid claret block (the only filled control on the site, because it is the reward): one Enter or click opens the paper in a new tab and the game stays paused in this one. Resume, or P, carries on; Escape quits. The link also joins the Unlocked list, which the pause and game-over screens show as ordinary new-tab links (on the hit screen it reads "Also unlocked" and leaves out the offered link). The rotation is the paper, GitHub, then LinkedIn; once all three are won, every hit still offers the next in rotation.
+- **One test-only hook.** The `?invaders-test` query stages one hit (the mystery ship over the player's ship with a shot just below it), so `npm run check:pages` can prove in Chromium that Enter opens a new page at the link while the game stays paused. No control on the site leads to it; a visitor who types it gets one free hit.
 - No sound. The high score and the Unlocked list live in `localStorage` inside try and catch.
 
 ## Gates
@@ -142,7 +143,7 @@ Run in the Linux checkout of the repo with Node 22.
 
 - `scripts/ci.sh`: lint, the slop lint on source, typecheck, unit tests (including the contrast test and `src/lib/career.test.ts`), the guard hook tests, the production build, then `npm run lint:slop -- --built` (built pages, built CSS and the controls budget). It also lints this file.
 - `npm run lint:slop -- design/SYSTEM.md`: this file passes the same prose rules as the site.
-- Against a running production build (`npm run build && npx next start -p <port>`): `npm run check:pages -- http://localhost:<port>` runs axe (WCAG 2.2 AA) on every page at 375 and 1440 (light only), checks the rendered controls against the budget with the game open, and measures the nav on every page at both widths (its items and the alien on one line, the alien at least 28x28, no sideways scroll).
+- Against a running production build (`npm run build && npx next start -p <port>`): `npm run check:pages -- http://localhost:<port>` runs axe (WCAG 2.2 AA) on every page at 375 and 1440 (light only), checks the rendered controls against the budget with the game open, stages a mystery-ship hit and checks that Enter on the focused "Open ForestVO paper" link opens a new page at the paper while the game stays paused, and measures the nav on every page at both widths (its items and the alien on one line, the alien at least 28x28, no sideways scroll).
 - `npm run shots -- http://localhost:<port>` does the same and writes every page at 375 and 1440 into `design/shots/` as `<page>-<width>-light.png`, palette-reduced to under 300KB each.
 
 ## Learnings

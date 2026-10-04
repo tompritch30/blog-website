@@ -1138,3 +1138,17 @@ AssertionError: expected [] to deeply equal [ { type: 'mystery-hit', …(3) } ]
 ```
 
 Green: `Tests  9 passed (9)`; all unit tests `Tests  236 passed (236)`.
+
+#### Proof in a real browser, and gates
+
+One fresh `git clone --local` at bc3646e in a `mktemp -d` folder (`npm ci --offline`, `scripts/setup-dev.sh`): `scripts/ci.sh` ends `slop: 0 hits in 0 of 6 files` and `ci: all gates green` (`Tests  236 passed (236)`). `next start -p 3016` in its own process group, then `npm run check:pages -- http://localhost:3016 --shots --out <tmp>`: exit 0, `check-pages: 5 pages x 2 widths (light only), 0 problems`, axe 0 violations on all 10 runs. The staged hit, in Chromium 151 (the cached Playwright build):
+
+```
+pass  hit / 1440 with a staged mystery-ship hit: paused on "Paused. The mystery ship unlocked ForestVO paper.Open ForestVO paper ↗ (opens in a new tab)Resume", Score 100, focus on A "Open ForestVO paper ↗ (opens in a new tab)" https://doi.org/10.1109/lra.2025.3557738 _blank noopener noreferrer
+pass  controls / 1440 with a staged mystery-ship hit: hit screen within the budget, each place linked once
+pass  hit / 1440 with a staged mystery-ship hit: Enter opened a new page at https://doi.org/10.1109/lra.2025.3557738; 2 pages; this page still paused (Score 100, canvas 1425x900, ...), focus on A "Open ForestVO paper ↗ ..."
+```
+
+The new page is caught with `context.waitForEvent("page")`; the paper's host is routed to a local stub, so only its URL is read and nothing is fetched. What a visitor sees in Chromium: the game freezes with the panel "Paused. The mystery ship unlocked ForestVO paper.", the claret "Open ForestVO paper ↗" with focus, and Resume under it. Enter (or a click) opens the paper in a new foreground tab, which takes focus, as Chromium does for any `target="_blank"` link opened without a modifier; the game's tab stays behind it, paused on the same panel with focus still on the link, so coming back shows exactly where they left off. Headless Playwright treats every page as focused, so tab focus itself is Chromium's documented behaviour, not something this run measured. Firefox is not tested: its Playwright build is not installed here and downloads are not allowed.
+
+Screenshots (light, from that run): `design/shots/home-1440-light.png`, `home-375-light.png`, `about-1440-light.png`, `about-375-light.png`, and `game-hit-1440-light.png` (the game paused on "Open ForestVO paper ↗"). The server was stopped by its process group and the clone removed; the dev server on 3006 was left alone.
