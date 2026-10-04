@@ -24,13 +24,6 @@
   --surface: #fafaf7; /* code blocks */
   --surface-soft: #e9ebe5; /* inline code */
   --plate: #fafaf7; /* the light plate behind the paper's plot */
-  /* The CV sheet: paper in both themes, so it reads like the printed page. */
-  --sheet: #fafaf7; /* the sheet */
-  --sheet-ink: #1a1e1c;
-  --sheet-pencil: #575e59;
-  --sheet-link: #8b2331;
-  --sheet-rule: #8d938e; /* the rule under a CV heading, the PDF's mid grey */
-  --sheet-edge: #d3d7cf; /* the sheet's edge against the page */
   color-scheme: light;
 }
 
@@ -46,13 +39,6 @@
     --surface: #191d1a;
     --surface-soft: #202521;
     --plate: #eef0eb; /* the plot keeps its own colours on a light plate */
-    /* The sheet stays paper, a step dimmer than in light so it does not glare on the dark page. */
-    --sheet: #e6e9e3;
-    --sheet-ink: #1a1e1c;
-    --sheet-pencil: #575e59;
-    --sheet-link: #8b2331;
-    --sheet-rule: #8d938e;
-    --sheet-edge: #323833;
     color-scheme: dark;
   }
 }
@@ -399,7 +385,7 @@ h4 {
   color: var(--secondary);
 }
 
-/* ---------- the timeline (home Work, /cv Experience) ---------- */
+/* ---------- the timeline (home Work) ---------- */
 
 /* Marks in a left column, a vertical hairline, a small ink square on the line at each role. On
    phones the line runs down the left edge and the mark sits above its role. */
@@ -831,160 +817,6 @@ h4 {
   }
 }
 
-/* ---------- the CV: a sheet laid out like his PDF CV ---------- */
-
-/* Sizes in points, as on the PDF: 11pt Charis SIL at line height 1.15 on a US Letter sheet with
-   0.5in and 0.6in margins. Spacing is the PDF's (cv/build/style.css at fill 1). Inside the sheet the
-   colour tokens are the sheet's, so links, rules and the focus ring are drawn for paper in both themes. */
-.cv-page {
-  padding-block-start: 2.5rem;
-}
-
-.cv-sheet {
-  --bg: var(--sheet);
-  --text: var(--sheet-ink);
-  --secondary: var(--sheet-pencil);
-  --link: var(--sheet-link);
-  --divider: var(--sheet-rule);
-  color-scheme: light;
-  max-width: 8.5in;
-  margin-inline: auto;
-  padding: 1.5rem 1rem;
-  border: 1px solid var(--sheet-edge);
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-charis), "Charis SIL", Georgia, serif;
-  font-size: 11pt;
-  line-height: 1.15;
-  font-kerning: normal;
-}
-
-@media (min-width: 48rem) {
-  .cv-sheet {
-    min-height: 11in;
-    padding: 0.5in 0.6in;
-  }
-}
-
-.cv-sheet :is(h1, h2, h3) {
-  font-family: inherit;
-  font-weight: 700;
-  line-height: inherit;
-  text-wrap: wrap;
-}
-
-.cv-name {
-  font-size: 18pt;
-  line-height: 1.15;
-  margin-block-end: 2pt;
-}
-
-.cv-contact {
-  font-size: 9pt;
-  color: var(--secondary);
-}
-
-.cv-sep {
-  margin-inline: 0.4em;
-}
-
-.cv-section {
-  margin-block-start: 7pt;
-}
-
-/* The PDF sets these in spaced capitals; the site's rule is sentence case, so they are a point larger
-   instead, bold, over the same thin rule. */
-.cv-heading {
-  font-size: 12pt;
-  padding-block-end: 1.5pt;
-  margin-block-end: 4pt;
-  border-bottom: 0.5pt solid var(--divider);
-}
-
-.cv-role + .cv-role {
-  margin-block-start: 6pt;
-}
-
-/* The line on the left, the dates or year held to the right edge as on the PDF; a long line wraps
-   inside its own column instead of pushing the year under it. */
-.cv-role-head,
-.cv-line {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  column-gap: 1em;
-}
-
-.cv-role-title {
-  font-size: 1em;
-}
-
-.cv-dates {
-  white-space: nowrap;
-  font-variant-numeric: lining-nums tabular-nums;
-}
-
-.cv-descriptor {
-  font-size: 9.5pt;
-  margin-block: 1.5pt 3pt;
-}
-
-.cv-bullets {
-  list-style: disc;
-  padding-inline-start: 0.2in;
-  margin-inline-start: 0.15in;
-}
-
-.cv-bullets li {
-  margin-block-end: 2.5pt;
-  padding-inline-start: 3pt;
-}
-
-.cv-bullets li::marker {
-  font-size: 0.7em;
-  color: var(--secondary);
-}
-
-.cv-line + .cv-line {
-  margin-block-start: 1.5pt;
-}
-
-.cv-line strong {
-  font-weight: 700;
-}
-
-/* Skills: the label in its own column, the items wrapping under the items. */
-.cv-skills {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  column-gap: 0.15in;
-  row-gap: 1.5pt;
-}
-
-.cv-skills dt {
-  font-weight: 700;
-}
-
-/* On a phone a role's dates and the skill items drop under their line, and bullets indent less. */
-@media screen and (max-width: 47.99rem) {
-  .cv-page {
-    padding-block-start: 1.5rem;
-  }
-  .cv-role-head {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .cv-bullets {
-    padding-inline-start: 1rem;
-    margin-inline-start: 0;
-  }
-  .cv-skills {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .cv-skills dd + dt {
-    margin-block-start: 4pt;
-  }
-}
-
 /* ---------- 404 ---------- */
 
 .lost {
@@ -1134,14 +966,9 @@ h4 {
   padding-inline-start: 1.25rem;
 }
 
-/* ---------- print: the CV on paper ---------- */
+/* ---------- print ---------- */
 
 @media print {
-  /* The PDF CV's margins; the paper size is the printer's (A4 and US Letter both fit one page). */
-  @page {
-    margin: 0.5in 0.6in;
-  }
-
   /* Colours are set here, not by redefining the tokens, so the screen tokens stay one definition. */
   html,
   body {
@@ -1155,9 +982,7 @@ h4 {
   }
 
   header,
-  nav,
-  footer,
-  .no-print {
+  nav {
     display: none !important;
   }
 
@@ -1180,50 +1005,5 @@ h4 {
   .ext,
   .sr-only {
     display: none !important;
-  }
-
-  /* The CV sheet becomes the page: no frame, no padding, the PDF's ink, grey and rule. Its links are
-     the PDF's too: the profile links already show their addresses, and the paper's title stays a
-     title (a PDF saved from the browser keeps it clickable). */
-  .cv-page {
-    padding: 0;
-    max-width: none;
-  }
-
-  .cv-sheet {
-    max-width: none;
-    min-height: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-  }
-
-  .cv-sheet,
-  .cv-sheet * {
-    color: #1a1a1a !important;
-  }
-
-  .cv-sheet .cv-contact,
-  .cv-sheet .cv-contact *,
-  .cv-sheet .cv-bullets li::marker {
-    color: #555555 !important;
-  }
-
-  .cv-sheet .cv-heading {
-    border-color: #888888 !important;
-  }
-
-  .cv-sheet a[href^="http"]::after {
-    content: none;
-  }
-
-  .cv-role,
-  .cv-bullets li {
-    break-inside: avoid;
-  }
-
-  .cv-heading,
-  .cv-role-head {
-    break-after: avoid;
   }
 }

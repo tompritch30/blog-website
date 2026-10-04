@@ -8,7 +8,7 @@ The anti-slop list the owner set on 3 October 2026:
 
 - **No letter-spaced caps.** Sentence case everywhere (the slop lint’s `headingCase` setting in `design/slop-allow.json` is "sentence"; "title" exists only to compare the two, see `design/shots/case-compare-*.png`). No `uppercase`, no `tracking-wide*`, no letter-spacing of 0.05em or more, no spaced-out capitals. Headings may tighten (down to -0.015em), never widen.
 - **No pills or rounded boxes, except where they mean something.** Hairlines and space separate things; nothing is a card. Radius is 3px on code blocks and inline code only, and the lint fails anything over 4px. `design/slop-allow.json` has an empty radius list: any exception is listed there by component, with its reason, before it ships.
-- **No controls without a job.** Links are links, buttons are buttons. Every link, button and focusable element on each page is listed with its job in `design/CONTROLS.json` (the controls budget); the built-page lint and the rendered check fail anything unlisted. No theme toggle (the system setting already does that job), no search over a handful of posts, no print button on the CV.
+- **No controls without a job.** Links are links, buttons are buttons. Every link, button and focusable element on each page is listed with its job in `design/CONTROLS.json` (the controls budget); the built-page lint and the rendered check fail anything unlisted. No theme toggle (the system setting already does that job), no search over a handful of posts, no print button.
 - **No grey filler under headings.** A heading is followed by content, a date, a number or a link, never a muted tagline.
 - **His voice.** All copy is first person, plain and specific, taken from his CV, his achievements record and the extras he approved (ADR 0003). Clients are described, never named.
 
@@ -21,10 +21,10 @@ The brief's list: no gradient blobs, glassmorphism, emoji headings, eyebrow labe
 - **Where it came from.** The reference's page structure, density, navigation and typographic feel, measured from the live page at 1440 and 375 wide (a content width of about 1016px, a serif at 72/42/22px over a 17px sans). No text, image, code or asset was taken from it.
 - **Home, in the reference's order.** A two-column hero (the headline, the first intro sentence as the lead, his italic line and two text links, LinkedIn and GitHub, on the left, the portrait on the right); About with the paper's plot beside it; Work as a timeline of roles with their case studies; Outside work; Education and research; Skills; Writing.
 - **Width.** `--page-max` is 63.5rem (1016px, the reference's width) inside `--pad` gutters of 1rem on phones and 2rem from 48rem. Prose and posts keep to `--measure`, 40rem.
-- **Links once per page.** Each place is linked once on a page and one label never names two places (owner review, 4 October 2026). The nav carries Writing, CV and About on every page; LinkedIn and GitHub sit in the home hero only, and other pages link them where they need them (the CV header, the end of About). The in-page section index that stood under the hero is gone, with the after-list links to the CV, About and all writing, the post page's back link and the 404 page's two links: the nav already does each of those jobs. The built-page lint enforces it (`duplicate-href`, `duplicate-label`).
+- **Links once per page.** Each place is linked once on a page and one label never names two places (owner review, 4 October 2026). The nav carries Writing and About on every page; LinkedIn and GitHub sit in the home hero only, and other pages link them where they need them (the end of About). The in-page section index that stood under the hero is gone, with the after-list links to the CV, About and all writing, the post page's back link and the 404 page's two links: the nav already does each of those jobs. The built-page lint enforces it (`duplicate-href`, `duplicate-label`). Two links lead to one place when they match without query or fragment, scheme, `www.` or a trailing slash, an absolute link to the site's own origin counting as its path. Same-page anchors and links inside a post's body are exempt from the first rule (an essay may cite one source twice; footnotes need their anchors); the page chrome is not.
 - **The timeline.** A mark column (`--mark-w`, 9rem), a 1px vertical hairline with a small ink square at each role, dates to the right in grey tabular figures. On phones the mark sits above its role.
 - **Two-column rows** for Education and research and for Skills: the label in the heading face on the left (17rem), the content on the right, a hairline between rows. Education has one row per degree, each with its own year, as the CV lists them. Outside work is a two-column list between hairlines.
-- **Other pages.** `/cv` is a paper sheet laid out like his PDF CV (below); `/writing`, each post and `/about` use one centred reading column; the 404 page carries a second alien.
+- **Other pages.** `/writing`, each post and `/about` use one centred reading column; the 404 page is a headline and one line pointing at the nav. The web CV page was dropped on 4 October 2026 (owner decision): `/cv` redirects home permanently (308), and the roles, education and skills it showed live on the home page.
 
 ### Translations from the reference
 
@@ -49,9 +49,8 @@ Each of the reference's patterns either became something the owner's rules allow
 
 - **Newsreader** (Production Type, variable in weight and optical size) for headings, the name, case-study figures and the one italic line. Optical sizing means a 64px headline and a 19px case-study title are each drawn for their size. Picked because the reference's own pairing is on the moodboard's list of generated defaults and its sans fails the lint.
 - **IBM Plex Sans** (400, 500, 600, roman and italic) for reading text, navigation and meta lines: a plain sans with some character, clearly distinct from the serif.
-- **IBM Plex Mono** (400, 500) for code in posts only.
-- **Charis SIL** (SIL International, 400 and 700, roman and italic) on `/cv` only, loaded by that page: the face his PDF CV is set in. It is free under the SIL Open Font License and on Google Fonts, so it comes through `next/font/google` like the others.
-- All three come through `next/font/google`, are self-hosted with the site (the browser makes no request to Google) and use `display: swap`. Fallbacks: Iowan Old Style and Georgia, Segoe UI and system-ui, ui-monospace. Details and licences in `design/MANIFEST.yaml`.
+- **IBM Plex Mono** (400, 500, roman only) for code in posts only.
+- Three faces in all, loaded once by the root layout on every page. Each comes through `next/font/google`, is self-hosted with the site (the browser makes no request to Google) and uses `display: swap`. Fallbacks: Iowan Old Style then Georgia for Newsreader, Segoe UI then system-ui for Plex Sans, ui-monospace for Plex Mono. The favicon and share cards are images drawn at build time by `next/og` in its bundled Geist, never sent as a font. Details and licences in `design/MANIFEST.yaml`.
 - Figures that line up (dates, years) use `.num`: lining, tabular.
 
 ### Scale
@@ -86,10 +85,6 @@ A cool grey-green paper, not the generated cream; a green-black ink, never pure 
 | `--surface` | `#fafaf7` | `#191d1a` | code blocks, the portrait mount |
 | `--surface-soft` | `#e9ebe5` | `#202521` | inline code |
 | `--plate` | `#fafaf7` | `#eef0eb` | the light plate behind the paper's plot in both themes |
-| `--sheet` | `#fafaf7` | `#e6e9e3` | the CV sheet: paper in both themes, a step dimmer in dark so it does not glare |
-| `--sheet-ink`, `--sheet-pencil`, `--sheet-link` | `#1a1e1c`, `#575e59`, `#8b2331` | the same | text, grey and links on the sheet |
-| `--sheet-rule` | `#8d938e` | the same | the rule under a CV heading |
-| `--sheet-edge` | `#d3d7cf` | `#323833` | the sheet's 1px edge against the page |
 
 Contrast ratios, measured from the hex values in `globals.css` with the WCAG formula (the same one the contrast test uses). Every text colour meets AA (4.5:1) on every background:
 
@@ -98,8 +93,6 @@ Contrast ratios, measured from the hex values in `globals.css` with the WCAG for
 | `--text` | 15.25 | 16.11 | 14.02 | 14.47 | 13.53 | 12.37 |
 | `--secondary` | 6.03 | 6.37 | 5.55 | 7.48 | 6.99 | 6.39 |
 | `--link` | 7.98 | 8.43 | 7.34 | 9.06 | 8.48 | 7.75 |
-
-On the CV sheet (paper in both themes): ink 16.11, pencil 6.37 and link 8.43 on the light sheet; 13.74, 5.44 and 7.19 on the dimmer dark-theme sheet. Inside the sheet the colour tokens are redefined to these, so links, rules and the focus ring are drawn for paper whatever the theme.
 
 Hairlines are decoration, not text or a control edge: `--divider` is 1.32:1 on the light paper and 1.52:1 on the dark one. The game's gold mystery ship is a graphic that needs 3:1: `#9a6f00` is 4.09:1 on the light paper and `#e3b341` is 9.36:1 on the dark one. Print sets black text on white paper (21:1) with grey `#999999` rules, inside the print block only, which is why the lint exempts it from the pure black and white rule.
 
@@ -133,17 +126,9 @@ Hairlines are decoration, not text or a control edge: `--divider` is 1.32:1 on t
 - **Paper plot.** One trajectory figure from his own paper (accepted version, arXiv 2504.01261), shown under IEEE's author reuse terms with the credit line beside it: "© 2025 IEEE. From Pritchard et al., ForestVO, IEEE RA-L 2025." It keeps its own colours on a light plate in both themes rather than sitting as a white block on the dark page.
 - Origins, hashes and terms for every asset are in `design/MANIFEST.yaml`.
 
-### The CV sheet
-
-- **Why it looks like this.** The owner asked on 4 October 2026 for `/cv` to look like his PDF CV. It recreates that page's layout in the site's own HTML and CSS: the name in bold, a line of profile links in small grey type, then Experience, Education, Publication, Skills and Elsewhere, each under a bold heading with a thin rule; "Title, Company" in bold with the dates held to the right, the descriptor under it in a smaller size, bullets that run to two lines, education with the year to the right, and skills as a bold label column beside the items.
-- **Measures.** Points, as on the PDF: 11pt at line height 1.15, the name 18pt, the contact line 9pt, the descriptor 9.5pt; gaps of 7pt between sections, 6pt between roles and 2.5pt between bullets; bullets indented 0.35in. On screen from 48rem the sheet is a US Letter page (8.5in wide, at least 11in tall, 0.5in and 0.6in margins) with a 1px edge; on phones it fills the column with small margins, dates and skill items drop under their line, and bullets indent less.
-- **Where it differs from the PDF, on purpose.** Section headings are sentence case at 12pt instead of spaced capitals at 11pt (the owner's no letter-spaced caps rule); the name is not letter-spaced (headings never widen). The header carries his GitHub and LinkedIn links only: no phone, email or address (ADR 0003). The content is the public `cv` in `src/content/profile.ts`, so it has no summary, clients are described, employer money figures are out, and there is a Stark role and an Elsewhere line the PDF does not have. On screen the links are claret and underlined with the new-tab arrow, as everywhere on the site.
-- **On paper.** The site's header drops away, `@page` takes the PDF's margins and the sheet becomes the page: no edge, no padding, ink `#1a1a1a`, grey `#555555` for the contact line and bullet marks, rules `#888888`. The profile links already show their addresses and the paper's title stays a title, so no addresses are printed after links on the sheet (a PDF saved from the browser keeps them clickable). It prints on one page at A4 and at US Letter, like the PDF; `npm run check:pages` fails on any other count.
-- **Comparison.** `node scripts/cv-compare.mts <base URL> --ref <PDF page PNG>` puts the sheet (at 1440, and printed) beside the PDF's first page at the same scale, into `design/shots/cv-compare-1440.png` and `cv-compare-print.png`. Those two images carry his private PDF, so they are git-ignored and stay on his machine.
-
 ### The easter egg
 
-- A pixel alien in the header nav, next to About, on every page (and a second one on the 404 page), a 28px square button (above WCAG 2.2's 24px target size), in pencil grey; on hover or focus it turns to ink and looks aside. It is a real button whose one job is to start the game, listed in the controls budget. The Konami code is a second way in. On a 375px phone the nav's links and the alien still sit on one line under the name, with no sideways scroll; `npm run check:pages` measures it on every page at both widths.
+- A pixel alien in the header nav, next to About, on every page, a 28px square button (above WCAG 2.2's 24px target size), in pencil grey; on hover or focus it turns to ink and looks aside. It is a real button whose one job is to start the game, listed in the controls budget. The Konami code is a second way in. On a 375px phone the nav's links and the alien still sit on one line under the name, with no sideways scroll; `npm run check:pages` measures it on every page at both widths.
 - The game (ADR 0004) loads only when asked. It draws in the page's own ink and paper; all its art is original pixel grids in code, apart from the Palindrome mark.
 - **The one glow.** The golden mystery ship carries the only soft shadow on the site (an 8px blur in its own gold), because it is the one thing worth chasing. Under reduced motion it has none.
 - No sound. The high score lives in `localStorage` inside try and catch.
@@ -154,7 +139,7 @@ Run in the Linux checkout of the repo with Node 22.
 
 - `scripts/ci.sh`: lint, the slop lint on source, typecheck, unit tests (including the contrast test and `src/lib/career.test.ts`), the guard hook tests, the production build, then `npm run lint:slop -- --built` (built pages, built CSS and the controls budget). It also lints this file.
 - `npm run lint:slop -- design/SYSTEM.md`: this file passes the same prose rules as the site.
-- Against a running production build (`npm run build && npx next start -p <port>`): `npm run check:pages -- http://localhost:<port>` runs axe (WCAG 2.2 AA) on every page at 375 and 1440 in both themes, checks the rendered controls against the budget with the game open, measures the nav on every page at both widths (its items and the alien on one line, the alien at least 28x28, no sideways scroll), and prints `/cv` at A4 and Letter (one page each like the PDF CV, no nav, all text dark on light).
+- Against a running production build (`npm run build && npx next start -p <port>`): `npm run check:pages -- http://localhost:<port>` runs axe (WCAG 2.2 AA) on every page at 375 and 1440 in both themes, checks the rendered controls against the budget with the game open, and measures the nav on every page at both widths (its items and the alien on one line, the alien at least 28x28, no sideways scroll).
 - `npm run shots -- http://localhost:<port>` does the same and writes every page at 375 and 1440, light and dark, into `design/shots/`, palette-reduced to under 300KB each.
 
 ## Learnings
@@ -162,6 +147,5 @@ Run in the Linux checkout of the repo with Node 22.
 - Next 16 always prerenders its own static 500 page; `global-error.tsx` cannot replace it, so the built-page lint skips that one file while it carries Next's marker and says so.
 - Tailwind v4 scans every file by default, so the slop lint's own rules and planted fixtures put banned utilities into the built CSS. `globals.css` scopes the source to `src/` and excludes them.
 - `.prose table { overflow-x: auto }` made the chart's hidden data table a scroll region with no keyboard access; the chart's table now forces `overflow: hidden`.
-- A visually hidden skip link is wider than 1px once padded, so the print check treats `clip-path: inset(50%)` and a zero clip as hidden.
 - Grouping degrees by institution showed one span of years for two courses. Education is now one row per degree, each with its own year, exactly as the CV lists them.
 - The share card and the favicon are drawn by `next/og`, which falls back to its bundled Geist Regular, not the site's faces. Setting them in Newsreader needs its font file read at build time; left as an open item.

@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { blocking, contrastRatio, isDarkOnLight, pageRoutes, parseRgb, pdfPageCount, pickChromium, shotFile } from "./check-pages";
+import { blocking, pageRoutes, pickChromium, shotFile } from "./check-pages";
 
 describe("pageRoutes", () => {
   it("lists every page with the route pattern CONTROLS.json keys it by and a screenshot name", () => {
     expect(pageRoutes(["prompt-caching", "claude-code-workflow"], "/no-such-page")).toEqual([
       { path: "/", pattern: "/", name: "home" },
-      { path: "/cv", pattern: "/cv", name: "cv" },
       { path: "/writing", pattern: "/writing", name: "writing" },
       { path: "/writing/prompt-caching", pattern: "/writing/[slug]", name: "writing-prompt-caching" },
       { path: "/writing/claude-code-workflow", pattern: "/writing/[slug]", name: "writing-claude-code-workflow" },
@@ -37,37 +36,6 @@ describe("blocking", () => {
       "image-alt:critical",
       "color-contrast:null",
     ]);
-  });
-});
-
-describe("colour checks", () => {
-  it("reads rgb() and rgba() as Chromium serialises computed colours", () => {
-    expect(parseRgb("rgb(240, 240, 238)")).toEqual({ r: 240, g: 240, b: 238, a: 1 });
-    expect(parseRgb("rgba(0, 0, 0, 0)")).toEqual({ r: 0, g: 0, b: 0, a: 0 });
-    expect(parseRgb("transparent")).toBeNull();
-  });
-
-  it("knows the contrast of black on white and of the light theme's grey on white", () => {
-    expect(contrastRatio("rgb(0, 0, 0)", "rgb(255, 255, 255)")).toBeCloseTo(21, 5);
-    // #6b6b69: channel 107/255 linearises to about 0.147, so (1.05) / (0.147 + 0.05) is about 5.33.
-    expect(contrastRatio("rgb(107, 107, 105)", "rgb(255, 255, 255)")).toBeCloseTo(5.33, 1);
-  });
-
-  it("calls text dark on light only when it is darker than the paper and meets 4.5:1", () => {
-    expect(isDarkOnLight("rgb(15, 15, 14)", "rgb(255, 255, 255)")).toBe(true);
-    expect(isDarkOnLight("rgb(107, 107, 105)", "rgb(255, 255, 255)")).toBe(true);
-    // The dark theme's text and its grey (#8a8a88, about 3.45:1) both fail on white paper.
-    expect(isDarkOnLight("rgb(240, 240, 238)", "rgb(255, 255, 255)")).toBe(false);
-    expect(isDarkOnLight("rgb(138, 138, 136)", "rgb(255, 255, 255)")).toBe(false);
-    // Light text on a dark box is readable but is not dark on light.
-    expect(isDarkOnLight("rgb(255, 255, 255)", "rgb(0, 0, 0)")).toBe(false);
-  });
-});
-
-describe("pdfPageCount", () => {
-  it("counts page objects, not the page tree", () => {
-    const pdf = "%PDF-1.4\n1 0 obj << /Type /Pages /Kids [2 0 R 3 0 R] /Count 2 >>\n2 0 obj << /Type /Page /Parent 1 0 R >>\n3 0 obj <</Type/Page/Parent 1 0 R>>\n";
-    expect(pdfPageCount(Buffer.from(pdf, "latin1"))).toBe(2);
   });
 });
 

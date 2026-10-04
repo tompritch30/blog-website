@@ -28,14 +28,13 @@ Open http://localhost:3000. For writing, use `npm run dev` instead of build and 
 
 ## Writing a post
 
-Add `src/content/posts/<slug>.mdx`. The file name is the URL: `my-post.mdx` becomes `/blog/my-post`.
+Add `src/content/posts/<slug>.mdx`. The file name is the URL: `my-post.mdx` becomes `/writing/my-post`.
 
 ```mdx
 ---
 title: "Your post title"
 date: "2026-10-03"
 description: "One sentence for the post list, the feed and share cards."
-tags: ["tag-one", "tag-two"]
 draft: true
 ---
 
@@ -56,15 +55,15 @@ npm run check:pages -- http://localhost:3119   # default base URL: http://localh
 npm run shots -- http://localhost:3119         # the same checks, plus screenshots in design/shots/
 ```
 
-Every page (home, CV, writing, each post, About and a missing page) is opened at 375 and 1440 pixels wide in the light and dark themes. The check runs axe (WCAG 2.2 AA) and fails on any serious, critical or colour-contrast violation; checks the rendered page's links and buttons against `design/CONTROLS.json` with the same code as `npm run lint:slop -- --built`; and prints `/cv` to A4 and Letter PDFs while the system theme is dark, failing on any count but one page (the PDF CV it recreates is one page), a printed nav, or text that is not dark on light. It also measures the header nav on every page (one line, the alien's button at least 28x28, no sideways scroll). `--shots` saves `<page>-<width>-<theme>.png` full-page screenshots, palette-reduced to under 300KB; `--out <dir>` puts them elsewhere. Nothing is downloaded: it uses a Chromium that Playwright has already cached.
+Every page (home, writing, each post, About and a missing page) is opened at 375 and 1440 pixels wide in the light and dark themes. The check runs axe (WCAG 2.2 AA) and fails on any serious, critical or colour-contrast violation; checks the rendered page's links and buttons against `design/CONTROLS.json` with the same code as `npm run lint:slop -- --built` with the invaders game open as well. It also measures the header nav on every page (one line, the alien's button at least 28x28, no sideways scroll). `--shots` saves `<page>-<width>-<theme>.png` full-page screenshots, palette-reduced to under 300KB; `--out <dir>` puts them elsewhere. Nothing is downloaded: it uses a Chromium that Playwright has already cached.
 
 ## Configuration
 
 | Setting | Where | Default | Purpose |
 |---|---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | environment variable | Vercel's production domain, else `http://localhost:3000` | Origin for canonical URLs, the sitemap, the RSS feed and share images. Set it once there is a custom domain. |
-| Name, tagline, GitHub link | `src/lib/site.ts` | Thomas Pritchard, his role at Palindrome | Shown in the header, home page, metadata and share images. |
-| Colours | `src/app/globals.css` | Warm off-white and near-black, with a dark mode | A test checks every text colour meets WCAG AA contrast. |
+| Name, tagline, description | `src/lib/site.ts` | Thomas Pritchard, his role at Palindrome | The name in the nav, page titles, metadata, the feed and the share images. His profile links live in `src/content/profile.ts`. |
+| Colours | `src/app/globals.css` | A cool grey-green paper and green-black ink, with a dark theme drawn for itself (`design/SYSTEM.md`) | A test checks every text colour meets WCAG AA contrast. |
 | Node version | `.nvmrc`, `package.json` `engines` | 22 | Vercel builds with the `engines` version. |
 | `CHECK_PAGES_CHROMIUM` | environment variable | the Chromium build `playwright-core` expects, else the newest headless shell or Chromium in `PLAYWRIGHT_BROWSERS_PATH` (default `~/.cache/ms-playwright`) | Path to the Chromium or Chrome binary `npm run check:pages` and `npm run shots` drive. Set it when no Playwright browser is cached (`npx playwright-core install chromium-headless-shell` downloads one). |
 
@@ -95,8 +94,7 @@ src/content/posts/*.mdx --> src/lib/posts.ts --> pages under src/app/ --> static
 
 - A personal site with one author. It is not a template, though the code is free to reuse under the licence below.
 - The icon and the share images are simple generated placeholders.
-- No comments, analytics, tag pages or pagination yet. All posts are listed on the home page.
-- Search filters the post list in the browser by title, description and tags; it does not search post bodies.
+- No comments, analytics, tags, search or pagination. The home page lists recent posts; `/writing` lists them all.
 
 ## Licence
 

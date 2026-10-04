@@ -960,3 +960,7 @@ AssertionError: expected [ …(10) ] to have a length of 9 but got 10
 ```
 
 Green: `slop: 0 hits in 0 of 71 files` and `Tests  76 passed (76)`.
+
+#### The web CV dropped (owner decision, 4 Oct)
+
+Mid-round the owner dropped `/cv`, so items 4 (print headroom) and 5 (the Charis italic) are void: a red test for the Letter headroom (`printBox`, `printHeadroom`) had been written and was discarded with them. Removed: the route, its CSS and the CV rules in the print block (the generic print rules stay: no nav, links print their address), the sheet colour tokens and their contrast tests, the Charis SIL font and its MANIFEST entry, the nav's CV link and the CONTROLS entries, `/cv` in the sitemap and in check-pages' routes, the print check and the colour and PDF helpers only it used (with their tests), `src/lib/cv.ts` and its tests, `scripts/cv-compare.mts` and the four `design/shots/cv-*.png`. `next.config.ts` redirects `/cv` to `/` permanently. The `cv` data in the profile stays: the home page reads every field of it. The `.gitignore` line for the cv-compare images stays, since those private images are still on the owner's disk. SYSTEM.md, CONTEXT.md and README follow; the README also loses the `tags:` line, the search line and the stale `/blog` path, and its configuration row now names what `src/lib/site.ts` holds, since `site.github` (unused) is gone.

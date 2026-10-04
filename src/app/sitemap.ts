@@ -7,7 +7,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const posts = getAllPosts();
   return [
     { url: site.url, lastModified: posts[0]?.date },
-    { url: `${site.url}/cv` },
     { url: `${site.url}${WRITING_PATH}`, lastModified: posts[0]?.date },
     { url: `${site.url}/about` },
     ...posts.map((p) => ({ url: `${site.url}${postPath(p.slug)}`, lastModified: p.date })),

@@ -4,7 +4,6 @@
     { "kind": "link", "href": "#main", "job": "skip past the navigation to the page content (keyboard and screen reader users)" },
     { "kind": "link", "href": "/", "job": "go to the home page (the name in the nav)" },
     { "kind": "link", "href": "/writing", "job": "open the list of posts" },
-    { "kind": "link", "href": "/cv", "job": "open the web CV" },
     { "kind": "link", "href": "/about", "job": "open the About page" },
     { "kind": "button", "name": "Play space invaders", "job": "start the hidden invaders game (the pixel alien in the header nav, next to About)" }
   ],
@@ -27,13 +26,6 @@
       "controls": [
         { "kind": "prose links", "job": "follow a source or page the post cites" },
         { "kind": "scroll regions", "job": "scroll a wide code block or table by keyboard" }
-      ]
-    },
-    "/cv": {
-      "controls": [
-        { "kind": "link", "href": "https://github.com/tompritch30", "job": "see his code on GitHub (from the CV header)" },
-        { "kind": "link", "href": "https://www.linkedin.com/in/thomas-pritchard-01a/", "job": "see his LinkedIn profile" },
-        { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "job": "read the ForestVO paper" }
       ]
     },
     "/about": {

@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/blog", destination: "/writing", permanent: true },
       { source: "/blog/:slug", destination: "/writing/:slug", permanent: true },
+      // The web CV was dropped on 4 Oct 2026; its address leads home.
+      { source: "/cv", destination: "/", permanent: true },
     ];
   },
 };

@@ -15,7 +15,6 @@ export const site = {
   name: "Thomas Pritchard",
   tagline: "Founding Forward Deployed Engineer at Palindrome. I build LLM systems for clients.",
   description: "Thomas Pritchard's personal site: notes on building LLM systems, what they cost and how to make them work.",
-  github: "https://github.com/tompritch30",
   locale: "en_GB",
   url: siteUrl(),
 };

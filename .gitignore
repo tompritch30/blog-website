@@ -41,7 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 # local agent settings and owner-only notes
-# (cv-compare images carry his private PDF CV beside the web CV: scripts/cv-compare.mts)
+# (cv-compare images from the dropped web CV carry his private PDF CV; they stay on his disk only)
 design/shots/cv-compare-*.png
 .claude/settings.local.json
 RELEASE-NOTES-FOR-OWNER.md

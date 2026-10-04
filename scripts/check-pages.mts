@@ -2,10 +2,10 @@
 // The default base URL is http://localhost:3005, where `npm run dev` serves; for the production build,
 // run `npm run build && npm start -p 3119` first and pass http://localhost:3119:
 //
-//   npm run check:pages [-- <base URL>]            axe, rendered controls and the /cv print check
+//   npm run check:pages [-- <base URL>]            axe, rendered controls and the nav
 //   npm run shots [-- <base URL>] [--out <dir>]    the same, plus full-page screenshots (default design/shots/)
 //
-// Every route (/, /cv, /writing, each post linked from /writing, /about and a missing page) is opened at
+// Every route (/, /writing, each post linked from /writing, /about and a missing page) is opened at
 // 375x812 and 1440x900 in light and dark (emulated prefers-color-scheme):
 //   (a) axe-core with the wcag2a, wcag2aa, wcag21aa and wcag22aa tags; any serious or critical violation
 //       or any colour-contrast one fails;
@@ -15,10 +15,7 @@
 //       "dialogs.invaders", and Escape must hand focus back to the alien;
 //   (b2) the header nav: its links and the alien sit on one line, the alien's button is at least 28x28
 //       (WCAG 2.2 target size), and the page does not scroll sideways, at both widths;
-//   (c) with --shots, a full-page PNG per page, width and theme, palette-reduced with sharp to under 300KB;
-//   (d) /cv printed while the system theme is dark: PDFs at A4 and Letter (into a temporary folder), each
-//       exactly as many pages as the PDF CV it recreates (one), no nav or footer on the page, and all text
-//       dark on light paper.
+//   (c) with --shots, a full-page PNG per page, width and theme, palette-reduced with sharp to under 300KB.
 //
 // Browser: CHECK_PAGES_CHROMIUM if set, else the build playwright-core expects, else the newest Chromium
 // in the Playwright cache (PLAYWRIGHT_BROWSERS_PATH or ~/.cache/ms-playwright). Nothing is downloaded.
@@ -29,7 +26,7 @@ import os from "node:os";
 import path from "node:path";
 import { type Browser, type Page, chromium } from "playwright-core";
 import sharp from "sharp";
-import { blocking, isDarkOnLight, pageRoutes, pdfPageCount, pickChromium, shotFile } from "../src/lib/check-pages.ts";
+import { blocking, pageRoutes, pickChromium, shotFile } from "../src/lib/check-pages.ts";
 import { type ControlsBudget, entriesFor, lintControls } from "../src/lib/slop.ts";
 
 const TAGS = ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"];
@@ -40,9 +37,6 @@ const VIEWPORTS = [
 const THEMES = ["light", "dark"] as const;
 const MAX_SHOT = 300 * 1024;
 const MISSING = "/check-pages-missing-page";
-const PAPER = "rgb(255, 255, 255)";
-// The PDF CV that /cv recreates is one page; the printed /cv must be too, on A4 and on Letter.
-const CV_PAGES = 1;
 // WCAG 2.2 target size asks for 24x24; the alien's button is drawn at 28x28.
 const ALIEN_MIN = 28;
 
@@ -111,59 +105,6 @@ async function shrink(png: Buffer, width: number): Promise<{ out: Buffer; note: 
   }
   const out = await sharp(png).resize({ width: Math.round(width / 2) }).png({ palette: true, colours: 32, compressionLevel: 9 }).toBuffer();
   return { out, note: "32 colours, half width (still over 300KB)" };
-}
-
-async function printCheck(browser: Browser, problems: string[]): Promise<void> {
-  const ctx = await browser.newContext({ viewport: VIEWPORTS[1], colorScheme: "dark" });
-  const page = await ctx.newPage();
-  await page.goto(`${base}/cv`, { waitUntil: "networkidle" });
-  await page.emulateMedia({ media: "print", colorScheme: "dark" });
-  await page.evaluate(() => document.fonts.ready);
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "check-pages-print-"));
-  for (const format of ["A4", "Letter"] as const) {
-    // printBackground false is the browser's own default ("Background graphics" off): the paper is white.
-    const pdf = await page.pdf({ format, printBackground: false, path: path.join(dir, `cv-${format}.pdf`) });
-    const pages = pdfPageCount(pdf);
-    const ok = pages === CV_PAGES;
-    console.log(`${ok ? "pass" : "FAIL"}  print /cv ${format}: ${pages} page${pages === 1 ? "" : "s"}, want ${CV_PAGES} (${(pdf.length / 1024).toFixed(0)} KB, ${path.join(dir, `cv-${format}.pdf`)})`);
-    if (!ok) problems.push(`print /cv ${format}: ${pages} pages, want ${CV_PAGES} like the PDF CV`);
-  }
-  const chrome = await page.evaluate(() =>
-    [...document.querySelectorAll("nav, footer, [role=navigation], [role=contentinfo]")]
-      .filter((el) => el.checkVisibility({ visibilityProperty: true }))
-      .map((el) => `<${el.tagName.toLowerCase()}> "${(el as HTMLElement).innerText.replace(/\s+/g, " ").trim().slice(0, 60)}"`),
-  );
-  console.log(`${chrome.length ? "FAIL" : "pass"}  print /cv: ${chrome.length ? `nav or footer printed: ${chrome.join("; ")}` : "no nav or footer on the page"}`);
-  if (chrome.length) problems.push(`print /cv: nav or footer printed (${chrome.length})`);
-  const colours = await page.evaluate(() => {
-    // Visually hidden text never reaches the paper: sr-only clips its box away (clip-path inset(50%),
-    // or the older clip rect(0 0 0 0)) inside a 1px box with overflow hidden; padding can widen the box.
-    const clipped = (el: Element | null): boolean => {
-      for (let e = el; e; e = e.parentElement) {
-        const s = getComputedStyle(e);
-        const r = e.getBoundingClientRect();
-        if (s.clipPath === "inset(50%)" || /^rect\(0px,? 0px,? 0px,? 0px\)$/.test(s.clip)) return true;
-        if (s.overflow === "hidden" && (r.width <= 1 || r.height <= 1)) return true;
-      }
-      return false;
-    };
-    const seen = new Map<string, string>();
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-      const el = n.parentElement;
-      if (!el || !n.textContent?.trim() || !el.checkVisibility({ visibilityProperty: true, opacityProperty: true }) || clipped(el)) continue;
-      const color = getComputedStyle(el).color;
-      if (!seen.has(color)) seen.set(color, n.textContent.trim().slice(0, 40));
-    }
-    return [...seen].map(([color, sample]) => ({ color, sample }));
-  });
-  const light = colours.filter((c) => !isDarkOnLight(c.color, PAPER));
-  console.log(
-    `${light.length ? "FAIL" : "pass"}  print /cv: ${colours.length} text colour${colours.length === 1 ? "" : "s"} on white paper` +
-      (light.length ? `, ${light.length} not dark on light: ${light.map((c) => `${c.color} ("${c.sample}")`).join("; ")}` : ", all dark on light"),
-  );
-  if (light.length) problems.push(`print /cv: ${light.length} text colours not dark on light`);
-  await ctx.close();
 }
 
 /**
@@ -330,8 +271,6 @@ async function main(): Promise<number> {
   await gameCheck(browser, problems);
   console.log("");
   for (const row of axeRows) console.log(row);
-  console.log("");
-  await printCheck(browser, problems);
   if (shotRows.length) {
     console.log("");
     for (const row of shotRows) console.log(row);

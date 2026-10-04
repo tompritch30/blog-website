@@ -7,9 +7,9 @@ Words used in code, tests and plans. Use these names; add a line when a new term
 - **Frontmatter**: the YAML block at the top of a post: `title`, `date` (quoted `YYYY-MM-DD`), `description` and optional `draft`. Validated once, in `src/lib/posts.ts`; any other key (an old `tags` line, say) is ignored. Posts have no tags: the site shows none.
 - **Draft**: a post with `draft: true`. Shown by `next dev` only; never built, listed, put in the sitemap or the feed.
 - **Published post**: any post that is not a draft.
-- **Profile**: `src/content/profile.ts`, the facts about Thomas the pages render: the intro, the case studies, the CV data and his profile links. Sources and limits in ADR 0003.
+- **Profile**: `src/content/profile.ts`, the facts about Thomas the pages render: the intro, the case studies, his roles, education, paper and skills (`cv`, which the home page reads; the web CV page was dropped on 4 Oct 2026 and `/cv` redirects home) and his profile links. Sources and limits in ADR 0003.
 - **Case study**: one piece of his work told as problem, what he built and the result, with where and when (`caseStudies` in the profile); shown on the home page. Clients are described, never named.
-- **Site config**: `src/lib/site.ts`: name, tagline, description, GitHub link and the **site URL**.
+- **Site config**: `src/lib/site.ts`: name, tagline, description, locale and the **site URL**.
 - **Site URL**: the public origin. `NEXT_PUBLIC_SITE_URL`, else Vercel's production domain, else `http://localhost:3000`.
 - **Share image**: the Open Graph image generated at build time (`opengraph-image.tsx`); one for the site, one per post.
 - **Feed**: the RSS 2.0 document at `/feed.xml`.
