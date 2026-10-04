@@ -616,3 +616,23 @@ AssertionError: expected [] to deeply equal [ [ …(2) ], [ …(2) ] ]
 ```
 
 The key test passes against the stub (no rows, no clashes); it gained meaning once rows existed. Green: `Tests  7 passed (7)`. Rendered on the dev server, `/` and `/cv` now read "Imperial College London, 2024, MSc Computer Science (Distinction)" and "Imperial College London, 2021, BSc Biological Sciences (First Class Honours), Dean's List, Years 1 and 2".
+
+#### Design system, manifest and final screenshots
+
+`design/SYSTEM.md` written for the kb direction (owner rules on top, then each choice with its reason, gates and learnings); `scripts/ci.sh` now runs `npm run lint:slop -- design/SYSTEM.md`, which passes (the first run caught "Oct" in a heading and two unlisted capital words; reworded). `design/MANIFEST.yaml` lists every loaded font with files, upstream, licence, weights, styles and subsets, including Geist, which `next/og` bundles and falls back to for the favicon and share cards (an open item in SYSTEM.md); the portrait, the Palindrome logo, the paper plot and the wordmarks have entries; every path in the file exists, so none was removed.
+
+Gates from a fresh `git clone --local` of `site-v2-kb` at d604647 in a `mktemp -d` folder (`npm ci --prefer-offline`, hooks installed as `scripts/setup-dev.sh` does), so the owner's dev server on 3006 kept its `.next`. `scripts/ci.sh`: `slop: 0 hits in 0 of 70 files`, `pass  design/SYSTEM.md`, `Tests  202 passed (202)`, built pages `slop: 0 hits in 0 of 7 files`, `ci: all gates green`. Then `npx next start -p 3016` from the clone, `npm run shots -- http://localhost:3016 --out <clone>/design/shots` and `npm run check:pages -- http://localhost:3016`:
+
+```
+pass  controls / 1440 with the game open (reduced motion: no-preference): dialog has "Close"
+pass  game / 1440 with the game open (reduced motion: no-preference): Escape closes it and focus is back on the alien
+pass  controls / 1440 with the game open (reduced motion: reduce): dialog has "Close", "Play anyway"
+pass  game / 1440 with the game open (reduced motion: reduce): Escape closes it and focus is back on the alien
+pass  print /cv A4: 2 pages (111 KB)
+pass  print /cv Letter: 2 pages (111 KB)
+pass  print /cv: no nav or footer on the page
+pass  print /cv: 1 text colour on white paper, all dark on light
+check-pages: 6 pages x 2 widths x 2 themes, 0 problems
+```
+
+axe: 24 of 24 runs with 0 violations; controls: 12 page passes plus 2 with the game open. The 24 screenshots (11 KB to 212 KB, all at 256 colours) are committed in `design/shots/`.
