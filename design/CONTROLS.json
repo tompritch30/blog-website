@@ -73,7 +73,6 @@
       { "kind": "button", "name": "Play anyway", "job": "play when the device asks for reduced motion (the game opens on a still frame)" },
       { "kind": "button", "name": "Resume", "job": "carry on playing after the browser blocked a mystery ship's new tab" },
       { "kind": "link", "href": "https://doi.org/10.1109/lra.2025.3557738", "job": "open the paper by hand when the browser blocked the mystery ship's new tab" },
-      { "kind": "link", "href": "/cv", "job": "open the CV by hand when the browser blocked the mystery ship's new tab" },
       { "kind": "link", "href": "https://github.com/tompritch30", "job": "open GitHub by hand when the browser blocked the mystery ship's new tab" }
     ]
   }

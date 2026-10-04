@@ -17,7 +17,7 @@ import {
   type GameState,
   type InvaderType,
 } from "@/lib/invaders/engine";
-import { openTarget, type MysteryTarget } from "@/lib/invaders/links";
+import { followTarget, isInternal, type MysteryTarget } from "@/lib/invaders/links";
 import { CREATURES, MYSTERY, SHIELD, SHIP, cells } from "./sprites";
 
 const BEST_KEY = "invaders-best";
@@ -345,7 +345,19 @@ export default function Game({ onClose }: { onClose: () => void }) {
       }
       for (const e of g.events) {
         if (e.type !== "mystery-hit") continue;
-        if (openTarget((url, target) => window.open(url, target), e.target.href)) {
+        const outcome = followTarget(
+          {
+            open: (url, target) => window.open(url, target),
+            // the site's own page loads in this tab, so the game closes first and puts the page back
+            go: (href) => {
+              onClose();
+              window.location.assign(href);
+            },
+          },
+          e.target.href,
+        );
+        if (outcome === "same-tab") return;
+        if (outcome === "new-tab") {
           setSaid(`Mystery ship, ${e.points} points. Opened ${e.target.label} in a new tab.`);
         } else {
           // the browser blocked the tab: pause and offer a real link instead
@@ -365,7 +377,7 @@ export default function Game({ onClose }: { onClose: () => void }) {
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [mode, redraw]);
+  }, [mode, redraw, onClose]);
 
   // Keyboard: arrows or A and D to move, space to fire. A focused control keeps its own keys.
   useEffect(() => {
@@ -504,11 +516,19 @@ export default function Game({ onClose }: { onClose: () => void }) {
                       actionRef.current = el;
                     }}
                     href={blocked.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    // only another site's tab can be blocked; the site's own pages open in this tab
+                    {...(isInternal(blocked.href) ? {} : { target: "_blank", rel: "noopener noreferrer" })}
                     className="text-fg underline underline-offset-4"
                   >
                     {blocked.linkText}
+                    {!isInternal(blocked.href) && (
+                      <>
+                        <span className="ext" aria-hidden="true">
+                          {"↗"}
+                        </span>
+                        <span className="sr-only"> (opens in a new tab)</span>
+                      </>
+                    )}
                   </a>
                   <button type="button" onClick={resume} className={control}>
                     Resume

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MYSTERY_TARGETS, mysteryTarget, openTarget } from "./links";
+import { MYSTERY_TARGETS, followTarget, isInternal, mysteryTarget } from "./links";
 
 describe("mystery ship link targets", () => {
   it("are the paper, the CV and GitHub, each with a sentence-case link text", () => {
@@ -21,20 +21,59 @@ describe("mystery ship link targets", () => {
   });
 });
 
-describe("openTarget", () => {
-  it("opens the link in a new tab, cuts the new tab's link back to this page, and reports success", () => {
+describe("isInternal", () => {
+  it("is true for a path on this site and false for another site, protocol-relative ones included", () => {
+    expect(["/cv", "/writing/a-post", "https://github.com/x", "http://example.org", "//example.org/cv"].map(isInternal)).toEqual([
+      true,
+      true,
+      false,
+      false,
+      false,
+    ]);
+  });
+});
+
+// A stand-in browser that records what the game asked of it.
+function browser(tab: { opener: unknown } | null) {
+  const calls: string[] = [];
+  return {
+    calls,
+    env: {
+      open: (url: string, target: string) => {
+        calls.push(`open ${url} ${target}`);
+        return tab;
+      },
+      go: (href: string) => {
+        calls.push(`go ${href}`);
+      },
+    },
+  };
+}
+
+describe("followTarget", () => {
+  it("goes to a page on this site in the same tab, opening no new tab", () => {
+    const b = browser({ opener: {} });
+    expect(followTarget(b.env, "/cv")).toBe("same-tab");
+    expect(b.calls).toEqual(["go /cv"]);
+  });
+
+  it("opens another site in a new tab, cuts the new tab's link back to this page, and reports it", () => {
     const tab = { opener: {} as unknown };
-    const calls: unknown[][] = [];
-    const ok = openTarget((...args) => {
-      calls.push(args);
-      return tab;
-    }, "https://example.org/x");
-    expect(ok).toBe(true);
-    expect(calls).toEqual([["https://example.org/x", "_blank"]]);
+    const b = browser(tab);
+    expect(followTarget(b.env, "https://example.org/x")).toBe("new-tab");
+    expect(b.calls).toEqual(["open https://example.org/x _blank"]);
     expect(tab.opener).toBeNull();
   });
 
-  it("reports a blocked popup when the browser returns null", () => {
-    expect(openTarget(() => null, "/cv")).toBe(false);
+  it("reports a blocked popup when the browser returns null for another site", () => {
+    const b = browser(null);
+    expect(followTarget(b.env, "https://github.com/tompritch30")).toBe("blocked");
+    expect(b.calls).toEqual(["open https://github.com/tompritch30 _blank"]);
+  });
+
+  it("treats a protocol-relative address as another site", () => {
+    const b = browser({ opener: {} });
+    expect(followTarget(b.env, "//example.org/cv")).toBe("new-tab");
+    expect(b.calls).toEqual(["open //example.org/cv _blank"]);
   });
 });

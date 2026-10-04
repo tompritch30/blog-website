@@ -636,3 +636,31 @@ check-pages: 6 pages x 2 widths x 2 themes, 0 problems
 ```
 
 axe: 24 of 24 runs with 0 violations; controls: 12 page passes plus 2 with the game open. The 24 screenshots (11 KB to 212 KB, all at 256 colours) are committed in `design/shots/`.
+
+### 2026-10-04 review fixes
+
+Findings from a fresh code review of `site-v2-kb` at 5eefa3e, fixed by an agent that did not write the reviewed code. One commit per finding.
+
+#### Mystery ship: the site's own page in the same tab
+
+The CV is a page of this site, so the site's link rule (own pages in the same tab, other sites in a new one) applies to the mystery ship too. `followTarget` in `src/lib/invaders/links.ts` replaces `openTarget`: an internal path (`/cv`; `//host` counts as another site) closes the game, which puts the page back, and loads the page with `location.assign`; the paper and GitHub still open with `window.open(href, "_blank")` and the opener cut by hand. Choice: the same-tab load sends the referrer as any same-site link does; it only names this site's own page, so it is accepted rather than stripped. The blocked-popup link in the game now only ever shows an off-site target, and carries the arrow and the visually hidden "(opens in a new tab)" like `ExternalLink`; the `/cv` entry left `dialogs.invaders` in `design/CONTROLS.json`, since that link can no longer appear.
+
+Red, `npx vitest run src/lib/invaders/links.test.ts` against stubs (`isInternal` always false, `followTarget` always "blocked"):
+
+```
+   ✓ mystery ship link targets > are the paper, the CV and GitHub, each with a sentence-case link text 2ms
+   ✓ mystery ship link targets > rotate: the nth hit opens target n, wrapping round 0ms
+   × isInternal > is true for a path on this site and false for another site, protocol-relative ones included 9ms
+   × followTarget > goes to a page on this site in the same tab, opening no new tab 3ms
+   × followTarget > opens another site in a new tab, cuts the new tab's link back to this page, and reports it 1ms
+   × followTarget > reports a blocked popup when the browser returns null for another site 1ms
+   × followTarget > treats a protocol-relative address as another site 1ms
+AssertionError: expected [ false, false, false, false, false ] to deeply equal [ true, true, false, false, false ]
+AssertionError: expected 'blocked' to be 'same-tab' // Object.is equality
+AssertionError: expected 'blocked' to be 'new-tab' // Object.is equality
+AssertionError: expected [] to deeply equal [ Array(1) ]
+AssertionError: expected 'blocked' to be 'new-tab' // Object.is equality
+      Tests  5 failed | 2 passed (7)
+```
+
+Green: `Tests  7 passed (7)`.
