@@ -681,3 +681,21 @@ AssertionError: expected undefined to be '_blank' // Object.is equality
 ```
 
 The same-tab test passes before and after: it guards the internal half of the split. Green: `Tests  15 passed (15)`.
+
+#### Game copy
+
+The alien's button, the dialog's name and the help line still described the word-block version ("shoot down the things I build with"). Now: button "Play space invaders", dialog "A game of space invaders", help "Left and right or A and D to move, space to fire, Escape to quit." (touch: "Drag to move, tap to fire."). `design/CONTROLS.json` and the alien locator in `scripts/check-pages.mts` follow.
+
+#### Game resize and rotation
+
+The game sized itself once, on open, so turning a phone or resizing the window left the canvas stretched and the pointer mapped to the old column. A `resize` and an `orientationchange` listener (removed on close) now re-size the canvas, re-run `layout`, rebuild the sprite paths, reset the pointer and start a fresh game, at most once per animation frame and only when the size or pixel ratio changed. After game over the panel keeps the final score until Play again.
+
+Proof is a new step in `scripts/check-pages.mts`: with the game open at 1440x900, the viewport becomes 375x812 and the canvas must match the new size times the pixel ratio within 2 s. Red, `npm run check:pages -- http://localhost:3006` (the owner's dev server, read only) before the listener:
+
+```
+FAIL  game / 1440 with the game open (reduced motion: no-preference): resized to 375x812, canvas 1440x900
+check-pages: 7 pages x 2 widths x 2 themes, 1 problem
+  game / 1440 with the game open (reduced motion: no-preference): canvas not re-laid out after a resize (1440x900)
+```
+
+Green after: `pass  game / 1440 with the game open (reduced motion: no-preference): resized to 375x812, canvas 375x812` and `0 problems` (7 pages there because `next dev` lists drafts).

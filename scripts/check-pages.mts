@@ -182,6 +182,28 @@ async function gameCheck(browser: Browser, problems: string[]): Promise<void> {
     console.log(`${hits.length ? "FAIL" : "pass"}  controls ${label}: dialog has ${names.map((n) => `"${n}"`).join(", ")}`);
     for (const h of hits) console.log(`        ${h.rule} ${h.message}`);
     if (hits.length) problems.push(`controls ${label}: ${hits.length} hits`);
+    if (reducedMotion === "no-preference") {
+      // A phone turned on its side, or a window resized, must re-lay the game out to the new screen.
+      await page.setViewportSize(VIEWPORTS[0]);
+      const fits = await page
+        .waitForFunction(
+          () => {
+            const c = document.querySelector<HTMLCanvasElement>("dialog[open] canvas");
+            return !!c && c.width === Math.round(innerWidth * devicePixelRatio) && c.height === Math.round(innerHeight * devicePixelRatio);
+          },
+          null,
+          { timeout: 2_000 },
+        )
+        .then(() => true)
+        .catch(() => false);
+      const size = await page.evaluate(() => {
+        const c = document.querySelector<HTMLCanvasElement>("dialog[open] canvas");
+        return `${c?.width}x${c?.height}`;
+      });
+      console.log(`${fits ? "pass" : "FAIL"}  game ${label}: resized to ${VIEWPORTS[0].width}x${VIEWPORTS[0].height}, canvas ${size}`);
+      if (!fits) problems.push(`game ${label}: canvas not re-laid out after a resize (${size})`);
+      await page.setViewportSize(VIEWPORTS[1]);
+    }
     await page.keyboard.press("Escape");
     await dialog.waitFor({ state: "detached", timeout: 5_000 });
     // The game hands focus back on the next animation frame, after it unmounts; wait for it, up to 2s.

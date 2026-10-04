@@ -272,18 +272,46 @@ export default function Game({ onClose }: { onClose: () => void }) {
     html.style.scrollbarGutter = "stable";
     html.style.overflow = "hidden";
 
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const dpr = window.devicePixelRatio || 1;
-    dprRef.current = dpr;
-    canvas.width = Math.round(vw * dpr);
-    canvas.height = Math.round(vh * dpr);
-    const L = layout(vw, vh);
-    layoutRef.current = L;
-    pathsRef.current = makePaths(L.px);
+    // Sizes the canvas and lays the game out for the current screen; false when nothing changed.
+    let size = "";
+    const fit = (): boolean => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const dpr = window.devicePixelRatio || 1;
+      const key = `${vw}x${vh}@${dpr}`;
+      if (key === size) return false;
+      size = key;
+      dprRef.current = dpr;
+      canvas.width = Math.round(vw * dpr);
+      canvas.height = Math.round(vh * dpr);
+      const L = layout(vw, vh);
+      layoutRef.current = L;
+      pathsRef.current = makePaths(L.px);
+      return true;
+    };
+    fit();
     coloursRef.current = readColours();
     newGame(readBest());
     redraw();
+
+    // A resize or a turned phone changes the play column, and every position in the game is in its
+    // pixels, so the game is laid out again and starts afresh (once per frame, however many events).
+    let pending = 0;
+    const onResize = () => {
+      cancelAnimationFrame(pending);
+      pending = requestAnimationFrame(() => {
+        if (!fit()) return;
+        pointer.current = null;
+        Object.assign(input.current, { targetX: null, tap: false });
+        const best = Math.max(readBest(), gameRef.current?.highScore ?? 0);
+        newGame(best);
+        // after game over the panel keeps the final score until Play again
+        if (modeRef.current !== "over") setHud({ score: 0, best, wave: 1, lives: gameRef.current?.lives ?? 3 });
+        redraw();
+      });
+    };
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
 
     let live = true;
     const tintMark = () =>
@@ -307,6 +335,9 @@ export default function Game({ onClose }: { onClose: () => void }) {
       live = false;
       closing.current = true;
       scheme.removeEventListener("change", onScheme);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+      cancelAnimationFrame(pending);
       if (before === null) html.removeAttribute("style");
       else html.setAttribute("style", before);
       if (dialog.open) dialog.close();
