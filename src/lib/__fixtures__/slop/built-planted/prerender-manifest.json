@@ -4,6 +4,7 @@
     "/unlisted": { "srcRoute": "/unlisted" },
     "/no-href": { "srcRoute": "/no-href" },
     "/role-button": { "srcRoute": "/role-button" },
-    "/no-job": { "srcRoute": "/no-job" }
+    "/no-job": { "srcRoute": "/no-job" },
+    "/duplicate": { "srcRoute": "/duplicate" }
   }
 }

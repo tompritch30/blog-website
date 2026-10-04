@@ -9,6 +9,13 @@
     "/role-button": { "controls": [{ "kind": "link", "href": "/start", "job": "open the start page" }] },
     "/no-job": { "controls": [{ "kind": "button", "name": "Copy", "job": "" }] },
     "/money": { "controls": [] },
+    "/duplicate": {
+      "controls": [
+        { "kind": "link", "href": "/about", "job": "open the About page" },
+        { "kind": "link", "href": "/", "job": "a second way home, planted: the same address twice" },
+        { "kind": "link", "href": "#about", "job": "jump to the About section, planted: the nav's label for another place" }
+      ]
+    },
     "/external": { "controls": [{ "kind": "link", "href": "https://example.org/*", "count": "many", "job": "open the example site" }] }
   }
 }

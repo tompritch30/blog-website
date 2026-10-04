@@ -1035,6 +1035,57 @@ export function entriesFor(budget: ControlsBudget, route: string): ControlEntry[
   return [...(r.layout === false ? [] : (budget.layout ?? [])), ...r.controls];
 }
 
+/** What a sighted visitor reads on a link: its text without aria-hidden glyphs or sr-only hints. */
+function visibleLabel(el: El): string {
+  const parts: string[] = [];
+  const walk = (n: El) => {
+    for (const c of n.children) {
+      if (!isEl(c)) parts.push(c.text);
+      else if (c.tag !== "script" && c.tag !== "style" && c.attrs["aria-hidden"] !== "true" && !(c.attrs.class ?? "").split(/\s+/).includes("sr-only")) walk(c);
+    }
+  };
+  walk(el);
+  return decodeEntities(parts.join(" ")).replace(/\s+/g, " ").trim();
+}
+
+const normalHref = (href: string) => (href.length > 1 && href.endsWith("/") ? href.slice(0, -1) : href);
+
+/**
+ * Owner review, 4 Oct 2026: each place is linked once per page (duplicate-href) and one visible label
+ * never names two places (duplicate-label). Same-page anchors (#...) are exempt from the first rule:
+ * they move within the page rather than lead anywhere, and the skip link and footnote references need
+ * them; they still count for the second, so an "About" anchor beside an "About" page link fails.
+ */
+function linkUseHits(file: string, root: El, lineOf: (i: number) => number): Hit[] {
+  const out: Hit[] = [];
+  const byHref = new Map<string, string>();
+  const byLabel = new Map<string, string>();
+  const walk = (el: El) => {
+    for (const c of el.children) {
+      if (!isEl(c) || ["head", "script", "style", "template", "noscript"].includes(c.tag)) continue;
+      if (c.tag === "a" && "href" in c.attrs) {
+        const href = normalHref(c.attrs.href);
+        const label = visibleLabel(c) || (c.attrs["aria-label"] ?? "").trim();
+        const line = lineOf(c.start);
+        if (!href.startsWith("#")) {
+          const first = byHref.get(href);
+          if (first !== undefined) out.push(hit(file, line, "duplicate-href", `second link to ${href} on the page (first: "${first}"); link each place once`, label));
+          else byHref.set(href, label);
+        }
+        const key = label.toLowerCase();
+        if (key) {
+          const other = byLabel.get(key);
+          if (other !== undefined && other !== href) out.push(hit(file, line, "duplicate-label", `"${label}" links to ${href} here and to ${other} elsewhere on the page`, label));
+          else if (other === undefined) byLabel.set(key, href);
+        }
+      }
+      walk(c);
+    }
+  };
+  walk(root);
+  return out;
+}
+
 function hrefMatches(pattern: string, href: string): boolean {
   return pattern.endsWith("*") ? href.startsWith(pattern.slice(0, -1)) : pattern === href;
 }
@@ -1053,6 +1104,7 @@ export function lintControls(file: string, html: string, entries: ControlEntry[]
     }
   };
   walkAnchors(root);
+  out.push(...linkUseHits(file, root, lineOf));
   const left = new Map<ControlEntry, number>((entries ?? []).map((e) => [e, e.count === "many" ? Infinity : (e.count ?? 1)]));
   const firstLine = new Map<ControlEntry, number>();
   for (const c of findControls(html)) {

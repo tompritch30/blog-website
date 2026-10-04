@@ -7,7 +7,6 @@
     "/": { "controls": [{ "kind": "link", "href": "/writing/*", "count": "many", "job": "open a post" }] },
     "/writing/[slug]": {
       "controls": [
-        { "kind": "link", "href": "/", "job": "back to the home page from the post" },
         { "kind": "prose links", "job": "links the post cites" },
         { "kind": "scroll regions", "job": "wide code blocks scroll by keyboard" }
       ]

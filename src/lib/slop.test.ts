@@ -281,8 +281,15 @@ describe("controls budget", () => {
 
   it("fails a second control beyond an entry's count, and every control on an unbudgeted route", () => {
     const twice = '<a href="/">Home</a>\n<a href="/">Home again</a>';
-    expect(pairs(lintControls("p.html", twice, [{ kind: "link", href: "/", job: "go home" }], "/x"))).toEqual([["control-unlisted", 2]]);
-    expect(pairs(lintControls("p.html", twice, null, "/x"))).toEqual([["control-unlisted", 1], ["control-unlisted", 2]]);
+    expect(pairs(lintControls("p.html", twice, [{ kind: "link", href: "/", job: "go home" }], "/x"))).toEqual([
+      ["control-unlisted", 2],
+      ["duplicate-href", 2],
+    ]);
+    expect(pairs(lintControls("p.html", twice, null, "/x"))).toEqual([
+      ["control-unlisted", 1],
+      ["control-unlisted", 2],
+      ["duplicate-href", 2],
+    ]);
   });
 
   it("fails an <a> without href, a link with role=button, and an entry without a job", () => {
@@ -292,6 +299,42 @@ describe("controls budget", () => {
       { kind: "button", name: "Copy", job: "" },
     ];
     expect(pairs(lintControls("p.html", html, entries, "/x"))).toEqual([["a-no-href", 1], ["role-button-link", 2], ["control-no-job", 3]]);
+  });
+});
+
+// Owner review, 4 Oct 2026: a page links each place once, and one label never names two places.
+describe("links appear once per page", () => {
+  const ext = (href: string, text: string) =>
+    `<a href="${href}" target="_blank" rel="noopener noreferrer" class="link">${text}<span class="ext" aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a>`;
+  const any: ControlEntry[] = [
+    { kind: "link", href: "/*", count: "many", job: "any page" },
+    { kind: "link", href: "#*", count: "many", job: "any anchor" },
+    { kind: "link", href: "https://*", count: "many", job: "any site" },
+  ];
+  const rules = (html: string) => pairs(lintControls("p.html", html, any, "/x").filter((h) => h.rule.startsWith("duplicate-")));
+
+  it("fails a second link to the same address, a trailing slash or not, but not same-page anchors", () => {
+    const html = [
+      '<a href="#main">Skip to content</a><nav><a href="/cv">CV</a></nav>',
+      `<p>${ext("https://github.com/casey", "GitHub")} <a href="/cv/">Every role</a></p>`,
+      `<div class="prose"><p>${ext("https://github.com/casey", "my code")} <a href="#fn-1">1</a> <a href="#fn-1">1</a> <a href="#main">top</a></p></div>`,
+    ].join("\n");
+    expect(rules(html)).toEqual([["duplicate-href", 2], ["duplicate-href", 3]]);
+  });
+
+  it("fails two links with the same visible label that lead to different places, reading only the visible text", () => {
+    const html = [
+      '<nav><a href="/about">About</a><a href="/writing">Writing</a></nav>',
+      '<nav aria-label="On this page"><a href="#about">about</a><a href="/writing/all">All writing</a></nav>',
+      `<p>${ext("https://github.com/casey", "GitHub")}</p>`,
+      '<p><a href="/code" aria-label="Code on GitHub">GitHub</a></p>',
+    ].join("\n");
+    expect(rules(html)).toEqual([["duplicate-label", 2], ["duplicate-label", 4]]);
+  });
+
+  it("passes a page that links each place once under its own label", () => {
+    const html = `<a href="#main">Skip to content</a><a href="/">Casey</a><a href="/cv">CV</a>\n<p>${ext("https://github.com/casey", "GitHub")} ${ext("https://linkedin.com/in/casey", "LinkedIn")}</p>`;
+    expect(rules(html)).toEqual([]);
   });
 });
 
@@ -328,7 +371,9 @@ describe("lint-slop CLI", { timeout: 30_000 }, () => {
     // the real allowlist: "£2bn+" passes by its text, the split "$75k" does not
     expect(out.stdout).toContain(`${app}/money.html:3 money currency figure "$75k"`);
     expect(out.stdout).toContain(`${app}/external.html:3 external-link `);
-    expect(out.stdout.match(/^\S+:\d+ /gm)).toHaveLength(7);
+    expect(out.stdout).toContain(`${app}/duplicate.html:2 duplicate-href `);
+    expect(out.stdout).toContain(`${app}/duplicate.html:3 duplicate-label `);
+    expect(out.stdout.match(/^\S+:\d+ /gm)).toHaveLength(9);
   });
 
   it("--built passes a clean build, vendored CSS selectors included", () => {
