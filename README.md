@@ -4,9 +4,9 @@ Thomas Pritchard's personal site and blog: a small Next.js app that turns MDX fi
 
 ## Why
 
-A personal site should be cheap to run, quick to load and easy to write for. Posts are plain MDX files in the repo, every page is built ahead of time, and Vercel serves the result. There is no database, CMS or client-side data fetching.
+A personal site should be cheap to run, quick to load and easy to write for. Posts are plain MDX files in the repo, every page is built ahead of time, and Vercel serves the result. There is no database, content management system or client-side data fetching.
 
-![The home page: name, tagline, search box and post list](docs/screenshot.jpg)
+![The home page at 1440 pixels wide in the light theme: the name, the nav (Writing, About and the alien that opens the game), a headline about putting AI agents into production, a short introduction, a portrait and links to LinkedIn and GitHub](docs/screenshot.jpg)
 
 ## Quickstart
 
@@ -77,14 +77,15 @@ Vercel's Next.js defaults work as they are. The step-by-step guide, including th
 
 ```
 src/content/posts/*.mdx --> src/lib/posts.ts --> pages under src/app/ --> static HTML at build time
-   (frontmatter checked,      (drafts hidden       /, /about, /blog/<slug>,
-    dates validated)           in production)      /feed.xml, /sitemap.xml, share images
+   (frontmatter checked,      (drafts hidden       /, /writing, /writing/<slug>,
+    dates validated)           in production)      /about, /feed.xml, /sitemap.xml,
+                                                   share images
 ```
 
 - `src/lib/posts.ts` reads and validates the MDX files. `src/components/Mdx.tsx` renders them with GitHub-flavoured Markdown, heading anchors and code highlighting.
-- `src/app/blog/[slug]/page.tsx` builds one page per published post. Unknown slugs return 404.
+- `src/app/writing/[slug]/page.tsx` builds one page per published post. Unknown slugs return 404.
 - `src/app/feed.xml/route.ts`, `sitemap.ts`, `robots.ts` and the `opengraph-image.tsx` files produce the feed, sitemap and share images.
-- `scripts/ci.sh` runs every check: lint, type check, unit tests, the agent guard tests and a production build.
+- `scripts/ci.sh` runs every check: lint, the slop lint on the source and the design system, type check, unit tests, the agent guard tests, a production build and the slop lint on the built pages.
 
 ## Working on it with coding agents
 
@@ -94,7 +95,7 @@ src/content/posts/*.mdx --> src/lib/posts.ts --> pages under src/app/ --> static
 
 - A personal site with one author. It is not a template, though the code is free to reuse under the licence below.
 - The icon and the share images are simple generated placeholders.
-- No comments, analytics, tags, search or pagination. The home page lists recent posts; `/writing` lists them all.
+- No comments, analytics, tags, search or pagination. The home page lists the three latest posts; `/writing` lists them all.
 
 ## Licence
 
